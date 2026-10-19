@@ -1,0 +1,109 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Codex.dc.html": {
+      "expand": "fill",
+      "h": 3100,
+      "is_interactive": true,
+      "title": "Codex",
+      "w": 1280,
+      "x": 5440,
+      "y": 0
+    },
+    "Exchange.dc.html": {
+      "expand": "fill",
+      "h": 3200,
+      "is_interactive": true,
+      "title": "Exchange",
+      "w": 1280,
+      "x": 6800,
+      "y": 0
+    },
+    "Finder.dc.html": {
+      "expand": "fill",
+      "h": 3400,
+      "is_interactive": true,
+      "title": "Finder",
+      "w": 1280,
+      "x": 1360,
+      "y": 0
+    },
+    "Intel.dc.html": {
+      "expand": "fill",
+      "h": 3800,
+      "is_interactive": true,
+      "title": "Intel",
+      "w": 1280,
+      "x": 9520,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 7700,
+      "is_interactive": true,
+      "title": "RUIN Core",
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Muster.dc.html": {
+      "expand": "fill",
+      "h": 3500,
+      "is_interactive": true,
+      "title": "Muster",
+      "w": 1280,
+      "x": 8160,
+      "y": 0
+    },
+    "Pathfinder.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "is_interactive": true,
+      "title": "Pathfinder",
+      "w": 1280,
+      "x": 4080,
+      "y": 0
+    },
+    "Warfront.dc.html": {
+      "expand": "fill",
+      "h": 3400,
+      "is_interactive": true,
+      "title": "Warfront",
+      "w": 1280,
+      "x": 2720,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-18T08:05:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "file": "Main.dc.html",
+    "view": "focused"
+  },
+  "notes": {
+    "sitetitle": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "RUIN addon suite: player website",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Finder.dc.html",
+    "Warfront.dc.html",
+    "Pathfinder.dc.html",
+    "Codex.dc.html",
+    "Exchange.dc.html",
+    "Muster.dc.html",
+    "Intel.dc.html"
+  ],
+  "pages": [],
+  "title": "RUIN Addon Suite"
+}

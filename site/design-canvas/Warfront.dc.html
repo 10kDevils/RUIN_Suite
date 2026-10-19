@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RUIN Warfront</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&amp;family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#070304}
+a{color:#f2d48a}a:hover{color:#fff1c4}
+.site{--bg:#0e0507;--bg2:#16080b;--panel:#210c10;--line:#4d1a21;--gold:#d8ae4f;--gold2:#f2d48a;--text:#f1e6df;--muted:#b9a3a0;--accent:#c41e3a;--accent2:#f0707f;--deep:#3d0710;background:var(--bg);color:var(--text);font-family:'Alegreya Sans',Optima,'Segoe UI',system-ui,sans-serif;font-size:18px;line-height:1.55}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(20px,4vw);padding-right:max(20px,4vw);box-sizing:border-box}
+.nav{background:#050203;border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Grenze Gotisch',Georgia,serif;font-size:32px;font-weight:700;color:var(--gold2);text-decoration:none;margin-right:auto}
+.navlinks{display:flex;flex-wrap:wrap;gap:2px}
+.navlinks a{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:0 12px;min-height:44px;display:inline-flex;align-items:center}
+.navlinks a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.navlinks a.on{color:#fff;background:var(--accent)}
+.hero{background-color:var(--deep);background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.18) 0 2px,transparent 2px 22px);border-bottom:4px solid var(--gold)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:44px;align-items:center;padding-block:60px 76px}
+.eyebrow{font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold2);margin:0 0 14px}
+.h1{font-family:'Grenze Gotisch',Georgia,serif;font-weight:700;font-size:clamp(72px,10vw,146px);line-height:.85;margin:0 0 20px;color:#fff2e6;text-shadow:0 4px 0 #1c0206}
+.lede{font-size:22px;max-width:30em;color:#f5e6e2;margin:0 0 26px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;padding:6px 10px;border:1px solid rgba(242,212,138,.5);color:var(--gold2);background:rgba(0,0,0,.3)}
+.sec{padding-block:72px}
+.sec.alt{background:var(--bg2);border-block:1px solid var(--line)}
+.label{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent2);margin:0 0 10px}
+.h2{font-family:'Grenze Gotisch',Georgia,serif;font-weight:700;font-size:clamp(38px,4.6vw,56px);line-height:1;margin:0 0 18px;color:var(--gold2);text-wrap:balance}
+.intro{max-width:62ch;font-size:20px;margin:0 0 36px}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px}
+.fstep{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--accent);padding:22px}
+.fstep .n{font-family:'Grenze Gotisch',Georgia,serif;font-size:54px;line-height:.8;color:var(--accent2);display:block;margin-bottom:10px}
+.fstep h3{margin:0 0 6px;font-size:21px;color:#fff}
+.fstep p{margin:0;color:var(--muted)}
+.toast{font-weight:700;font-size:24px;color:#ff3b3b;text-shadow:0 2px 3px #000,0 0 14px rgba(0,0,0,.9);text-align:center;margin-bottom:24px;letter-spacing:.02em}
+.toast span{color:#ffd100}
+.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:rgba(14,4,5,.9);border:2px solid #b3262f;border-radius:6px;padding:12px 14px;box-shadow:0 0 0 1px #000,0 14px 34px rgba(0,0,0,.55);max-width:440px;margin:0 auto}
+.hud .l1{font-weight:700;font-size:18px;color:#ffd100}
+.hud .l1 i{font-style:normal;color:#fff;font-weight:500}
+.hud .l2{font-size:14px;color:#ddd;margin-top:2px}
+.hud .bar{height:6px;background:#2a0b0e;margin-top:8px;border-radius:3px;overflow:hidden}
+.hud .bar div{height:100%;width:64%;background:#ffd100}
+.help{font-size:13px;font-weight:700;color:#ffd100;background:#5a0c0c;border:1px solid #c0392b;padding:12px 12px;border-radius:3px}
+.hudnote{font-size:14px;color:var(--muted);text-align:center;margin-top:12px}
+.rules{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:center}
+.ring{position:relative;width:min(100%,380px);aspect-ratio:1;margin:0 auto;border-radius:50%;border:3px dashed var(--gold);background:radial-gradient(circle,rgba(196,30,58,.25) 0 60%,transparent 61%)}
+.dot{position:absolute;width:26px;height:26px;border-radius:50%;border:2px solid #000;box-shadow:0 0 0 2px var(--gold2)}
+.ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ring .center b{font-family:'Grenze Gotisch',Georgia,serif;font-size:40px;color:#fff;line-height:1}
+.ring .center span{font-size:14px;color:var(--gold2);letter-spacing:.14em;text-transform:uppercase}
+.key{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:16px;font-size:14px;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.rlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.rl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;padding-block:16px;border-bottom:1px solid var(--line)}
+.rl b{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:18px;color:var(--gold2);font-weight:500}
+.lives{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px}
+.live{border:1px solid var(--line);padding:20px;background:rgba(0,0,0,.2)}
+.live .k{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.live .v{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:16px;color:var(--gold2);margin:6px 0}
+.live p{margin:0;color:var(--muted);font-size:16px}
+.shares{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.fact{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;padding:6px 10px;border:1px solid var(--line);color:var(--accent2)}
+.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.list li::marker{color:var(--accent2)}
+.muted{color:var(--muted)}
+.foot{background:#050203;border-top:4px solid var(--gold);padding-block:36px;color:var(--muted);font-size:15px}
+.foot .wrap{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:center}
+.pn{display:flex;gap:12px;flex-wrap:wrap}
+.pn a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line);text-decoration:none;color:var(--gold2);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px}
+.pn a:hover{background:rgba(255,255,255,.05)}
+@media (max-width:820px){.hero .wrap,.rules,.shares{grid-template-columns:1fr}.rl{grid-template-columns:1fr;gap:2px}}
+/* RUIN window mock (Core 0.2.0): Blizzard portrait frame, themed page header, tabs along the bottom */
+.wow{--th:#2f5bd3;position:relative;box-sizing:border-box;margin:30px 4px 50px 26px;padding:28px 7px 7px;background:linear-gradient(#26241f,#181714);border:3px solid #57524b;border-radius:6px;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 3px #34312c,0 0 0 1px #000,0 24px 46px rgba(0,0,0,.6);font-family:'Alegreya Sans',Optima,'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.45;color:#e8e2d6;text-align:left;min-width:600px}
+.wow-por{position:absolute;left:-26px;top:-26px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 32%,color-mix(in srgb,var(--th) 70%,#fff 10%),color-mix(in srgb,var(--th) 55%,#000) 72%);border:3px solid #c9a24a;box-shadow:0 0 0 2px #000,0 5px 12px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:3}
+.wow-por svg{width:34px;height:34px}
+.wow-ttl{position:absolute;top:3px;left:44px;right:30px;height:22px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#ffd100;letter-spacing:.03em;text-shadow:0 1px 0 #000;white-space:pre}
+.wow-x{position:absolute;top:4px;right:5px;width:20px;height:20px;box-sizing:border-box;border-radius:4px;background:radial-gradient(circle at 40% 35%,#d4372b,#5c0b07);border:1px solid #160000;color:#ffe2b0;font:700 13px/18px Arial,sans-serif;text-align:center}
+.wow-in{background:#09090b;border:1px solid #000;box-shadow:inset 0 0 0 1px #3a362f;padding:6px;overflow:hidden}
+.wow-hd{position:relative;display:flex;align-items:center;gap:12px;height:66px;box-sizing:border-box;padding:0 12px;background:linear-gradient(90deg,color-mix(in srgb,var(--th) 58%,#000),color-mix(in srgb,var(--th) 16%,transparent) 62%,transparent);border-bottom:2px solid var(--th);overflow:hidden}
+.wow-hd::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:linear-gradient(90deg,#d8ae4f,rgba(216,174,79,.15))}
+.wow-ic{flex:none;width:46px;height:46px;box-sizing:border-box;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.25),rgba(0,0,0,.7));border:2px solid #000;box-shadow:0 0 0 1px #c9a24a;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.wow-ic svg{width:26px;height:26px}
+.wow-tt{position:relative;z-index:1}
+.wow-tt b{display:block;font-family:'Grenze Gotisch',Georgia,serif;font-weight:700;font-size:28px;line-height:1;color:#ffd100;text-shadow:0 2px 0 #000}
+.wow-tt i{font-style:normal;font-size:13px;color:#eee6d6}
+.wow-mo{position:absolute;right:0;top:0;bottom:0;width:250px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 34%);mask-image:linear-gradient(90deg,transparent,#000 34%)}
+.wow-mo>*{position:absolute}
+.wow-bd{padding:12px 10px 8px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.wow-h{color:#ffd100;font-weight:700;font-size:15px;position:relative;padding-bottom:5px;margin:0}
+.wow-h::after{content:"";position:absolute;left:0;bottom:0;width:48px;height:2px;background:var(--th)}
+.wow-rows>*{padding:6px 8px}
+.wow-rows>*:nth-child(odd){background:color-mix(in srgb,var(--th) 10%,transparent)}
+.wow-rows>*:nth-child(even){background:color-mix(in srgb,var(--th) 4%,transparent)}
+.wow-rows>*:hover{background:color-mix(in srgb,var(--th) 22%,transparent)}
+.wow-tabs{position:absolute;left:12px;top:100%;margin-top:-1px;display:flex;flex-wrap:nowrap;gap:2px}
+.wow-tabs span{font-size:12px;font-weight:700;color:#ffd100;background:linear-gradient(#2c2924,#15130f);border:2px solid #57524b;border-top:0;border-radius:0 0 8px 8px;padding:5px 9px 6px;box-shadow:0 4px 8px rgba(0,0,0,.5);white-space:nowrap}
+.wow-tabs span.on{color:#fff;background:linear-gradient(#3e3933,#201d18);padding-top:8px;margin-top:-1px;border-color:#7a7265}
+.wow-wbtn{display:inline-block;font-size:12px;font-weight:700;color:#ffd100;background:linear-gradient(#8e1712,#4e0806);border:1px solid #1c0000;box-shadow:inset 0 1px 0 rgba(255,255,255,.18);padding:4px 10px;border-radius:3px;white-space:nowrap}
+.wow-wbtn.off{color:#8d8a80;background:linear-gradient(#3a3835,#232120)}
+.wow-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#fff}
+.wow-chk::before{content:"";width:13px;height:13px;border:1px solid #8d8a80;background:#111;box-shadow:inset 0 0 0 2px #111}
+.wow-chk.on::before{background:#ffd100}
+/* Header scenes */
+.mo-rod{left:58px;right:12px;top:6px;height:4px;background:#d8ae4f;border-radius:2px}
+.mo-bn{top:8px;width:30px;height:46px;clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%);transform-origin:50% 0;animation:mo-sway 4s ease-in-out infinite;box-shadow:inset 0 0 0 3px #d8ae4f}
+.mo-bn.mid{height:54px;width:34px;animation-delay:-1.4s}
+@keyframes mo-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.mo-note{width:34px;height:30px;background:#efe3c2;box-shadow:0 2px 4px rgba(0,0,0,.6);transform:rotate(var(--r));animation:mo-bob 3.4s ease-in-out infinite}
+.mo-note::before{content:"";position:absolute;left:13px;top:-3px;width:8px;height:8px;border-radius:50%;background:#d24f8a;box-shadow:0 1px 0 #000}
+.mo-note::after{content:"";position:absolute;left:6px;right:6px;top:12px;height:10px;background:repeating-linear-gradient(#9d8f72 0 1px,transparent 1px 4px)}
+@keyframes mo-bob{0%,100%{translate:0 0}50%{translate:0 -2px}}
+.mo-stripes{inset:0;background:repeating-linear-gradient(135deg,rgba(0,0,0,.28) 0 6px,transparent 6px 16px)}
+.mo-swords{left:150px;top:9px;width:48px;height:48px;filter:drop-shadow(0 2px 0 #000)}
+.mo-ember{bottom:-4px;width:4px;height:4px;border-radius:50%;background:#ffb347;box-shadow:0 0 6px 2px #ff6a1a;animation:mo-rise 2.8s linear infinite}
+@keyframes mo-rise{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(-14px,-70px);opacity:0}}
+.mo-path{left:0;top:0;width:250px;height:66px;overflow:visible}
+.mo-path path{fill:none;stroke:#e8dcb0;stroke-width:3;stroke-dasharray:2 7;stroke-linecap:round;opacity:.8}
+.mo-walker{left:0;top:0;width:10px;height:10px;border-radius:50%;background:#ffd100;box-shadow:0 0 8px 3px rgba(143,210,122,.8);offset-path:path("M40 52 C80 52 90 18 130 22 S190 50 240 16");animation:mo-walk 6s linear infinite}
+@keyframes mo-walk{0%{offset-distance:0%}100%{offset-distance:100%}}
+.mo-book{left:148px;top:10px;width:48px;height:46px;filter:drop-shadow(0 0 6px rgba(192,156,240,.8))}
+.mo-rune{font-style:normal;font-size:16px;color:#d6c0ff;text-shadow:0 0 8px #a87cff;animation:mo-pulse 2.6s ease-in-out infinite}
+@keyframes mo-pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.mo-lines{inset:0;background:linear-gradient(90deg,transparent 98px,rgba(196,30,58,.55) 98px 100px,transparent 100px),repeating-linear-gradient(transparent 0 11px,rgba(242,212,138,.22) 11px 12px)}
+.mo-coin{top:22px;width:22px;height:22px;border-radius:50%;box-shadow:0 2px 0 #000,inset 0 0 0 2px rgba(0,0,0,.25);animation:mo-bob 2.4s ease-in-out infinite}
+.mo-torch{bottom:0;width:6px;height:36px;background:linear-gradient(#6b4a22,#2e1e0c)}
+.mo-torch b{position:absolute;left:-7px;top:-20px;width:20px;height:26px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 70%,#fff3b0,#ffb347 35%,rgba(217,98,43,.8) 60%,transparent 72%);transform-origin:50% 100%;animation:mo-flick .9s ease-in-out infinite alternate}
+@keyframes mo-flick{0%{transform:scale(1,1) rotate(-2deg);opacity:.85}100%{transform:scale(.9,1.12) rotate(3deg);opacity:1}}
+.mo-pen{top:10px;width:24px;height:16px;background:#d9622b;clip-path:polygon(0 0,100% 50%,0 100%);transform-origin:0 50%;animation:mo-flap 2.2s ease-in-out infinite}
+.mo-pen::before{content:"";position:absolute;left:0;top:0;width:2px;height:16px;background:#d8ae4f}
+@keyframes mo-flap{0%,100%{transform:skewY(0)}50%{transform:skewY(8deg)}}
+.mo-scope{left:150px;top:5px;width:56px;height:56px;border-radius:50%;background:repeating-radial-gradient(circle,rgba(56,182,232,.5) 0 1px,transparent 1px 9px);border:1px solid rgba(142,214,245,.7);overflow:hidden}
+.mo-sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(142,214,245,.75),transparent 70deg);animation:mo-spin 2.4s linear infinite}
+@keyframes mo-spin{to{transform:rotate(360deg)}}
+.mo-blip{position:absolute;width:5px;height:5px;border-radius:50%;background:#bff0ff;box-shadow:0 0 6px #38b6e8;animation:mo-pulse 2.4s ease-in-out infinite}
+.mo-scan{right:10px;bottom:4px;font:500 9px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.2em;color:#8ed6f5;animation:mo-pulse 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.wow-mo *,.wow-mo *::before,.wow-mo *::after{animation:none!important}}
+.hud .arrow{width:34px;height:34px;transform:rotate(38deg);filter:drop-shadow(0 1px 0 #000)}
+.radar{position:relative;width:150px;height:150px;margin:8px auto 0;background:rgba(5,5,8,.78);border:2px solid #b3262f;border-radius:6px;box-shadow:0 0 0 1px #000,0 10px 24px rgba(0,0,0,.5);overflow:hidden}
+.radar .ringd{position:absolute;left:54px;top:4px;width:96px;height:96px;border-radius:50%;border:3px dotted #ffd100;box-sizing:border-box;animation:wf-spin 14s linear infinite}
+.radar .ctr{position:absolute;left:98px;top:48px;width:7px;height:7px;background:#ffd100;transform:rotate(45deg)}
+.radar .me{position:absolute;left:63px;top:58px;width:22px;height:22px}
+.radar .lbl{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:12px;color:#fff}
+@keyframes wf-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.radar .ringd{animation:none}}
+</style>
+</helmet>
+<div class="site">
+
+<header class="nav">
+<div class="wrap">
+<a class="brand" href="Main.dc.html">
+<svg width="30" height="32" viewBox="0 0 100 106" aria-hidden="true" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linejoin="round"><path d="M50 5 L92 19 V52 C92 78 73 94 50 101 C27 94 8 78 8 52 V19 Z"></path><path d="M50 24 V84 M34 40 H66"></path></svg>
+RUIN</a>
+<nav class="navlinks" aria-label="RUIN addons">
+<a href="Main.dc.html">Core</a>
+<a href="Finder.dc.html">Finder</a>
+<a class="on" href="Warfront.dc.html">Warfront</a>
+<a href="Pathfinder.dc.html">Pathfinder</a>
+<a href="Codex.dc.html">Codex</a>
+<a href="Exchange.dc.html">Exchange</a>
+<a href="Muster.dc.html">Muster</a>
+<a href="Intel.dc.html">Intel</a>
+</nav>
+</div>
+</header>
+
+<section class="hero">
+<div class="wrap">
+<div>
+<p class="eyebrow">RUIN suite · World PvP</p>
+<h1 class="h1">Warfront</h1>
+<p class="lede">RUIN's own war in the open world. Officers name the ground worth holding, members take it by standing on it together, and one button calls the whole org to your side.</p>
+<div class="chips">
+<span class="chip">Preview 0.3.0</span>
+<span class="chip">/wf</span>
+<span class="chip">Needs RUIN Core</span>
+</div>
+</div>
+<div>
+<div class="toast">CALL TO ARMS: <span>Eve Ember</span> needs help at The Crossroads</div>
+<div class="hud" role="img" aria-label="Example Warfront HUD with a direction arrow, showing a capture in progress">
+<svg class="arrow" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 L29 30 L17 23 L5 30 Z" fill="#ffd100" stroke="#000" stroke-width="2" stroke-linejoin="round"></path></svg>
+<div>
+<div class="l1">Tarren Mill Road <i>· 120 yd NE</i></div>
+<div class="l2">Capturing: 64% · 3 RUIN members here</div>
+<div class="bar"><div></div></div>
+</div>
+<span class="help">Help!</span>
+</div>
+<div class="radar" role="img" aria-label="Warfront radar: the objective circle ahead and to the right, 34 yards to the edge"><span class="ringd"></span><span class="ctr"></span><svg class="me" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 L29 30 L17 23 L5 30 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"></path></svg><span class="lbl">34 yd to the edge</span></div>
+<p class="hudnote">The arrow turns as you turn. Close in and the radar shows the circle around you; it turns green once you're inside.</p>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="label">How it plays</p>
+<h2 class="h2">Name it, take it, hold the line</h2>
+<p class="intro">Warfront gives RUIN's world PvP a purpose: places that matter tonight, chosen by your officers, with the whole org pointed at them.</p>
+<div class="flow">
+<div class="fstep"><span class="n">1</span><h3>Officers mark the ground</h3><p>An officer stands on a crossroads, a flight master or a rival's farming spot and presses Mark objective here.</p></div>
+<div class="fstep"><span class="n">2</span><h3>The org is alerted</h3><p>Every RUIN member gets an alert, and the HUD's arrow points to the nearest objective, turning as you turn, with the distance beside it.</p></div>
+<div class="fstep"><span class="n">3</span><h3>Stand together to capture</h3><p>As you close in, a radar shows the circle around you. Enough RUIN members inside it for a full minute takes it, and the guild with the most fighters present gets the credit.</p></div>
+<div class="fstep"><span class="n">4</span><h3>Call to Arms</h3><p>Jumped while questing? One press tells every RUIN member where you are, and their HUD points to you for two minutes.</p></div>
+</div>
+</div>
+</section>
+
+<section class="sec alt">
+<div class="wrap rules">
+<div>
+<div class="ring" role="img" aria-label="Diagram of a capture circle with three RUIN members inside">
+<span class="dot" style="left:30%;top:38%;background:#2f5bd3"></span>
+<span class="dot" style="left:58%;top:30%;background:#2f5bd3"></span>
+<span class="dot" style="left:52%;top:62%;background:#c41e3a"></span>
+<span class="dot" style="left:90%;top:12%;background:#555"></span>
+<div class="center"><b>3 here</b><span>Capturing 64%</span></div>
+</div>
+<div class="key"><span><i style="background:#2f5bd3"></i>Briar Fang</span><span><i style="background:#c41e3a"></i>Ashen Order</span><span><i style="background:#555"></i>Outside the circle</span></div>
+</div>
+<div>
+<p class="label">Capture rules</p>
+<h2 class="h2">A capture takes a team</h2>
+<div class="rlist">
+<div class="rl"><b>2+ members</b><span>Needed inside the circle at once, so one player can't fake a capture. Officers can raise the number.</span></div>
+<div class="rl"><b>60 seconds</b><span>Held continuously. Step out and the timer resets.</span></div>
+<div class="rl"><b>Most present</b><span>The guild with the most members in the circle is credited with the capture.</span></div>
+<div class="rl"><b>2 hours</b><span>Objectives expire on their own, so the map stays about tonight.</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="label">Where it lives</p>
+<h2 class="h2">Built for the fight, not the menu</h2>
+<div class="lives">
+<div class="live"><div class="k">On screen</div><div class="v">Warfront HUD</div><p>An arrow to the nearest objective or call for help, a radar near the circle, capture progress, and a Help! button.</p></div>
+<div class="live"><div class="k">Key binding</div><div class="v">Call to Arms</div><p>Bind it to a Steam Deck back button. No menu between you and help.</p></div>
+<div class="live"><div class="k">Slash commands</div><div class="v">/wf mark &lt;name&gt; · /wf help</div><p>Officers mark from chat; anyone can call for help.</p></div>
+<div class="live"><div class="k">RUIN window</div><div class="v">Warfront page</div><p>Every objective with status, distance and who set it, under a war-red header of crossed swords. Officers can remove them; anyone can switch on practice mode.</p></div>
+</div>
+</div>
+</section>
+
+<section class="sec alt">
+<div class="wrap shares">
+<div>
+<p class="label">What it shares with RUIN</p>
+<h2 class="h2">Position only when it counts</h2>
+<p class="muted">Warfront only sends your position when you are standing in an objective's circle, press Call to Arms, or claim a bounty kill. Officers who log in later receive the current objectives from officers already online.</p>
+<div class="facts"><span class="fact">objectives</span><span class="fact">presence in a circle</span><span class="fact">captures</span><span class="fact">Call to Arms + location</span><span class="fact">bounties</span><span class="fact">kill claims + witnesses</span><span class="fact">weekly war record</span></div>
+</div>
+<div>
+<p class="label">New in 0.3.0</p>
+<ul class="list">
+<li>Objective and Call to Arms pins on the world map and minimap</li>
+<li>Bounties on rival guilds or players, confirmed by a second RUIN witness</li>
+<li>A weekly war record and leaderboard across RUIN's guilds</li>
+<li>Contested objectives when Intel reports enemies nearby</li>
+</ul>
+<p class="muted" style="margin-top:18px">To try it alone, tick Practice mode on the Warfront page or type <span style="font-family:'IBM Plex Mono',monospace;color:#f2d48a">/wf practice</span>: mark objectives, capture them and post bounties by yourself. Practice items never leave your screen.</p>
+</div>
+</div>
+</section>
+
+<footer class="foot">
+<div class="wrap">
+<span>RUIN Warfront · part of the RUIN addon suite · requires RUIN Core</span>
+<div class="pn"><a href="Finder.dc.html">Previous: Finder</a><a href="Pathfinder.dc.html">Next: Pathfinder</a></div>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

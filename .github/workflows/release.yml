@@ -1,0 +1,28 @@
+# Builds the suite zip and attaches it to a GitHub release when you push a
+# tag like v0.3.0, or when you run it by hand from the Actions tab.
+#
+# The addon repos are private, so the checkout needs a token that can read
+# them: create a fine-grained personal access token with read-only "Contents"
+# access to the RUIN_* repos and save it in this repo as the secret SUITE_TOKEN.
+name: Release suite
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.SUITE_TOKEN }}
+      - name: Build zip
+        run: ./build.sh
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip

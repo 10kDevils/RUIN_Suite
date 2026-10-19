@@ -1,0 +1,24 @@
+[submodule "RUIN_Core"]
+	path = RUIN_Core
+	url = https://github.com/10kDevils/RUIN_Core.git
+[submodule "RUIN_Finder"]
+	path = RUIN_Finder
+	url = https://github.com/10kDevils/RUIN_Finder.git
+[submodule "RUIN_Warfront"]
+	path = RUIN_Warfront
+	url = https://github.com/10kDevils/RUIN_Warfront.git
+[submodule "RUIN_Pathfinder"]
+	path = RUIN_Pathfinder
+	url = https://github.com/10kDevils/RUIN_Pathfinder.git
+[submodule "RUIN_Codex"]
+	path = RUIN_Codex
+	url = https://github.com/10kDevils/RUIN_Codex.git
+[submodule "RUIN_Exchange"]
+	path = RUIN_Exchange
+	url = https://github.com/10kDevils/RUIN_Exchange.git
+[submodule "RUIN_Muster"]
+	path = RUIN_Muster
+	url = https://github.com/10kDevils/RUIN_Muster.git
+[submodule "RUIN_Intel"]
+	path = RUIN_Intel
+	url = https://github.com/10kDevils/RUIN_Intel.git
