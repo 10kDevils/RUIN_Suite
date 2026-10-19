@@ -12,11 +12,11 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |
 | `.github/workflows/release.yml` | Builds the zip and attaches it to a release when a `v*` tag is pushed or the workflow is run by hand (needs the `SUITE_TOKEN` secret, see the file) |
 
-## The addons (app version 0.3.7)
+## The addons (app version 0.3.8)
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |
-| RUIN Core | 0.3.7 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
+| RUIN Core | 0.3.8 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
 | RUIN Codex | 0.3.4 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Gear Path (upgrades ranked by time, solo and group), dungeon journal, learned drops, spec weights, officer best-in-slot lists, raid planning |
 | RUIN Pathfinder | 0.3.6 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, class track, recorder, route sharing, follow a partner; uses Questie when installed |
 | RUIN Finder | 0.3.1 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots |
@@ -31,7 +31,7 @@ RUIN Warfront ([RUIN_Warfront](https://github.com/10kDevils/RUIN_Warfront)) is r
 ```sh
 git clone --recurse-submodules https://github.com/10kDevils/RUIN_Suite.git
 cd RUIN_Suite
-./build.sh            # -> dist/RUIN_Gaming_Companion_App-0.3.7.zip
+./build.sh            # -> dist/RUIN_Gaming_Companion_App-0.3.8.zip
 ```
 
 Extract the zip into your WoW Forever `Interface/AddOns` folder. Players who only want some modules can copy just `RUIN_Core` plus those folders. The newest zip is always on the [latest release](https://github.com/10kDevils/RUIN_Suite/releases/latest).
@@ -40,7 +40,7 @@ Extract the zip into your WoW Forever `Interface/AddOns` folder. Players who onl
 
 1. Commit the change in each addon repo that changed and push it.
 2. In this repo, move each submodule to its new commit (`git -C RUIN_Codex checkout <commit or tag>`), commit, and push.
-3. Publish a release named after RUIN Core's version (for example `v0.3.7`). The release workflow builds the zip and attaches it.
+3. Publish a release named after RUIN Core's version (for example `v0.3.8`). The release workflow builds the zip and attaches it.
 
 Versioning: the third number counts meaningful changes since the second number last went up; the first two numbers change only for app milestones. The app's version is RUIN Core's.
 

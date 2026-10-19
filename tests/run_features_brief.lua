@@ -69,6 +69,28 @@ do
     alice.ns.UI:OpenOverlord()
     check(opened == "show", "Open runs /ov show")
     check(alice.env.RUIN_API:HasOverlord(), "modules can ask whether Overlord is installed")
+    -- found through the AddOns list even when no /ov command can be seen (0.3.8)
+    local addons = { { "Overlord", "|cffff4040Overlord|r Forever", true, nil } }
+    local function stubAddOns(env)
+        env.C_AddOns = {
+            GetNumAddOns = function() return #addons end,
+            GetAddOnInfo = function(i) local a = addons[i]; return a[1], a[2], "", true, a[4] end,
+            IsAddOnLoaded = function(i) return addons[i][3] end,
+            GetAddOnMetadata = env.GetAddOnMetadata,
+        }
+    end
+    stubAddOns(cara.env)
+    check(cara.ns.UI:OverlordState() == "loaded" and cara.env.RUIN_API:HasOverlord(), "Overlord in the AddOns list and loaded counts as installed without /ov")
+    stubAddOns(eve.env)
+    addons[1][3], addons[1][4] = false, "DISABLED"
+    check(eve.ns.UI:OverlordState() == "off" and not eve.env.RUIN_API:HasOverlord(), "switched off in the AddOns list: installed, not loaded")
+    eve.chat = {}
+    eve.ns.UI:OpenOverlord()
+    check(chatHas(eve, "not loaded"), "Open explains it is switched off")
+    eve.env.SlashCmdList.RUIN("overlord")
+    check(chatHas(eve, "AddOns list entry") and chatHas(eve, "installed, not loaded"), "/ruin overlord reports what RUIN sees")
+    addons[1][3], addons[1][4] = true, nil
+    check(eve.ns.UI:OverlordState() == "loaded", "turned on: loaded")
     alice.env.RUIN_API:OpenTab("Guild")
     alice.ns.UI:Refresh()
     errorsSoFar("guild page")
