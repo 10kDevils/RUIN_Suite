@@ -4,9 +4,6 @@
 [submodule "RUIN_Finder"]
 	path = RUIN_Finder
 	url = https://github.com/10kDevils/RUIN_Finder.git
-[submodule "RUIN_Warfront"]
-	path = RUIN_Warfront
-	url = https://github.com/10kDevils/RUIN_Warfront.git
 [submodule "RUIN_Pathfinder"]
 	path = RUIN_Pathfinder
 	url = https://github.com/10kDevils/RUIN_Pathfinder.git

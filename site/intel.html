@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RUIN Intel</title>
+<title>RUIN Intel · RUIN Gaming Companion App</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&amp;family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
 <style>
 body{margin:0;background:#03080c}
@@ -141,6 +141,55 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 .wow-subs{display:flex;flex-wrap:wrap;gap:3px;border-bottom:1px solid color-mix(in srgb,var(--th) 45%,transparent);margin:-2px 0 4px}
 .wow-subs span{font-size:13px;font-weight:700;color:#ffd100;padding:4px 14px 5px;background:color-mix(in srgb,var(--th) 9%,transparent)}
 .wow-subs span.on{color:#fff;background:color-mix(in srgb,var(--th) 38%,transparent);box-shadow:inset 0 -2px 0 #ffd100}
+
+/* 0.3.7: the RUIN Gaming Companion App look (from the RUIN Companion brief) */
+.brand .bt{display:flex;flex-direction:column;line-height:1}
+.brand small{display:block;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.wow{background:#070b13;border:1px solid #2a4466;border-radius:3px;box-shadow:0 0 0 1px #000,0 24px 46px rgba(0,0,0,.6);padding:84px 8px 8px;margin:10px 0 20px;color:#e9edf4}
+.wow-por{display:none}
+.wow-ttl{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:0 44px 0 14px;box-sizing:border-box;background:linear-gradient(#131c2b,#070b13);border-bottom:1px solid #2a4466;font-family:'Grenze Gotisch',Georgia,serif;font-size:26px;font-weight:700;color:#e6b862;text-shadow:0 1px 0 #000;white-space:nowrap}
+.wow-ttl i{font-style:normal;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#cfa65a;border-left:1px solid #2a4466;padding-left:12px}
+.wow-x{top:12px;right:12px;background:#0c1220;border:1px solid #2a4466;color:#95a6bf;font:400 13px/18px Arial,sans-serif;border-radius:2px}
+.wow-tabs{top:54px;left:10px;right:10px;margin:0;gap:4px;flex-wrap:wrap}
+.wow-tabs span{font-size:12px;font-weight:600;color:#95a6bf;background:#0c1220;border:1px solid #2a4466;border-radius:0;padding:4px 10px;box-shadow:none}
+.wow-tabs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9;padding-top:4px;margin-top:0}
+.wow-in{background:#0c1220;border:1px solid #2a4466;box-shadow:none}
+.wow-hd{background:linear-gradient(90deg,color-mix(in srgb,var(--th) 14%,#131c2b),#070b13);border-bottom:1px solid #2a4466}
+.wow-hd::after{left:0;right:auto;width:72px;bottom:-1px;height:2px;background:var(--th)}
+.wow-ic{border:2px solid var(--th);box-shadow:none}
+.wow-tt b{font-family:'Alegreya Sans',Optima,sans-serif;font-size:22px;color:#eef1f6;text-shadow:0 1px 0 #000}
+.wow-tt b::before{content:"RUIN GAMING COMPANION APP";display:block;font-size:10px;letter-spacing:.2em;color:#e6b862;margin-bottom:3px}
+.wow-tt i{color:#95a6bf}
+.wow-h{color:#eef1f6}.wow-h::after{background:#54b7d9;width:40px}
+.wow-rows>*:nth-child(odd){background:rgba(19,28,43,.9)}.wow-rows>*:nth-child(even){background:rgba(19,28,43,.35)}.wow-rows>*:hover{background:rgba(84,183,217,.14)}
+.wow-wbtn{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;box-shadow:none;border-radius:0}
+.wow-wbtn.off{color:#6d7a8f;background:#0c1220}
+.wow-chk.on::before{background:#54b7d9}
+.headcard{background:#0c1220;box-shadow:0 0 0 1px #2a4466,0 10px 24px rgba(0,0,0,.45)}
+.pill{display:inline-block;min-width:62px;text-align:center;font-family:'Alegreya Sans',Optima,sans-serif;font-size:13px;font-weight:700;padding:2px 8px;border-top:1px solid}
+.pill.q{background:#174f29;color:#9eff9e;border-color:#9eff9e59}.pill.m{background:#664d0d;color:#ffdb61;border-color:#ffdb6159}.pill.l{background:#612b12;color:#ffa366;border-color:#ffa36659}
+.gp{border:1px solid var(--line);overflow-x:auto;background:#0c1220}
+.gp table{border-collapse:collapse;width:100%;min-width:640px;font-size:16px}
+.gp th{text-align:left;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#95a6bf;padding:10px 14px;border-bottom:1px solid var(--line)}
+.gp td{padding:10px 14px;border-bottom:1px solid rgba(43,60,110,.6);vertical-align:middle}
+.gp tr:nth-child(even) td{background:rgba(19,28,43,.6)}
+.gp .it{color:#c09cf0;font-weight:700}.gp .sub{display:block;font-size:13px;color:#95a6bf;font-weight:400}
+.gp-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-top:0;background:#0c1220;font-size:15px}
+.gp-bar{display:inline-block;width:180px;height:8px;background:#070b13;border:1px solid #2a4466;vertical-align:middle;margin-left:10px}
+.gp-bar b{display:block;height:100%;background:#5cd973}
+.retired-t{border:1px solid var(--line);overflow-x:auto}
+.retired-t table{border-collapse:collapse;width:100%;min-width:560px;font-size:17px}
+.retired-t th{text-align:left;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+.retired-t td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+.rbtn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:15px;text-decoration:none;background:var(--gold);color:#140e02;border:2px solid var(--gold);margin:22px 12px 0 0}
+.rbtn.ghost{background:transparent;color:var(--gold2)}
+.wbtn,.sb span{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;border-radius:0}
+.wbtn.on{background:#131c2b;border-color:#54b7d9;color:#fff;box-shadow:inset 0 -2px 0 #54b7d9}
+.wow-subs{border-bottom-color:#2a4466}
+.wow-subs span{color:#95a6bf;background:#0c1220;border:1px solid #2a4466}
+.wow-subs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9}
+.inp{background:#070b13;border-color:#2a4466}
+.erow{border-bottom-color:#1c2a40}.erow .d{color:#e6b862}.erow .r{color:#f29a6c;margin-left:8px;font-size:13px}
 </style>
 </head>
 <body>
@@ -150,11 +199,10 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="wrap">
 <a class="brand" href="index.html">
 <svg width="30" height="32" viewBox="0 0 100 106" aria-hidden="true" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linejoin="round"><path d="M50 5 L92 19 V52 C92 78 73 94 50 101 C27 94 8 78 8 52 V19 Z"></path><path d="M50 24 V84 M34 40 H66"></path></svg>
-RUIN</a>
+<span class="bt">RUIN<small>Gaming Companion App</small></span></a>
 <nav class="navlinks" aria-label="RUIN addons">
 <a href="index.html">Core</a>
 <a href="finder.html">Finder</a>
-<a href="warfront.html">Warfront</a>
 <a href="pathfinder.html">Pathfinder</a>
 <a href="codex.html">Codex</a>
 <a href="exchange.html">Exchange</a>
@@ -167,11 +215,11 @@ RUIN</a>
 <section class="hero">
 <div class="wrap">
 <div>
-<p class="eyebrow">RUIN suite · Scouting</p>
+<p class="eyebrow">RUIN Gaming Companion App · Scouting</p>
 <h1 class="h1">Intel</h1>
 <p class="lede">See something, say something. One press tells every RUIN member what you saw and exactly where, so the whole org reacts while it still matters.</p>
 <div class="chips">
-<span class="chip">Preview 0.3.0</span>
+<span class="chip">Version 0.3.1</span>
 <span class="chip">/intel enemy 8 Horde</span>
 <span class="chip">Needs RUIN Core</span>
 </div>
@@ -222,7 +270,7 @@ RUIN</a>
 <p class="label">In the RUIN window</p>
 <h2 class="h2">The watch report</h2>
 <div class="boxbox">
-<div class="wow" style="--th:#38b6e8" role="img" aria-label="Mock of the Intel page inside the RUIN window with report buttons and a feed"><div class="wow-por"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 50 C24 26 76 26 92 50 C76 74 24 74 8 50 Z"></path><circle cx="50" cy="50" r="12"></circle></svg></div><div class="wow-ttl">RUIN  -  Intel</div><span class="wow-x">×</span><div class="wow-in"><div class="wow-hd"><span class="wow-ic"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 50 C24 26 76 26 92 50 C76 74 24 74 8 50 Z"></path><circle cx="50" cy="50" r="12"></circle></svg></span><div class="wow-tt"><b>Intel</b><i>See something, say something</i></div><div class="wow-mo" aria-hidden="true"><div class="mo-scope"><div class="mo-sweep"></div><i class="mo-blip" style="left:22%;top:30%"></i><i class="mo-blip" style="left:66%;top:62%;animation-delay:-1.1s"></i></div><span class="mo-scan">SCANNING</span></div></div><div class="wow-bd"><div class="wow-subs"><span class="on">Report (4)</span><span>Timers</span></div><div class="wh wow-h">Report what you see (your location is added)</div>
+<div class="wow" style="--th:#38b6e8" role="img" aria-label="Mock of the Intel page inside the RUIN window with report buttons and a feed"><div class="wow-por"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 50 C24 26 76 26 92 50 C76 74 24 74 8 50 Z"></path><circle cx="50" cy="50" r="12"></circle></svg></div><div class="wow-ttl">RUIN<i>Gaming Companion App</i></div><span class="wow-x">×</span><div class="wow-in"><div class="wow-hd"><span class="wow-ic"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 50 C24 26 76 26 92 50 C76 74 24 74 8 50 Z"></path><circle cx="50" cy="50" r="12"></circle></svg></span><div class="wow-tt"><b>Intel</b><i>See something, say something</i></div><div class="wow-mo" aria-hidden="true"><div class="mo-scope"><div class="mo-sweep"></div><i class="mo-blip" style="left:22%;top:30%"></i><i class="mo-blip" style="left:66%;top:62%;animation-delay:-1.1s"></i></div><span class="mo-scan">SCANNING</span></div></div><div class="wow-bd"><div class="wow-subs"><span class="on">Report (4)</span><span>Timers</span></div><div class="wh wow-h">Report what you see (your location is added)</div>
 <span class="inp">8 Horde, heading north</span>
 <div class="pad" style="justify-content:flex-start"><span class="wbtn">Enemy group</span><span class="wbtn">World boss</span><span class="wbtn">Rare</span><span class="wbtn">Buff drop</span><span class="wbtn">Other</span></div>
 <div class="wh wow-h" style="margin-top:16px">Intel feed (last 30 minutes)</div>
@@ -231,7 +279,7 @@ RUIN</a>
 <div class="fr"><span class="a">6m ago</span><span class="f">Buff drop</span> &nbsp;<span class="w">Stormwind City</span> &nbsp;<span class="x">going up in 1 min</span> &nbsp;<span class="by">· Ola Brightwell</span></div>
 <div class="fr"><span class="a">14m ago</span><span class="r">Rare</span> &nbsp;<span class="w">Tarren Mill, Hillsbrad Foothills 61,20</span> &nbsp;<span class="by">· Pell Ambers</span></div>
 <div class="fr"><span class="a">22m ago</span><span class="e">Enemy group</span> &nbsp;<span class="w">Southshore, Hillsbrad Foothills 50,58</span> &nbsp;<span class="x">gankers at the flight master</span> &nbsp;<span class="by">· Rook Fenley</span></div>
-</div></div></div><div class="wow-tabs"><span>Org</span><span>Codex</span><span>Exchange</span><span>Finder</span><span class="on">Intel</span><span>Muster</span><span>Pathfinder</span><span>Warfront</span></div></div>
+</div></div></div><div class="wow-tabs"><span>Codex</span><span>Pathfinder</span><span>Guild</span><span>Finder</span><span>Muster</span><span class="on">Intel</span><span>Exchange</span><span>Settings</span></div></div>
 </div>
 </div>
 </section>
@@ -258,12 +306,18 @@ RUIN</a>
 <div class="facts"><span class="fact">kind</span><span class="fact">note</span><span class="fact">zone · subzone · coordinates</span><span class="fact">map coordinates</span><span class="fact">boss + buff timers</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.0</p>
+<p class="label">New in 0.3.1</p>
+<ul class="list">
+<li>The RUIN Gaming Companion App look: a navy window, the gold RUIN mark and tabs across the top</li>
+<li>Loads on Retail as well as WoW Forever, with settings kept per game</li>
+<li>Enemy sightings mark RUIN Muster rally points contested, now that Warfront is retired</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.0</p>
 <ul class="list">
 <li>Map pins that fade as reports age</li>
 <li>World boss and world buff timers, with a one-minute warning</li>
 <li>An "I'm under attack" report with its own key binding</li>
-<li>Enemy sightings feeding Warfront as contested objectives</li>
+<li>Enemy sightings feeding Warfront as contested objectives (now Muster rally points)</li>
 </ul>
 <p class="muted" style="margin-top:18px">Reports are manual: Intel doesn't read the combat log, which WoW Forever restricts.</p>
 </div>
@@ -272,7 +326,7 @@ RUIN</a>
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Intel · part of the RUIN addon suite · requires RUIN Core</span>
+<span>RUIN Intel 0.3.1 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
 <div class="pn"><a href="muster.html">Previous: Muster</a><a href="index.html">Back to Core</a></div>
 </div>
 </footer>

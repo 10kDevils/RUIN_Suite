@@ -4,7 +4,7 @@
   "boards": {
     "Codex.dc.html": {
       "expand": "fill",
-      "h": 3100,
+      "h": 4300,
       "is_interactive": true,
       "title": "Codex",
       "w": 1280,
@@ -31,7 +31,7 @@
     },
     "Intel.dc.html": {
       "expand": "fill",
-      "h": 3800,
+      "h": 3900,
       "is_interactive": true,
       "title": "Intel",
       "w": 1280,
@@ -40,16 +40,16 @@
     },
     "Main.dc.html": {
       "expand": "fill",
-      "h": 7700,
+      "h": 8200,
       "is_interactive": true,
-      "title": "RUIN Core",
+      "title": "RUIN Gaming Companion App",
       "w": 1280,
       "x": 0,
       "y": 0
     },
     "Muster.dc.html": {
       "expand": "fill",
-      "h": 3500,
+      "h": 4450,
       "is_interactive": true,
       "title": "Muster",
       "w": 1280,
@@ -58,7 +58,7 @@
     },
     "Pathfinder.dc.html": {
       "expand": "fill",
-      "h": 2700,
+      "h": 3150,
       "is_interactive": true,
       "title": "Pathfinder",
       "w": 1280,
@@ -67,9 +67,9 @@
     },
     "Warfront.dc.html": {
       "expand": "fill",
-      "h": 3400,
+      "h": 1750,
       "is_interactive": true,
-      "title": "Warfront",
+      "title": "Warfront (retired)",
       "w": 1280,
       "x": 2720,
       "y": 0
@@ -88,7 +88,7 @@
     "sitetitle": {
       "kind": "title1",
       "maxW": 8000,
-      "text": "RUIN addon suite: player website",
+      "text": "RUIN Gaming Companion App: player website",
       "w": 240,
       "x": 0,
       "y": -300
@@ -97,13 +97,13 @@
   "order": [
     "Main.dc.html",
     "Finder.dc.html",
-    "Warfront.dc.html",
     "Pathfinder.dc.html",
     "Codex.dc.html",
     "Exchange.dc.html",
     "Muster.dc.html",
-    "Intel.dc.html"
+    "Intel.dc.html",
+    "Warfront.dc.html"
   ],
   "pages": [],
-  "title": "RUIN Addon Suite"
+  "title": "RUIN Gaming Companion App"
 }

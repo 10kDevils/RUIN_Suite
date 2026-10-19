@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>RUIN Finder</title>
+<title>RUIN Finder · RUIN Gaming Companion App</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -142,6 +142,55 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 @media (prefers-reduced-motion:reduce){.wow-mo *,.wow-mo *::before,.wow-mo *::after{animation:none!important}}
 .you{font-size:11px;font-weight:700;color:#120d02;background:#f08bb6;padding:1px 6px;border-radius:3px}
 .ctrls{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px;color:#fff}
+
+/* 0.3.7: the RUIN Gaming Companion App look (from the RUIN Companion brief) */
+.brand .bt{display:flex;flex-direction:column;line-height:1}
+.brand small{display:block;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.wow{background:#070b13;border:1px solid #2a4466;border-radius:3px;box-shadow:0 0 0 1px #000,0 24px 46px rgba(0,0,0,.6);padding:84px 8px 8px;margin:10px 0 20px;color:#e9edf4}
+.wow-por{display:none}
+.wow-ttl{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:0 44px 0 14px;box-sizing:border-box;background:linear-gradient(#131c2b,#070b13);border-bottom:1px solid #2a4466;font-family:'Grenze Gotisch',Georgia,serif;font-size:26px;font-weight:700;color:#e6b862;text-shadow:0 1px 0 #000;white-space:nowrap}
+.wow-ttl i{font-style:normal;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#cfa65a;border-left:1px solid #2a4466;padding-left:12px}
+.wow-x{top:12px;right:12px;background:#0c1220;border:1px solid #2a4466;color:#95a6bf;font:400 13px/18px Arial,sans-serif;border-radius:2px}
+.wow-tabs{top:54px;left:10px;right:10px;margin:0;gap:4px;flex-wrap:wrap}
+.wow-tabs span{font-size:12px;font-weight:600;color:#95a6bf;background:#0c1220;border:1px solid #2a4466;border-radius:0;padding:4px 10px;box-shadow:none}
+.wow-tabs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9;padding-top:4px;margin-top:0}
+.wow-in{background:#0c1220;border:1px solid #2a4466;box-shadow:none}
+.wow-hd{background:linear-gradient(90deg,color-mix(in srgb,var(--th) 14%,#131c2b),#070b13);border-bottom:1px solid #2a4466}
+.wow-hd::after{left:0;right:auto;width:72px;bottom:-1px;height:2px;background:var(--th)}
+.wow-ic{border:2px solid var(--th);box-shadow:none}
+.wow-tt b{font-family:'Alegreya Sans',Optima,sans-serif;font-size:22px;color:#eef1f6;text-shadow:0 1px 0 #000}
+.wow-tt b::before{content:"RUIN GAMING COMPANION APP";display:block;font-size:10px;letter-spacing:.2em;color:#e6b862;margin-bottom:3px}
+.wow-tt i{color:#95a6bf}
+.wow-h{color:#eef1f6}.wow-h::after{background:#54b7d9;width:40px}
+.wow-rows>*:nth-child(odd){background:rgba(19,28,43,.9)}.wow-rows>*:nth-child(even){background:rgba(19,28,43,.35)}.wow-rows>*:hover{background:rgba(84,183,217,.14)}
+.wow-wbtn{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;box-shadow:none;border-radius:0}
+.wow-wbtn.off{color:#6d7a8f;background:#0c1220}
+.wow-chk.on::before{background:#54b7d9}
+.headcard{background:#0c1220;box-shadow:0 0 0 1px #2a4466,0 10px 24px rgba(0,0,0,.45)}
+.pill{display:inline-block;min-width:62px;text-align:center;font-family:'Alegreya Sans',Optima,sans-serif;font-size:13px;font-weight:700;padding:2px 8px;border-top:1px solid}
+.pill.q{background:#174f29;color:#9eff9e;border-color:#9eff9e59}.pill.m{background:#664d0d;color:#ffdb61;border-color:#ffdb6159}.pill.l{background:#612b12;color:#ffa366;border-color:#ffa36659}
+.gp{border:1px solid var(--line);overflow-x:auto;background:#0c1220}
+.gp table{border-collapse:collapse;width:100%;min-width:640px;font-size:16px}
+.gp th{text-align:left;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#95a6bf;padding:10px 14px;border-bottom:1px solid var(--line)}
+.gp td{padding:10px 14px;border-bottom:1px solid rgba(43,60,110,.6);vertical-align:middle}
+.gp tr:nth-child(even) td{background:rgba(19,28,43,.6)}
+.gp .it{color:#c09cf0;font-weight:700}.gp .sub{display:block;font-size:13px;color:#95a6bf;font-weight:400}
+.gp-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-top:0;background:#0c1220;font-size:15px}
+.gp-bar{display:inline-block;width:180px;height:8px;background:#070b13;border:1px solid #2a4466;vertical-align:middle;margin-left:10px}
+.gp-bar b{display:block;height:100%;background:#5cd973}
+.retired-t{border:1px solid var(--line);overflow-x:auto}
+.retired-t table{border-collapse:collapse;width:100%;min-width:560px;font-size:17px}
+.retired-t th{text-align:left;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+.retired-t td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+.rbtn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:15px;text-decoration:none;background:var(--gold);color:#140e02;border:2px solid var(--gold);margin:22px 12px 0 0}
+.rbtn.ghost{background:transparent;color:var(--gold2)}
+.wbtn,.sb span{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;border-radius:0}
+.wbtn.on{background:#131c2b;border-color:#54b7d9;color:#fff;box-shadow:inset 0 -2px 0 #54b7d9}
+.wow-subs{border-bottom-color:#2a4466}
+.wow-subs span{color:#95a6bf;background:#0c1220;border:1px solid #2a4466}
+.wow-subs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9}
+.inp{background:#070b13;border-color:#2a4466}
+.erow{border-bottom-color:#1c2a40}.erow .d{color:#e6b862}.erow .r{color:#f29a6c;margin-left:8px;font-size:13px}
 </style>
 </helmet>
 <div class="site">
@@ -150,11 +199,10 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="wrap">
 <a class="brand" href="Main.dc.html">
 <svg width="30" height="32" viewBox="0 0 100 106" aria-hidden="true" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linejoin="round"><path d="M50 5 L92 19 V52 C92 78 73 94 50 101 C27 94 8 78 8 52 V19 Z"></path><path d="M50 24 V84 M34 40 H66"></path></svg>
-RUIN</a>
+<span class="bt">RUIN<small>Gaming Companion App</small></span></a>
 <nav class="navlinks" aria-label="RUIN addons">
 <a href="Main.dc.html">Core</a>
 <a class="on" href="Finder.dc.html">Finder</a>
-<a href="Warfront.dc.html">Warfront</a>
 <a href="Pathfinder.dc.html">Pathfinder</a>
 <a href="Codex.dc.html">Codex</a>
 <a href="Exchange.dc.html">Exchange</a>
@@ -167,11 +215,11 @@ RUIN</a>
 <section class="hero">
 <div class="wrap">
 <div>
-<p class="eyebrow">RUIN suite · Grouping</p>
+<p class="eyebrow">RUIN Gaming Companion App · Grouping</p>
 <h1 class="h1">Finder</h1>
 <p class="lede">A Looking For Group board for the whole organization. Say what you want to do, and every RUIN member in every guild sees it within seconds.</p>
 <div class="chips">
-<span class="chip">Preview 0.3.0</span>
+<span class="chip">Version 0.3.1</span>
 <span class="chip">/finder</span>
 <span class="chip">Needs RUIN Core</span>
 </div>
@@ -207,7 +255,7 @@ RUIN</a>
 <h2 class="h2">Your status on top, the org below</h2>
 <p class="intro">Finder adds one page to the RUIN window. Your own listing sits at the top of the board, marked You, so you see exactly what the org sees, and a status line says when it is live.</p>
 <div class="boxbox">
-<div class="wow" style="--th:#d24f8a" role="img" aria-label="Mock of the Finder page inside the RUIN window, with your own listing at the top of the board"><div class="wow-por"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><circle cx="42" cy="42" r="26"></circle><path d="M61 61 L88 88"></path><circle cx="42" cy="36" r="7"></circle><path d="M29 56 C32 47 52 47 55 56"></path></svg></div><div class="wow-ttl">RUIN  -  Finder</div><span class="wow-x">×</span><div class="wow-in"><div class="wow-hd"><span class="wow-ic"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><circle cx="42" cy="42" r="26"></circle><path d="M61 61 L88 88"></path><circle cx="42" cy="36" r="7"></circle><path d="M29 56 C32 47 52 47 55 56"></path></svg></span><div class="wow-tt"><b>Finder</b><i>Who in RUIN wants to group, right now</i></div><div class="wow-mo" aria-hidden="true"><span class="mo-note" style="left:62px;top:9px;--r:-6deg"></span><span class="mo-note" style="left:112px;top:20px;--r:4deg;animation-delay:-1s"></span><span class="mo-note" style="left:160px;top:6px;--r:-2deg;animation-delay:-2s"></span><span class="mo-note" style="left:204px;top:22px;--r:7deg;animation-delay:-.5s"></span></div></div><div class="wow-bd"><p class="wow-h">Your status</p>
+<div class="wow" style="--th:#d24f8a" role="img" aria-label="Mock of the Finder page inside the RUIN window, with your own listing at the top of the board"><div class="wow-por"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><circle cx="42" cy="42" r="26"></circle><path d="M61 61 L88 88"></path><circle cx="42" cy="36" r="7"></circle><path d="M29 56 C32 47 52 47 55 56"></path></svg></div><div class="wow-ttl">RUIN<i>Gaming Companion App</i></div><span class="wow-x">×</span><div class="wow-in"><div class="wow-hd"><span class="wow-ic"><svg viewBox="0 0 100 100" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><circle cx="42" cy="42" r="26"></circle><path d="M61 61 L88 88"></path><circle cx="42" cy="36" r="7"></circle><path d="M29 56 C32 47 52 47 55 56"></path></svg></span><div class="wow-tt"><b>Finder</b><i>Who in RUIN wants to group, right now</i></div><div class="wow-mo" aria-hidden="true"><span class="mo-note" style="left:62px;top:9px;--r:-6deg"></span><span class="mo-note" style="left:112px;top:20px;--r:4deg;animation-delay:-1s"></span><span class="mo-note" style="left:160px;top:6px;--r:-2deg;animation-delay:-2s"></span><span class="mo-note" style="left:204px;top:22px;--r:7deg;animation-delay:-.5s"></span></div></div><div class="wow-bd"><p class="wow-h">Your status</p>
 <div class="ctrls"><span><span class="box on"></span>I'm looking</span><span><span class="box"></span>Tank</span><span><span class="box on"></span>Healer</span><span><span class="box"></span>DPS</span><span><span class="box on"></span>Alerts</span></div>
 <div class="ctrls"><span class="wbtn">Dungeon</span><span class="inp">Wailing Caverns</span><span class="inp" style="min-width:160px">can heal, have quest</span><span class="inp">Holy</span></div>
 <div style="font-size:13px;color:#40ff40">Your listing is live across RUIN.</div>
@@ -217,7 +265,7 @@ RUIN</a>
 <div class="brow"><div class="who"><span class="tk">Tank</span> <span class="n" style="color:#c79c6e">Cara Cole</span> <span class="d">24 Protection</span> <span class="a">Dungeon: Wailing Caverns</span> <span class="d">· Briar Fang</span></div><div class="wb"><span class="wbtn">Whisper</span><span class="wbtn">Invite</span></div></div>
 <div class="brow"><div class="who"><span class="dp">DPS</span> <span class="n" style="color:#69ccf0">Eve Ember</span> <span class="d">23 Frost</span> <span class="a">Dungeon: Wailing Caverns</span> <span class="d">· Briar Fang</span></div><div class="wb"><span class="wbtn">Whisper</span><span class="wbtn">Invite</span></div></div>
 <div class="brow"><div class="who"><span class="dp">DPS</span> <span class="n" style="color:#abd473">Rook Fenley</span> <span class="d">31 Marksmanship</span> <span class="a">PvP: Hillsbrad</span> <span class="d">· Ashen Order</span></div><div class="wb"><span class="wbtn">Whisper</span><span class="wbtn">Invite</span></div></div>
-</div></div></div><div class="wow-tabs"><span>Org</span><span>Codex</span><span>Exchange</span><span class="on">Finder</span><span>Intel</span><span>Muster</span><span>Pathfinder</span><span>Warfront</span></div></div>
+</div></div></div><div class="wow-tabs"><span>Codex</span><span>Pathfinder</span><span>Guild</span><span class="on">Finder</span><span>Muster</span><span>Intel</span><span>Exchange</span><span>Settings</span></div></div>
 </div>
 </div>
 </section>
@@ -244,7 +292,12 @@ RUIN</a>
 <div class="facts"><span class="fact">roles</span><span class="fact">activity + where</span><span class="fact">note</span><span class="fact">class · level · spec</span><span class="fact">zone</span><span class="fact">group size</span><span class="fact">roles still needed (groups)</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.0</p>
+<p class="label">New in 0.3.1</p>
+<ul class="list">
+<li>The RUIN Gaming Companion App look: a navy window, the gold RUIN mark and tabs across the top</li>
+<li>Loads on Retail as well as WoW Forever, with settings kept per game</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.0</p>
 <ul class="list">
 <li>Group listings with the roles your group still needs ("need 1 healer")</li>
 <li>Automatic matching: players and groups that fit each other both get an alert, and matches sort to the top</li>
@@ -258,8 +311,8 @@ RUIN</a>
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Finder · part of the RUIN addon suite · requires RUIN Core</span>
-<div class="pn"><a href="Main.dc.html">Back to Core</a><a href="Warfront.dc.html">Next: Warfront</a></div>
+<span>RUIN Finder 0.3.1 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
+<div class="pn"><a href="Main.dc.html">Back to Core</a><a href="Pathfinder.dc.html">Next: Pathfinder</a></div>
 </div>
 </footer>
 

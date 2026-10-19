@@ -17,7 +17,7 @@ local function errorsSoFar(label)
     Server.errors = {}
 end
 
-local MODULES = { "RUIN_Finder", "RUIN_Warfront", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster", "RUIN_Intel" }
+local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster", "RUIN_Intel" }
 
 Server.guilds["Ashen Order"] = { { name = "Alice Ash", rank = 0, guid = "Player-1-00000001" } }
 Server.guilds["Briar Fang"] = {
@@ -29,7 +29,7 @@ local cara = Server:NewClient({ name = "Cara Cole", guid = "Player-1-00000002", 
 local eve = Server:NewClient({ name = "Eve Ember", guid = "Player-1-00000004", guild = "Briar Fang", rank = 2, modules = MODULES })
 Server:Advance(10)
 errorsSoFar("load core + 7 modules")
-check(#alice.env.RUIN_API:GetModules() == 7, "all 7 modules registered")
+check(#alice.env.RUIN_API:GetModules() == 6, "all 6 modules registered")
 
 print("Org setup")
 Server:Slash(alice, "key create RUIN")
@@ -51,27 +51,16 @@ alice.env.RUIN_API:OpenTab("Finder")
 alice.env.RUIN_API:OpenTab("Finder")
 errorsSoFar("finder")
 
-print("Warfront")
+print("Muster rally (Warfront's objectives, now in Muster)")
 alice.pos = { map = 1411, x = 0.40, y = 0.40 }
-alice.env.SlashCmdList.RUINWARFRONT("mark Crossroads")
+alice.env.SlashCmdList.RUINMUSTER("rally Crossroads")
 Server:Advance(2)
-check(chatHas(cara, "New objective: Crossroads"), "Cara alerted about the new objective")
-cara.pos = { map = 1411, x = 0.405, y = 0.40 }
-eve.pos = { map = 1411, x = 0.40, y = 0.405 }
-Server:Advance(80)
-check(chatHas(alice, "Crossroads captured by Briar Fang"), "two Briar members captured it; Alice told")
-local hud = cara.env.RUIN_WarfrontHUD
-hud._scripts.OnUpdate(hud, 0.1)
-check(cara.env.RUIN_WarfrontRadar and cara.env.RUIN_WarfrontRadar:IsShown() and hud.radar.label:GetText():find("In the circle"), "radar shows Cara inside the circle")
-cara.pos = { map = 1411, x = 0.44, y = 0.40 }
-hud._scripts.OnUpdate(hud, 0.1)
-check(hud.radar.label:GetText():find("yd to the edge"), "radar shows distance to the edge from outside (" .. tostring(hud.radar.label:GetText()) .. ")")
-cara.pos = { map = 1411, x = 0.405, y = 0.40 }
-eve.env.RUIN_Warfront_CallToArms()
-Server:Advance(2)
-check(chatHas(alice, "CALL TO ARMS") and chatHas(cara, "CALL TO ARMS"), "Call to Arms reached the org")
-alice.env.RUIN_API:OpenTab("Warfront")
-errorsSoFar("warfront")
+check(chatHas(cara, "Rally now: Crossroads"), "Cara alerted about the rally")
+local rid
+for id, ev in pairs(cara.env.RUIN_MusterDB.events) do if ev.title == "Crossroads" then rid = id end end
+check(rid and cara.env.RUIN_MusterDB.events[rid].rally and cara.env.RUIN_API.Map:GetPins("Muster")[rid], "rally point pinned on Cara's map")
+alice.env.RUIN_API:OpenTab("Muster")
+errorsSoFar("muster rally")
 
 print("Pathfinder")
 local pf = alice.env.RUIN_API:GetModule("Pathfinder")
@@ -127,7 +116,8 @@ local mu = alice.env.RUIN_API:GetModule("Muster")
 local soon = os.date("%Y-%m-%d %H:%M", os.time() + 10 * 60 + 59)
 mu:Create("Molten Core", soon, "Raid")
 Server:Advance(3)
-local id = next(cara.env.RUIN_MusterDB.events)
+local id
+for eid, ev in pairs(cara.env.RUIN_MusterDB.events) do if ev.title == "Molten Core" then id = eid end end
 check(id ~= nil, "Cara received the event")
 cara.env.RUIN_API:GetModule("Muster"):SignUp(id, "T")
 Server:Advance(3)
@@ -146,23 +136,19 @@ alice.env.RUIN_API:OpenTab("Intel")
 errorsSoFar("intel")
 
 print("Practice mode (connected non-officer)")
-eve.env.SlashCmdList.RUINWARFRONT("practice")
-eve.pos = { map = 1411, x = 0.70, y = 0.70 }
-eve.env.SlashCmdList.RUINWARFRONT("mark Practice Hill")
-Server:Advance(75)
-check(chatHas(eve, "Practice objective set: Practice Hill") and chatHas(eve, "Practice Hill captured by Briar Fang"), "Eve set and captured a practice objective alone")
-check(not chatHas(alice, "Practice Hill") and not chatHas(cara, "Practice Hill"), "nobody else heard about the practice objective")
 eve.env.SlashCmdList.RUINMUSTER("practice")
 eve.env.RUIN_API:GetModule("Muster"):Create("Practice Raid", os.date("%Y-%m-%d %H:%M", os.time() + 7200), "Raid")
+eve.env.SlashCmdList.RUINMUSTER("bounty player Practice Target")
 Server:Advance(3)
 local leaked = false
 for _, ev in pairs(cara.env.RUIN_MusterDB.events) do if ev.title == "Practice Raid" then leaked = true end end
-check(chatHas(eve, "Practice event posted: Practice Raid") and not leaked, "Eve's practice event stayed on her screen")
-eve.env.SlashCmdList.RUINWARFRONT("practice")
+for _, bo in pairs(cara.env.RUIN_MusterDB.bounties) do if bo.target == "Practice Target" then leaked = true end end
+check(chatHas(eve, "Practice event posted: Practice Raid") and chatHas(eve, "Bounty posted on player Practice Target") and not leaked,
+      "Eve's practice event and bounty stayed on her screen")
 eve.env.SlashCmdList.RUINMUSTER("practice")
 local left = false
-for _, o in pairs(eve.env.RUIN_WarfrontDB.objectives) do if o.practice then left = true end end
-check(not left, "turning practice off cleared practice objectives")
+for _, bo in pairs(eve.env.RUIN_MusterDB.bounties) do if bo.practice then left = true end end
+check(not left, "turning practice off cleared practice bounties")
 errorsSoFar("practice")
 
 print("Core page with modules")
@@ -175,7 +161,7 @@ check(Server.maxLen <= 255, "no addon message over 255 bytes (max " .. Server.ma
 print("Themed pages and animated headers")
 do
     local titles = {}
-    for _, t in ipairs({ "Org", "Finder", "Warfront", "Pathfinder", "Codex", "Exchange", "Muster", "Intel" }) do
+    for _, t in ipairs({ "Org", "Finder", "Pathfinder", "Codex", "Exchange", "Muster", "Intel", "Settings" }) do
         local opened = alice.env.RUIN_API:OpenTab(t)
         if opened ~= false then titles[#titles + 1] = t end
     end

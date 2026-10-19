@@ -76,67 +76,46 @@ do
     errorsSoFar("intel")
 end
 
-print("Warfront")
+print("Muster: rally points and bounties (from Warfront)")
 do
+    local mu = alice.env.RUIN_API:GetModule("Muster")
     alice.pos = { map = 1411, x = 0.40, y = 0.40 }
-    alice.env.SlashCmdList.RUINWARFRONT("mark Crossroads")
+    local ev = mu:Rally("Crossroads")
     Server:Advance(2)
-    local oid = next(alice.env.RUIN_WarfrontDB.objectives)
-    check(oid and alice.env.RUIN_API.Map:GetPins("Warfront")["o" .. oid], "objective pinned on the map")
-    check(cara.env.RUIN_API.Map:GetPins("Warfront")["o" .. oid], "Cara's map shows it too")
-    -- an Intel enemy sighting near the objective contests it
+    check(ev and ev.rally and alice.env.RUIN_API.Map:GetPins("Muster")[ev.id], "rally pinned on the map")
+    check(cara.env.RUIN_API.Map:GetPins("Muster")[ev.id], "Cara's map shows it too")
+    -- an Intel enemy sighting near the rally contests it
     eve.pos = { map = 1411, x = 0.402, y = 0.40 }
     eve.env.SlashCmdList.RUININTEL("enemy 5 Horde riders")
     Server:Advance(2)
-    check(chatHas(alice, "Crossroads is contested: 5 Horde riders"), "Intel sighting contests the objective")
-    check(alice.env.RUIN_WarfrontDB.objectives[oid].contested ~= nil, "objective marked contested")
-    alice.env.RUIN_WarfrontHUD._scripts.OnUpdate(alice.env.RUIN_WarfrontHUD, 0.1)
-    Server:Advance(6)
-    check(alice.env.RUIN_WarfrontHUD.line2:GetText():find("CONTESTED"), "HUD shows CONTESTED")
-    Server:Advance(11 * 60)
-    check(alice.env.RUIN_WarfrontDB.objectives[oid] and not alice.env.RUIN_WarfrontDB.objectives[oid].contested, "contest wears off after 10 minutes")
-    -- Intel under-attack points Warfront's HUD at that member
-    cara.pos = { map = 1411, x = 0.45, y = 0.45 }
-    Server:Advance(61)
-    cara.env.RUIN_Intel_UnderAttack()
+    check(chatHas(alice, "Crossroads rally point is contested: 5 Horde riders"), "Intel sighting contests the rally point")
+    check(alice.env.RUIN_MusterDB.events[ev.id].contested ~= nil, "event marked contested")
+    -- a posted event can carry a rally point too
+    local later = mu:Create("Tarren Mill push", os.date("%Y-%m-%d %H:%M", os.time() + 3600), { kind = "PvP", rally = true })
     Server:Advance(2)
-    check(alice.env.RUIN_WarfrontHUD.line1:GetText():find("Help:"), "under-attack call shows on the Warfront HUD")
-    check(alice.env.RUIN_API.Map:GetPins("Warfront").help ~= nil, "and as a map pin")
-    -- captures credit guild and players in the war record
-    cara.pos = { map = 1411, x = 0.401, y = 0.40 }
-    eve.pos = { map = 1411, x = 0.40, y = 0.401 }
-    Server:Advance(80)
-    -- Alice and Eve stood in the circle through the wait, so it fell to them (tie goes to Ashen Order)
-    check(chatHas(alice, "Crossroads captured by Ashen Order"), "captured by the two RUIN members standing in it")
+    check(later and later.rally and cara.env.RUIN_MusterDB.events[later.id].rally, "event posted with a rally point")
     -- bounty: posted by Alice, claimed by Eve, witnessed by Cara
-    alice.env.SlashCmdList.RUINWARFRONT("bounty guild Bloodfang (50g)")
+    alice.env.SlashCmdList.RUINMUSTER("bounty guild Bloodfang (50g)")
     Server:Advance(2)
     check(chatHas(cara, "Bounty on guild Bloodfang (50g)"), "bounty reached Cara")
+    cara.pos = { map = 1411, x = 0.401, y = 0.40 }
     eve.target, eve.targetGuild, eve.targetDead = "Grok", "Bloodfang", false
-    eve.env.SlashCmdList.RUINWARFRONT("claim")
+    eve.env.SlashCmdList.RUINMUSTER("claim")
     check(chatHas(eve, "still alive"), "can't claim a living enemy")
     eve.targetDead = true
-    eve.env.SlashCmdList.RUINWARFRONT("claim")
+    eve.env.RUIN_Muster_Claim()
     Server:Advance(2)
     check(chatHas(cara, "Did you see"), "Cara, standing nearby, is asked to witness")
-    eve.env.SlashCmdList.RUINWARFRONT("confirm")
+    eve.env.SlashCmdList.RUINMUSTER("confirm")
     check(not chatHas(alice, "Bounty confirmed"), "Eve can't confirm her own kill")
-    cara.env.SlashCmdList.RUINWARFRONT("confirm")
+    cara.env.SlashCmdList.RUINMUSTER("confirm")
     Server:Advance(2)
     check(chatHas(alice, "Bounty confirmed: ") and chatHas(alice, "Grok"), "confirmed bounty announced to RUIN")
-    local wf = alice.env.RUIN_WarfrontDB.record
-    local key = next(wf)
-    local rec = wf[key]
-    check(rec and rec.guilds["Ashen Order"] and rec.guilds["Ashen Order"].c == 1, "war record: Ashen Order 1 capture")
-    check(rec.guilds["Briar Fang"] and rec.guilds["Briar Fang"].b == 1, "war record: Briar Fang 1 bounty")
-    check(rec.players["Eve Ember"] and rec.players["Eve Ember"].b == 1 and rec.players["Eve Ember"].c == 1
-          and rec.players["Alice Ash"] and rec.players["Alice Ash"].c == 1, "war record: Eve and Alice credited")
-    -- record merge from an officer
-    alice.env.RUIN_API:GetModule("Warfront"):OnRecord({ k = key, g = { ["Ashen Order"] = { c = 4, b = 0 } }, p = {} })
-    check(rec.guilds["Ashen Order"].c == 4, "shared record merged")
-    T.openAllSubTabs(alice, "Warfront")
-    T.openAllSubTabs(eve, "Warfront")
-    errorsSoFar("warfront")
+    Server:Advance(11 * 60)
+    check(not chatHas(alice, "Lua"), "rally contest wears off quietly")
+    T.openAllSubTabs(alice, "Muster")
+    T.openAllSubTabs(eve, "Muster")
+    errorsSoFar("muster rally and bounties")
 end
 
 print("Pathfinder")
@@ -147,7 +126,7 @@ do
     pf:StartRoute("vot")
     local tr = alice.env.RUIN_PathfinderTracker
     tr.nav._scripts.OnUpdate(tr.nav, 0.1)
-    check(tr.arrow:IsShown() and tr.dist:GetText():find("yd"), "arrow points to the step with a distance (" .. tostring(tr.dist:GetText()) .. ")")
+    check(tr.arrow:IsShown() and tr.dist:GetText():find("yards"), "arrow points to the step with a distance (" .. tostring(tr.dist:GetText()) .. ")")
     check(alice.env.RUIN_API.Map:GetPins("Pathfinder").step ~= nil, "current step pinned on the map")
     -- in another zone the tracker names the zone instead
     alice.pos = { map = 1429, x = 0.5, y = 0.5 }
@@ -297,7 +276,7 @@ do
     R.Map:SetPin("Test", "far", { map = 1411, x = 0.70, y = 0.50, title = "Far" })       -- 800 yd east: edge
     local driver
     for _, f in ipairs(alice.frames) do
-        if f._scripts.OnUpdate and not f.pin and f ~= alice.env.RUIN_WarfrontHUD then
+        if f._scripts.OnUpdate and not f.pin then
             local ok = pcall(f._scripts.OnUpdate, f, 0.2)
         end
     end

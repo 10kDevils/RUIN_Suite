@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>RUIN Warfront</title>
+<title>RUIN Warfront · RUIN Gaming Companion App</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -149,6 +149,55 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 .radar .lbl{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:12px;color:#fff}
 @keyframes wf-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.radar .ringd{animation:none}}
+
+/* 0.3.7: the RUIN Gaming Companion App look (from the RUIN Companion brief) */
+.brand .bt{display:flex;flex-direction:column;line-height:1}
+.brand small{display:block;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.wow{background:#070b13;border:1px solid #2a4466;border-radius:3px;box-shadow:0 0 0 1px #000,0 24px 46px rgba(0,0,0,.6);padding:84px 8px 8px;margin:10px 0 20px;color:#e9edf4}
+.wow-por{display:none}
+.wow-ttl{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:0 44px 0 14px;box-sizing:border-box;background:linear-gradient(#131c2b,#070b13);border-bottom:1px solid #2a4466;font-family:'Grenze Gotisch',Georgia,serif;font-size:26px;font-weight:700;color:#e6b862;text-shadow:0 1px 0 #000;white-space:nowrap}
+.wow-ttl i{font-style:normal;font-family:'Alegreya Sans',Optima,sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#cfa65a;border-left:1px solid #2a4466;padding-left:12px}
+.wow-x{top:12px;right:12px;background:#0c1220;border:1px solid #2a4466;color:#95a6bf;font:400 13px/18px Arial,sans-serif;border-radius:2px}
+.wow-tabs{top:54px;left:10px;right:10px;margin:0;gap:4px;flex-wrap:wrap}
+.wow-tabs span{font-size:12px;font-weight:600;color:#95a6bf;background:#0c1220;border:1px solid #2a4466;border-radius:0;padding:4px 10px;box-shadow:none}
+.wow-tabs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9;padding-top:4px;margin-top:0}
+.wow-in{background:#0c1220;border:1px solid #2a4466;box-shadow:none}
+.wow-hd{background:linear-gradient(90deg,color-mix(in srgb,var(--th) 14%,#131c2b),#070b13);border-bottom:1px solid #2a4466}
+.wow-hd::after{left:0;right:auto;width:72px;bottom:-1px;height:2px;background:var(--th)}
+.wow-ic{border:2px solid var(--th);box-shadow:none}
+.wow-tt b{font-family:'Alegreya Sans',Optima,sans-serif;font-size:22px;color:#eef1f6;text-shadow:0 1px 0 #000}
+.wow-tt b::before{content:"RUIN GAMING COMPANION APP";display:block;font-size:10px;letter-spacing:.2em;color:#e6b862;margin-bottom:3px}
+.wow-tt i{color:#95a6bf}
+.wow-h{color:#eef1f6}.wow-h::after{background:#54b7d9;width:40px}
+.wow-rows>*:nth-child(odd){background:rgba(19,28,43,.9)}.wow-rows>*:nth-child(even){background:rgba(19,28,43,.35)}.wow-rows>*:hover{background:rgba(84,183,217,.14)}
+.wow-wbtn{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;box-shadow:none;border-radius:0}
+.wow-wbtn.off{color:#6d7a8f;background:#0c1220}
+.wow-chk.on::before{background:#54b7d9}
+.headcard{background:#0c1220;box-shadow:0 0 0 1px #2a4466,0 10px 24px rgba(0,0,0,.45)}
+.pill{display:inline-block;min-width:62px;text-align:center;font-family:'Alegreya Sans',Optima,sans-serif;font-size:13px;font-weight:700;padding:2px 8px;border-top:1px solid}
+.pill.q{background:#174f29;color:#9eff9e;border-color:#9eff9e59}.pill.m{background:#664d0d;color:#ffdb61;border-color:#ffdb6159}.pill.l{background:#612b12;color:#ffa366;border-color:#ffa36659}
+.gp{border:1px solid var(--line);overflow-x:auto;background:#0c1220}
+.gp table{border-collapse:collapse;width:100%;min-width:640px;font-size:16px}
+.gp th{text-align:left;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#95a6bf;padding:10px 14px;border-bottom:1px solid var(--line)}
+.gp td{padding:10px 14px;border-bottom:1px solid rgba(43,60,110,.6);vertical-align:middle}
+.gp tr:nth-child(even) td{background:rgba(19,28,43,.6)}
+.gp .it{color:#c09cf0;font-weight:700}.gp .sub{display:block;font-size:13px;color:#95a6bf;font-weight:400}
+.gp-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-top:0;background:#0c1220;font-size:15px}
+.gp-bar{display:inline-block;width:180px;height:8px;background:#070b13;border:1px solid #2a4466;vertical-align:middle;margin-left:10px}
+.gp-bar b{display:block;height:100%;background:#5cd973}
+.retired-t{border:1px solid var(--line);overflow-x:auto}
+.retired-t table{border-collapse:collapse;width:100%;min-width:560px;font-size:17px}
+.retired-t th{text-align:left;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+.retired-t td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+.rbtn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:15px;text-decoration:none;background:var(--gold);color:#140e02;border:2px solid var(--gold);margin:22px 12px 0 0}
+.rbtn.ghost{background:transparent;color:var(--gold2)}
+.wbtn,.sb span{color:#eef1f6;background:#131c2b;border:1px solid #2a4466;border-radius:0}
+.wbtn.on{background:#131c2b;border-color:#54b7d9;color:#fff;box-shadow:inset 0 -2px 0 #54b7d9}
+.wow-subs{border-bottom-color:#2a4466}
+.wow-subs span{color:#95a6bf;background:#0c1220;border:1px solid #2a4466}
+.wow-subs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9}
+.inp{background:#070b13;border-color:#2a4466}
+.erow{border-bottom-color:#1c2a40}.erow .d{color:#e6b862}.erow .r{color:#f29a6c;margin-left:8px;font-size:13px}
 </style>
 </helmet>
 <div class="site">
@@ -157,11 +206,10 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="wrap">
 <a class="brand" href="Main.dc.html">
 <svg width="30" height="32" viewBox="0 0 100 106" aria-hidden="true" fill="none" stroke="#f2d48a" stroke-width="7" stroke-linejoin="round"><path d="M50 5 L92 19 V52 C92 78 73 94 50 101 C27 94 8 78 8 52 V19 Z"></path><path d="M50 24 V84 M34 40 H66"></path></svg>
-RUIN</a>
+<span class="bt">RUIN<small>Gaming Companion App</small></span></a>
 <nav class="navlinks" aria-label="RUIN addons">
 <a href="Main.dc.html">Core</a>
 <a href="Finder.dc.html">Finder</a>
-<a class="on" href="Warfront.dc.html">Warfront</a>
 <a href="Pathfinder.dc.html">Pathfinder</a>
 <a href="Codex.dc.html">Codex</a>
 <a href="Exchange.dc.html">Exchange</a>
@@ -174,115 +222,38 @@ RUIN</a>
 <section class="hero">
 <div class="wrap">
 <div>
-<p class="eyebrow">RUIN suite · World PvP</p>
-<h1 class="h1">Warfront</h1>
-<p class="lede">RUIN's own war in the open world. Officers name the ground worth holding, members take it by standing on it together, and one button calls the whole org to your side.</p>
+<p class="eyebrow">RUIN Gaming Companion App · World PvP</p>
+<h1 class="h1">Warfront is retired</h1>
+<p class="lede">RUIN's world PvP now runs on Overlord Forever, the faction-wide campaign addon. The parts Overlord doesn't cover moved into RUIN Muster.</p>
 <div class="chips">
-<span class="chip">Preview 0.3.0</span>
-<span class="chip">/wf</span>
-<span class="chip">Needs RUIN Core</span>
+<span class="chip">Retired October 2026</span>
+<span class="chip">Last version 0.3.2</span>
 </div>
+<a class="rbtn" href="https://www.curseforge.com/wow/addons/overlord-forever">Get Overlord Forever</a><a class="rbtn ghost" href="Muster.dc.html">Rallies and bounties in Muster</a>
 </div>
-<div>
-<div class="toast">CALL TO ARMS: <span>Eve Ember</span> needs help at The Crossroads</div>
-<div class="hud" role="img" aria-label="Example Warfront HUD with a direction arrow, showing a capture in progress">
-<svg class="arrow" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 L29 30 L17 23 L5 30 Z" fill="#ffd100" stroke="#000" stroke-width="2" stroke-linejoin="round"></path></svg>
-<div>
-<div class="l1">Tarren Mill Road <i>· 120 yd NE</i></div>
-<div class="l2">Capturing: 64% · 3 RUIN members here</div>
-<div class="bar"><div></div></div>
-</div>
-<span class="help">Help!</span>
-</div>
-<div class="radar" role="img" aria-label="Warfront radar: the objective circle ahead and to the right, 34 yards to the edge"><span class="ringd"></span><span class="ctr"></span><svg class="me" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 L29 30 L17 23 L5 30 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"></path></svg><span class="lbl">34 yd to the edge</span></div>
-<p class="hudnote">The arrow turns as you turn. Close in and the radar shows the circle around you; it turns green once you're inside.</p>
-</div>
+<div></div>
 </div>
 </section>
 
 <section class="sec">
 <div class="wrap">
-<p class="label">How it plays</p>
-<h2 class="h2">Name it, take it, hold the line</h2>
-<p class="intro">Warfront gives RUIN's world PvP a purpose: places that matter tonight, chosen by your officers, with the whole org pointed at them.</p>
-<div class="flow">
-<div class="fstep"><span class="n">1</span><h3>Officers mark the ground</h3><p>An officer stands on a crossroads, a flight master or a rival's farming spot and presses Mark objective here.</p></div>
-<div class="fstep"><span class="n">2</span><h3>The org is alerted</h3><p>Every RUIN member gets an alert, and the HUD's arrow points to the nearest objective, turning as you turn, with the distance beside it.</p></div>
-<div class="fstep"><span class="n">3</span><h3>Stand together to capture</h3><p>As you close in, a radar shows the circle around you. Enough RUIN members inside it for a full minute takes it, and the guild with the most fighters present gets the credit.</p></div>
-<div class="fstep"><span class="n">4</span><h3>Call to Arms</h3><p>Jumped while questing? One press tells every RUIN member where you are, and their HUD points to you for two minutes.</p></div>
-</div>
-</div>
-</section>
-
-<section class="sec alt">
-<div class="wrap rules">
-<div>
-<div class="ring" role="img" aria-label="Diagram of a capture circle with three RUIN members inside">
-<span class="dot" style="left:30%;top:38%;background:#2f5bd3"></span>
-<span class="dot" style="left:58%;top:30%;background:#2f5bd3"></span>
-<span class="dot" style="left:52%;top:62%;background:#c41e3a"></span>
-<span class="dot" style="left:90%;top:12%;background:#555"></span>
-<div class="center"><b>3 here</b><span>Capturing 64%</span></div>
-</div>
-<div class="key"><span><i style="background:#2f5bd3"></i>Briar Fang</span><span><i style="background:#c41e3a"></i>Ashen Order</span><span><i style="background:#555"></i>Outside the circle</span></div>
-</div>
-<div>
-<p class="label">Capture rules</p>
-<h2 class="h2">A capture takes a team</h2>
-<div class="rlist">
-<div class="rl"><b>2+ members</b><span>Needed inside the circle at once, so one player can't fake a capture. Officers can raise the number.</span></div>
-<div class="rl"><b>60 seconds</b><span>Held continuously. Step out and the timer resets.</span></div>
-<div class="rl"><b>Most present</b><span>The guild with the most members in the circle is credited with the capture.</span></div>
-<div class="rl"><b>2 hours</b><span>Objectives expire on their own, so the map stays about tonight.</span></div>
-</div>
-</div>
-</div>
-</section>
-
-<section class="sec">
-<div class="wrap">
-<p class="label">Where it lives</p>
-<h2 class="h2">Built for the fight, not the menu</h2>
-<div class="lives">
-<div class="live"><div class="k">On screen</div><div class="v">Warfront HUD</div><p>An arrow to the nearest objective or call for help, a radar near the circle, capture progress, and a Help! button.</p></div>
-<div class="live"><div class="k">Key binding</div><div class="v">Call to Arms</div><p>Bind it to a Steam Deck back button. No menu between you and help.</p></div>
-<div class="live"><div class="k">Slash commands</div><div class="v">/wf mark &lt;name&gt; · /wf help</div><p>Officers mark from chat; anyone can call for help.</p></div>
-<div class="live"><div class="k">RUIN window</div><div class="v">Warfront page</div><p>Every objective with status, distance and who set it, under a war-red header of crossed swords. Officers can remove them; anyone can switch on practice mode.</p></div>
-</div>
-</div>
-</section>
-
-<section class="sec alt">
-<div class="wrap shares">
-<div>
-<p class="label">What it shares with RUIN</p>
-<h2 class="h2">Position only when it counts</h2>
-<p class="muted">Warfront only sends your position when you are standing in an objective's circle, press Call to Arms, or claim a bounty kill. Officers who log in later receive the current objectives from officers already online.</p>
-<div class="facts"><span class="fact">objectives</span><span class="fact">presence in a circle</span><span class="fact">captures</span><span class="fact">Call to Arms + location</span><span class="fact">bounties</span><span class="fact">kill claims + witnesses</span><span class="fact">weekly war record</span></div>
-</div>
-<div>
-<p class="label">New in 0.3.0</p>
-<ul class="list">
-<li>Objective and Call to Arms pins on the world map and minimap</li>
-<li>Bounties on rival guilds or players, confirmed by a second RUIN witness</li>
-<li>A weekly war record and leaderboard across RUIN's guilds</li>
-<li>Contested objectives when Intel reports enemies nearby</li>
-</ul>
-<p class="muted" style="margin-top:18px">To try it alone, tick Practice mode on the Warfront page or type <span style="font-family:'IBM Plex Mono',monospace;color:#f2d48a">/wf practice</span>: mark objectives, capture them and post bounties by yourself. Practice items never leave your screen.</p>
-</div>
+<p class="label">Where everything went</p>
+<h2 class="h2">Nothing lost, nothing doubled</h2>
+<div class="retired-t"><table><thead><tr><th>Warfront feature</th><th>Now</th></tr></thead><tbody><tr><td><b>Officer-set objectives and captures</b></td><td>Overlord Forever's fronts, capture points, keeps and outposts. For an org meeting place, use a Muster rally point.</td></tr><tr><td><b>Call to Arms</b></td><td>Overlord's call to arms, and RUIN Intel's Under attack! report.</td></tr><tr><td><b>Bounties confirmed by a witness</b></td><td>RUIN Muster, Bounties page (/muster bounty, /muster claim, /muster confirm).</td></tr><tr><td><b>Contested objectives from Intel</b></td><td>RUIN Muster rally points are marked contested the same way.</td></tr><tr><td><b>Weekly war record and leaderboard</b></td><td>Overlord's leaderboards and Hall of Fame.</td></tr><tr><td><b>HUD arrow and radar</b></td><td>Overlord's map markers and Next Objective card; Muster pins rally points on your map.</td></tr></tbody></table></div>
+<p class="muted" style="margin-top:18px">You can disable or remove RUIN Warfront. If it's still installed, it says once after you log in that it is retired and where its features went.</p>
 </div>
 </section>
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Warfront · part of the RUIN addon suite · requires RUIN Core</span>
-<div class="pn"><a href="Finder.dc.html">Previous: Finder</a><a href="Pathfinder.dc.html">Next: Pathfinder</a></div>
+<span>RUIN Warfront · retired · part of the RUIN Gaming Companion App until October 2026</span>
+<div class="pn"><a href="Muster.dc.html">Go to Muster</a><a href="Main.dc.html">Back to Core</a></div>
 </div>
 </footer>
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3400}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1750}}'>
 class Component extends DCLogic {
   renderVals() {
     return {};
