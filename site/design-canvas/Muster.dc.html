@@ -216,7 +216,6 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <a href="Codex.dc.html">Codex</a>
 <a href="Exchange.dc.html">Exchange</a>
 <a class="on" href="Muster.dc.html">Muster</a>
-<a href="Intel.dc.html">Intel</a>
 </nav>
 </div>
 </header>
@@ -228,9 +227,10 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <h1 class="h1">Muster</h1>
 <p class="lede">Raid nights, PvP pushes and leveling groups for the whole org. Officers post, members sign up by role, and nobody forgets when it starts.</p>
 <div class="chips">
-<span class="chip">Version 0.3.3</span>
+<span class="chip">Version 0.3.4</span>
 <span class="chip">/muster</span>
 <span class="chip">/muster rally</span>
+<span class="chip">/muster spot</span>
 <span class="chip">Needs RUIN Core</span>
 </div>
 </div>
@@ -273,7 +273,7 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <p class="intro">RUIN's world PvP now runs on Overlord Forever: its campaign, keeps, captures and Most Wanted. Muster adds what only RUIN does: meeting places for the org, and bounties confirmed by a witness.</p>
 <div class="flow">
 <div class="fstep"><span class="n">1</span><h3>Call a rally</h3><p>Tick Rally here when you post an event, or type /muster rally where you stand. Everyone gets an alert and a pin on the world map and minimap.</p></div>
-<div class="fstep"><span class="n">2</span><h3>Know when it's contested</h3><p>When RUIN Intel reports enemies within about 300 yards, the rally is marked CONTESTED for ten minutes and the org is told.</p></div>
+<div class="fstep"><span class="n">2</span><h3>Know when it's contested</h3><p>When a sighting reports enemies within about 300 yards, the rally is marked CONTESTED for ten minutes and the org is told.</p></div>
 <div class="fstep"><span class="n">3</span><h3>Post a bounty</h3><p>Officers put a price on a rival guild or player. It reaches every RUIN member and lasts a week.</p></div>
 <div class="fstep"><span class="n">4</span><h3>Claim with a witness</h3><p>Kill one, target the body and claim, by button, /muster claim or a key binding. Another RUIN member nearby confirms it.</p></div>
 </div>
@@ -320,9 +320,15 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="facts"><span class="fact">event title, time, type</span><span class="fact">sign-ups by role</span><span class="fact">rosters</span><span class="fact">soft reserves</span><span class="fact">rally points</span><span class="fact">bounties and claims</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.3</p>
+<p class="label">New in 0.3.4</p>
 <ul class="list">
-<li>Rally points: an event's meeting place pinned on everyone's map, and marked contested when Intel sees enemies nearby</li>
+<li>Sightings and Timers pages from the retired Intel: one-press reports with map pins, an under-attack call, and world boss and buff timers</li>
+<li>Find group on boss, rare and enemy sightings lists you in RUIN Finder</li>
+<li>/muster spot, /muster timer, and key bindings for enemy groups and under attack</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.3</p>
+<ul class="list">
+<li>Rally points: an event's meeting place pinned on everyone's map, and marked contested when a sighting shows enemies nearby</li>
 <li>Bounties on rival guilds and players, confirmed by a RUIN witness (moved from the retired Warfront)</li>
 <li>/muster rally, /muster bounty, /muster claim, /muster confirm, and a claim key binding</li>
 <li>The RUIN Gaming Companion App look: a navy window, the gold RUIN mark and tabs across the top; loads on retail as well as wow forever, with settings kept per game</li>
@@ -339,16 +345,25 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 </div>
 </section>
 
+<section class="sec" id="sightings">
+<div class="wrap">
+<p class="label">New in 0.3.4 · From the retired Intel</p>
+<h2 class="h2">Sightings and timers</h2>
+<p class="intro">Muster already reacts to what happens in the world, so RUIN Intel folded into it. See something, press one button, and every RUIN member gets the alert.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Report what you see</h3><p style="margin:0;color:var(--muted)">Enemy group, under attack, world boss, rare, buff drop or other, with your location. Type /muster spot, or /intel, or bind a key for enemy groups and for under attack.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Alerts and pins</h3><p style="margin:0;color:var(--muted)">Everyone gets an alert and a pin on the world map and minimap that fades over 30 minutes. The Sightings page keeps the feed.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Find group</h3><p style="margin:0;color:var(--muted)">Boss, rare and enemy sightings have a Find group button that lists you in RUIN Finder for that activity. That is the one part of Intel that belongs to Finder.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">World boss and buff timers</h3><p style="margin:0;color:var(--muted)">The Timers page: press Now when a boss dies or a buff drops, or announce a drop in a few minutes. Shared with the org and re-sent to anyone who logs in.</p></div></div>
+</div>
+</section>
+
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Muster 0.3.3 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
-<div class="pn"><a href="Exchange.dc.html">Previous: Exchange</a><a href="Intel.dc.html">Next: Intel</a></div>
+<span>RUIN Muster 0.3.4 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
+<div class="pn"><a href="Exchange.dc.html">Previous: Exchange</a><a href="Main.dc.html">Back to Core</a></div>
 </div>
 </footer>
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":4450}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":5400}}'>
 class Component extends DCLogic {
   renderVals() {
     return {};

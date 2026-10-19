@@ -4,7 +4,7 @@
   "boards": {
     "Codex.dc.html": {
       "expand": "fill",
-      "h": 4300,
+      "h": 5050,
       "is_interactive": true,
       "title": "Codex",
       "w": 1280,
@@ -22,7 +22,7 @@
     },
     "Finder.dc.html": {
       "expand": "fill",
-      "h": 3400,
+      "h": 3560,
       "is_interactive": true,
       "title": "Finder",
       "w": 1280,
@@ -31,7 +31,7 @@
     },
     "Intel.dc.html": {
       "expand": "fill",
-      "h": 3900,
+      "h": 1820,
       "is_interactive": true,
       "title": "Intel",
       "w": 1280,
@@ -49,7 +49,7 @@
     },
     "Muster.dc.html": {
       "expand": "fill",
-      "h": 4450,
+      "h": 5400,
       "is_interactive": true,
       "title": "Muster",
       "w": 1280,
