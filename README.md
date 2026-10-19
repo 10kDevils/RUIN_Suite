@@ -6,23 +6,24 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 
 | Folder | What it is |
 | --- | --- |
-| `RUIN_Core` … `RUIN_Intel` | The seven addons, linked as git submodules (each points at a tagged commit in its own repo) |
-| `build.sh` | Packs all seven into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
+| `RUIN_Core` … `RUIN_Exchange` | The six addons, linked as git submodules (each points at a tagged commit in its own repo) |
+| `build.sh` | Packs all six into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
 | `tests/` | Lua 5.1 test harness that simulates several game clients (`tests/run.sh`) |
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |
 | `.github/workflows/release.yml` | Builds the zip and attaches it to a release when a `v*` tag is pushed or the workflow is run by hand (needs the `SUITE_TOKEN` secret, see the file) |
 
-## The addons (app version 0.3.8)
+## The addons (app version 0.3.9)
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |
-| RUIN Core | 0.3.8 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
-| RUIN Codex | 0.3.4 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Gear Path (upgrades ranked by time, solo and group), dungeon journal, learned drops, spec weights, officer best-in-slot lists, raid planning |
+| RUIN Core | 0.3.9 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
+| RUIN Codex | 0.3.5 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Gear Path (upgrades ranked by time, solo and group), class macros you can add in one click, dungeon journal, learned drops, spec weights, officer best-in-slot lists, raid planning |
 | RUIN Pathfinder | 0.3.6 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, class track, recorder, route sharing, follow a partner; uses Questie when installed |
-| RUIN Finder | 0.3.1 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots |
-| RUIN Muster | 0.3.3 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, rally points, bounties |
-| RUIN Intel | 0.3.1 | [RUIN_Intel](https://github.com/10kDevils/RUIN_Intel) | Sighting reports with map pins, under-attack calls, boss and buff timers |
+| RUIN Finder | 0.3.2 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting |
+| RUIN Muster | 0.3.4 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, rally points, bounties, world sightings with map pins and under-attack calls, boss and buff timers |
 | RUIN Exchange | 0.3.1 | [RUIN_Exchange](https://github.com/10kDevils/RUIN_Exchange) | Pooled auction prices and trends, crafters, craft requests, leveling plan, bag sweep |
+
+RUIN Intel ([RUIN_Intel](https://github.com/10kDevils/RUIN_Intel)) is retired: its sightings and timers moved to RUIN Muster, and starting a group from a sighting is in RUIN Finder.
 
 RUIN Warfront ([RUIN_Warfront](https://github.com/10kDevils/RUIN_Warfront)) is retired: RUIN uses [Overlord Forever](https://www.curseforge.com/wow/addons/overlord-forever) for world PvP, and Warfront's bounties and meeting points moved to RUIN Muster.
 

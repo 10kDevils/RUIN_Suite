@@ -17,7 +17,7 @@ local function errorsSoFar(label)
     Server.errors = {}
 end
 
-local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster", "RUIN_Intel" }
+local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster" }
 
 Server.guilds["Ashen Order"] = { { name = "Alice Ash", rank = 0, guid = "Player-1-00000001" } }
 Server.guilds["Briar Fang"] = {
@@ -28,8 +28,8 @@ local alice = Server:NewClient({ name = "Alice Ash", guid = "Player-1-00000001",
 local cara = Server:NewClient({ name = "Cara Cole", guid = "Player-1-00000002", guild = "Briar Fang", rank = 0, modules = MODULES })
 local eve = Server:NewClient({ name = "Eve Ember", guid = "Player-1-00000004", guild = "Briar Fang", rank = 2, modules = MODULES })
 Server:Advance(10)
-errorsSoFar("load core + 7 modules")
-check(#alice.env.RUIN_API:GetModules() == 6, "all 6 modules registered")
+errorsSoFar("load core + 5 modules")
+check(#alice.env.RUIN_API:GetModules() == 5, "all 5 modules registered")
 
 print("Org setup")
 Server:Slash(alice, "key create RUIN")
@@ -127,13 +127,13 @@ check(chatHas(cara, "Molten Core starts in"), "Cara got the reminder")
 alice.env.RUIN_API:OpenTab("Muster")
 errorsSoFar("muster")
 
-print("Intel")
+print("Muster: sightings")
 eve.zone, eve.subzone = "The Barrens", "The Crossroads"
-eve.env.SlashCmdList.RUININTEL("enemy 8 Horde heading north")
+eve.env.SlashCmdList.RUINMUSTERINTEL("enemy 8 Horde heading north")
 Server:Advance(2)
 check(chatHas(alice, "Enemy group") and chatHas(alice, "8 Horde heading north") and chatHas(alice, "The Crossroads"), "enemy sighting reached Alice with location")
-alice.env.RUIN_API:OpenTab("Intel")
-errorsSoFar("intel")
+alice.env.RUIN_API:OpenTab("Muster")
+errorsSoFar("sightings")
 
 print("Practice mode (connected non-officer)")
 eve.env.SlashCmdList.RUINMUSTER("practice")
@@ -161,11 +161,11 @@ check(Server.maxLen <= 255, "no addon message over 255 bytes (max " .. Server.ma
 print("Themed pages and animated headers")
 do
     local titles = {}
-    for _, t in ipairs({ "Org", "Finder", "Pathfinder", "Codex", "Exchange", "Muster", "Intel", "Settings" }) do
+    for _, t in ipairs({ "Org", "Finder", "Pathfinder", "Codex", "Exchange", "Muster", "Settings" }) do
         local opened = alice.env.RUIN_API:OpenTab(t)
         if opened ~= false then titles[#titles + 1] = t end
     end
-    check(#titles == 8, "every module page opens (" .. #titles .. "/8)")
+    check(#titles == 7, "every module page opens (" .. #titles .. "/7)")
     local function tickAll(n)
         local ran = 0
         for _ = 1, n do

@@ -34,46 +34,72 @@ do
     errorsSoFar("finder")
 end
 
-print("Intel")
+print("Muster: sightings and timers (from Intel)")
 do
     eve.zone, eve.subzone = "The Barrens", "The Crossroads"
     eve.pos = { map = 1411, x = 0.52, y = 0.30 }
     local seen
-    alice.env.RUIN_API:Subscribe("Intel:SPOT", function(s) seen = s end)
-    eve.env.SlashCmdList.RUININTEL("enemy 8 Horde heading north")
+    alice.env.RUIN_API:Subscribe("Muster:SPOT", function(s) seen = s end)
+    eve.env.SlashCmdList.RUINMUSTERINTEL("enemy 8 Horde heading north")
     Server:Advance(2)
     check(chatHas(alice, "Enemy group") and chatHas(alice, "8 Horde heading north"), "enemy sighting reached Alice")
     check(seen and seen.map == 1411 and math.abs(seen.x - 0.52) < 0.001, "sighting published to other modules with its position")
-    local pins = alice.env.RUIN_API.Map:GetPins("Intel")
+    local pins = alice.env.RUIN_API.Map:GetPins("MusterWorld")
     local pin = next(pins) and pins[next(pins)]
     check(pin and pin.alpha == 1, "fresh report pinned on the map at full strength")
     Server:Advance(20 * 60)
-    pins = alice.env.RUIN_API.Map:GetPins("Intel")
+    pins = alice.env.RUIN_API.Map:GetPins("MusterWorld")
     pin = next(pins) and pins[next(pins)]
     check(pin and pin.alpha < 0.5, "pin faded as the report aged (" .. tostring(pin and pin.alpha) .. ")")
     Server:Advance(11 * 60)
-    check(next(alice.env.RUIN_API.Map:GetPins("Intel")) == nil, "pin removed after 30 minutes")
+    check(next(alice.env.RUIN_API.Map:GetPins("MusterWorld")) == nil, "pin removed after 30 minutes")
     -- under attack
     cara.pos = { map = 1411, x = 0.6, y = 0.6 }
-    cara.env.RUIN_Intel_UnderAttack()
+    cara.env.RUIN_Muster_UnderAttack()
     Server:Advance(2)
     check(chatHas(alice, "UNDER ATTACK:"), "under-attack call reached Alice")
-    cara.env.RUIN_Intel_UnderAttack()
+    cara.env.RUIN_Muster_UnderAttack()
     check(chatHas(cara, "already called for help"), "under-attack has a one-minute cooldown")
     -- timers
-    cara.env.SlashCmdList.RUININTEL("timer dragonslayer 3")
+    cara.env.SlashCmdList.RUINMUSTERINTEL("timer dragonslayer 3")
     Server:Advance(2)
     check(chatHas(alice, "drops in"), "planned buff drop announced")
     Server:Advance(130)
     check(chatHas(alice, "drops in under a minute"), "one-minute warning")
     Server:Advance(60)
-    local rec = alice.env.RUIN_IntelDB.timers.dragonslayer
+    local rec = alice.env.RUIN_MusterDB.world.timers.dragonslayer
     check(rec and rec.last and not rec.plan, "buff marked dropped once the time passed")
-    alice.env.SlashCmdList.RUININTEL("timer azuregos")
+    alice.env.SlashCmdList.RUINMUSTERINTEL("timer azuregos")
     Server:Advance(2)
-    check(cara.env.RUIN_IntelDB.timers.azuregos and cara.env.RUIN_IntelDB.timers.azuregos.last, "boss kill shared")
-    T.openAllSubTabs(alice, "Intel")
-    errorsSoFar("intel")
+    check(cara.env.RUIN_MusterDB.world.timers.azuregos and cara.env.RUIN_MusterDB.world.timers.azuregos.last, "boss kill shared")
+    T.openAllSubTabs(alice, "Muster")
+    errorsSoFar("sightings")
+    -- Find group hands a sighting to Finder
+    local fi = alice.env.RUIN_API:GetModule("Finder")
+    check(fi and fi.QuickList ~= nil, "Finder offers QuickList")
+    local ok = fi:QuickList("Raid", "World boss", 4, 8, 28)
+    local fdb = alice.env.RUIN_FinderCharDB
+    check(ok and fdb.looking and fdb.listing == "Group" and fdb.activity == "Raid" and fdb.needD == 28,
+          "QuickList starts a Finder group listing")
+    fi:QuickList("Nonsense", "x")
+    check(fdb.activity == "Questing", "unknown activity falls back to Questing")
+    fdb.looking = false
+    -- Muster's own Find group path
+    local W = alice.mns and alice.mns.RUIN_Muster and alice.mns.RUIN_Muster.World
+    check(W and W.FindGroup, "Muster has Find group")
+    if W then
+        W.FindGroup("rare", "Hemathion")
+        check(fdb.activity == "Questing" and fdb.detail == "Hemathion" and fdb.looking, "Find group on a rare lists Questing")
+        W.FindGroup("boss", "")
+        check(fdb.activity == "Raid" and fdb.detail == "World boss", "Find group on a boss lists a Raid")
+    end
+    -- an old RUIN Intel client still reaches Muster
+    local seenOld
+    alice.env.RUIN_API:Subscribe("Muster:SPOT", function(sp) seenOld = sp end)
+    cara.ns.Comms:Send("Intel:SPOT", { k = "rare", x = "Old client", w = "Un'Goro", t = os.time() }, "ORG")
+    Server:Advance(2)
+    check(seenOld and seenOld.kind == "rare" and seenOld.text == "Old client", "sighting from an old Intel version understood")
+    errorsSoFar("find group")
 end
 
 print("Muster: rally points and bounties (from Warfront)")
@@ -84,11 +110,11 @@ do
     Server:Advance(2)
     check(ev and ev.rally and alice.env.RUIN_API.Map:GetPins("Muster")[ev.id], "rally pinned on the map")
     check(cara.env.RUIN_API.Map:GetPins("Muster")[ev.id], "Cara's map shows it too")
-    -- an Intel enemy sighting near the rally contests it
+    -- an enemy sighting near the rally contests it
     eve.pos = { map = 1411, x = 0.402, y = 0.40 }
-    eve.env.SlashCmdList.RUININTEL("enemy 5 Horde riders")
+    eve.env.SlashCmdList.RUINMUSTERINTEL("enemy 5 Horde riders")
     Server:Advance(2)
-    check(chatHas(alice, "Crossroads rally point is contested: 5 Horde riders"), "Intel sighting contests the rally point")
+    check(chatHas(alice, "Crossroads rally point is contested: 5 Horde riders"), "enemy sighting contests the rally point")
     check(alice.env.RUIN_MusterDB.events[ev.id].contested ~= nil, "event marked contested")
     -- a posted event can carry a rally point too
     local later = mu:Create("Tarren Mill push", os.date("%Y-%m-%d %H:%M", os.time() + 3600), { kind = "PvP", rally = true })

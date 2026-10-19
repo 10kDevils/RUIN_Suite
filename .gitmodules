@@ -16,6 +16,3 @@
 [submodule "RUIN_Muster"]
 	path = RUIN_Muster
 	url = https://github.com/10kDevils/RUIN_Muster.git
-[submodule "RUIN_Intel"]
-	path = RUIN_Intel
-	url = https://github.com/10kDevils/RUIN_Intel.git

@@ -6,7 +6,7 @@ local alice, cara, eve, check, chatHas, errorsSoFar = T.alice, T.cara, T.eve, T.
 print("RUIN window and tabs (brief layout)")
 do
     local labels = alice.ns.UI:TabLabels()
-    check(table.concat(labels, ",") == "Codex,Pathfinder,Guild,Finder,Muster,Intel,Exchange,Settings",
+    check(table.concat(labels, ",") == "Codex,Pathfinder,Guild,Finder,Muster,Exchange,Settings",
         "tabs carry module names: Codex, Pathfinder, Guild ... Settings (" .. table.concat(labels, ",") .. ")")
     local R = alice.env.RUIN_API
     check(R:OpenTab("Codex") and R:OpenTab("Pathfinder") and R:OpenTab("Muster"), "module pages open by name")

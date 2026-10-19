@@ -27,7 +27,7 @@ local function openAllSubTabs(c, page)
 end
 _G.openAllSubTabs = openAllSubTabs
 
-local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster", "RUIN_Intel" }
+local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster" }
 
 Server.guilds["Ashen Order"] = { { name = "Alice Ash", rank = 0, guid = "Player-1-00000001" } }
 Server.guilds["Briar Fang"] = {
@@ -96,7 +96,7 @@ do
     errorsSoFar("muster")
 end
 
-for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua" }) do
+for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_macros.lua" }) do
     local path = here .. extra
     local fh = io.open(path, "r")
     if fh then fh:close(); dofile(path) end
