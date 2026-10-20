@@ -4,7 +4,7 @@
   "boards": {
     "Codex.dc.html": {
       "expand": "fill",
-      "h": 5150,
+      "h": 5350,
       "is_interactive": true,
       "title": "Codex",
       "w": 1280,
@@ -13,7 +13,7 @@
     },
     "Exchange.dc.html": {
       "expand": "fill",
-      "h": 3300,
+      "h": 3440,
       "is_interactive": true,
       "title": "Exchange",
       "w": 1280,
@@ -22,7 +22,7 @@
     },
     "Finder.dc.html": {
       "expand": "fill",
-      "h": 3700,
+      "h": 3870,
       "is_interactive": true,
       "title": "Finder",
       "w": 1280,
@@ -40,7 +40,7 @@
     },
     "Main.dc.html": {
       "expand": "fill",
-      "h": 8200,
+      "h": 8260,
       "is_interactive": true,
       "title": "RUIN Gaming Companion App",
       "w": 1280,
@@ -49,7 +49,7 @@
     },
     "Muster.dc.html": {
       "expand": "fill",
-      "h": 5500,
+      "h": 5750,
       "is_interactive": true,
       "title": "Muster",
       "w": 1280,
@@ -58,7 +58,7 @@
     },
     "Pathfinder.dc.html": {
       "expand": "fill",
-      "h": 3250,
+      "h": 3420,
       "is_interactive": true,
       "title": "Pathfinder",
       "w": 1280,
