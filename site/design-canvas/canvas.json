@@ -4,7 +4,7 @@
   "boards": {
     "Codex.dc.html": {
       "expand": "fill",
-      "h": 5050,
+      "h": 5150,
       "is_interactive": true,
       "title": "Codex",
       "w": 1280,
@@ -13,7 +13,7 @@
     },
     "Exchange.dc.html": {
       "expand": "fill",
-      "h": 3200,
+      "h": 3300,
       "is_interactive": true,
       "title": "Exchange",
       "w": 1280,
@@ -22,7 +22,7 @@
     },
     "Finder.dc.html": {
       "expand": "fill",
-      "h": 3560,
+      "h": 3700,
       "is_interactive": true,
       "title": "Finder",
       "w": 1280,
@@ -49,7 +49,7 @@
     },
     "Muster.dc.html": {
       "expand": "fill",
-      "h": 5400,
+      "h": 5500,
       "is_interactive": true,
       "title": "Muster",
       "w": 1280,
@@ -58,7 +58,7 @@
     },
     "Pathfinder.dc.html": {
       "expand": "fill",
-      "h": 3150,
+      "h": 3250,
       "is_interactive": true,
       "title": "Pathfinder",
       "w": 1280,

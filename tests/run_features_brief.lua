@@ -6,12 +6,12 @@ local alice, cara, eve, check, chatHas, errorsSoFar = T.alice, T.cara, T.eve, T.
 print("RUIN window and tabs (brief layout)")
 do
     local labels = alice.ns.UI:TabLabels()
-    check(table.concat(labels, ",") == "Codex,Pathfinder,Guild,Finder,Muster,Exchange,Settings",
-        "tabs carry module names: Codex, Pathfinder, Guild ... Settings (" .. table.concat(labels, ",") .. ")")
+    check(table.concat(labels, ",") == "Guild,Groups,Events,Leveling,Gear,Market,Options",
+        "tabs in brief order: Guild, Groups, Events, Leveling, Gear, Market, Options (" .. table.concat(labels, ",") .. ")")
     local R = alice.env.RUIN_API
     check(R:OpenTab("Codex") and R:OpenTab("Pathfinder") and R:OpenTab("Muster"), "module pages open by name")
     check(R.appName == "RUIN Gaming Companion App" and alice.ns.APP_NAME == "RUIN Gaming Companion App", "the app is named RUIN Gaming Companion App")
-    check(R:OpenTab("Guild") and R:OpenTab("Org") and R:OpenTab("Settings"), "Guild (alias Org) and Settings open")
+    check(R:OpenTab("Guild") and R:OpenTab("Org") and R:OpenTab("Settings") and R:OpenTab("Options") and R:OpenTab("Groups") and R:OpenTab("Events"), "Guild (alias Org), Settings/Options, and modules open by old or new name")
     alice.env.SlashCmdList.RUIN("settings")
     alice.env.SlashCmdList.RUIN("guild")
     check(R.apiLevel >= 4 and R:GetClient() == "forever", "API level 4 and the client is detected as WoW Forever")
