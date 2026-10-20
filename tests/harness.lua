@@ -114,6 +114,7 @@ function Server:NewClient(opts)
         if name then env[name] = f end
         return f
     end
+    if opts.ui then opts.ui.install(env, c) end
     env.C_Timer = {
         After = function(d, fn) schedule(Server.time + d, fn) end,
         NewTicker = function(d, fn)
@@ -320,6 +321,15 @@ function Server:NewClient(opts)
         local chunk = assert(loadfile(ADDON_DIR .. "/" .. file))
         setfenv(chunk, env)
         chunk("RUIN_Core", c.ns)
+    end
+    -- Remember every row of sub-tabs, so tests can open each sub-page.
+    c.subtabs = {}
+    local W = c.ns.Widgets
+    local subTabs = W.SubTabs
+    W.SubTabs = function(...)
+        local obj = subTabs(...)
+        table.insert(c.subtabs, obj)
+        return obj
     end
     -- Optional modules: read each TOC's file list
     for _, folder in ipairs(opts.modules or {}) do

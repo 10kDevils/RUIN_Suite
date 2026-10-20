@@ -189,3 +189,37 @@ do
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("leveling")
 end
+
+print("Page colors and controls (Core 0.3.12)")
+do
+    local W = alice.env.RUIN_API.Widgets
+    local themes = alice.ns.THEMES
+    check(W.SchemeFor(themes.Guild).core and W.SchemeFor(themes.Settings).core, "Guild and Options keep RUIN's own colors")
+    local fs = W.SchemeFor(themes.Finder)
+    check(not fs.core and fs.accent[1] > fs.accent[3], "a module page takes its addon's color (Finder is pink)")
+    check(W.SchemeFor(themes.Muster) ~= W.SchemeFor(themes.Codex), "each module has its own scheme")
+    -- a widget finds its page's colors through its parents
+    local page = alice.env.CreateFrame("Frame")
+    page.ruinTheme = themes.Muster
+    local child = alice.env.CreateFrame("Frame")
+    child.GetParent = function() return page end
+    check(W.ThemeOf(child) == themes.Muster, "widgets find their page's theme")
+    -- check box label hides with the box; placeholder text
+    local c = W.Check(page, "Test", function() return true end, function() end)
+    check(c.label and c.mark, "RUIN-style check box with a label")
+    local e = W.EditBox(page, 100, nil, "Type here")
+    check(e.hint and e.hint:GetText() == "Type here", "text boxes carry a hint")
+    local b = W.Cycle(page, 100, { "A", "B" }, function() return "A" end, function() end, "Pick: ")
+    b.format = function(v) return v .. "!" end
+    b:Refresh()
+    check(b:GetText() == "Pick: A!", "choice buttons can format their value")
+    local btn = W.Button(page, "Alerts", 80)
+    local pop = W.Popover(btn, 200, 100, "Alert me for")
+    check(pop and not pop:IsShown(), "popover starts closed")
+    btn._scripts.OnClick(btn)
+    check(pop:IsShown(), "its button opens it")
+    -- Options shows members only what they can use
+    eve.env.RUIN_API:OpenTab("Options")
+    alice.env.RUIN_API:OpenTab("Options")
+    errorsSoFar("page colors")
+end

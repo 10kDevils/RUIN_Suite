@@ -19,10 +19,9 @@ end
 local function openAllSubTabs(c, page)
     -- open a module page and click through each of its sub-tabs
     c.env.RUIN_API:OpenTab(page)
-    for _, f in ipairs(c.frames) do
-        if f.buttons and f.pages and f.Select then
-            for i = 1, #f.buttons do f:Select(i) end
-        end
+    for _, st in ipairs(c.subtabs) do
+        for j = 1, #st.buttons do st:Select(j) end
+        st:Select(1)
     end
 end
 _G.openAllSubTabs = openAllSubTabs
