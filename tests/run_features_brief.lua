@@ -223,3 +223,28 @@ do
     alice.env.RUIN_API:OpenTab("Options")
     errorsSoFar("page colors")
 end
+
+print("Tab order (Options) and the Codex journal (Core 0.3.13, Codex 0.3.9)")
+do
+    local UI = alice.ns.UI
+    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Options", "usual tab order")
+    check(UI:MoveTab("Muster", -1) and UI:MoveTab("Muster", -1), "Muster moved to the front")
+    check(table.concat(UI:TabLabels(), ",") == "Muster,Guild,Finder,Pathfinder,Codex,Exchange,Options", "tab strip follows your order")
+    check(alice.env.RUIN_DB.settings.tabOrder[1] == "Muster", "order saved in RUIN Core's settings")
+    check(not UI:MoveTab("Muster", -1), "can't move past the first place")
+    check(not UI:MoveTab("Settings", -1), "Options stays last")
+    alice.env.SlashCmdList.RUIN("tabs reset")
+    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Options" and alice.env.RUIN_DB.settings.tabOrder == nil, "/ruin tabs reset restores it")
+    -- Codex: Journal last, dungeons and raids both plan runs in Muster
+    local cx = alice.env.RUIN_API:GetModule("Codex")
+    local dg = alice.mns.RUIN_Codex.Dungeons[1]
+    local ev = cx:PlanRun(dg, os.date("%Y-%m-%d %H:%M", os.time() + 2 * 86400), nil, false)
+    check(ev and ev.kind == "Dungeon" and ev.size == 5 and ev.need[1] == 1 and ev.need[3] == 3, "a dungeon run posts to Muster as a 5-player event")
+    local raid = alice.mns.RUIN_Codex.Raids[1]
+    local rv = cx:PlanRun(raid, os.date("%Y-%m-%d %H:%M", os.time() + 3 * 86400), 40, true)
+    check(rv and rv.kind == "Raid" and rv.size == 40, "a raid run keeps its size")
+    alice.env.SlashCmdList.RUINCODEX("raids")
+    alice.env.SlashCmdList.RUINCODEX("deadmines")
+    T.openAllSubTabs(alice, "Codex")
+    errorsSoFar("tab order and journal")
+end

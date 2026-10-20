@@ -74,6 +74,11 @@ try("finder", function()
 end)
 Server:Advance(5)
 
+-- Overlord Forever "installed" (its /ov command exists), so the Guild page shows that state.
+for _, c in ipairs({ alice, eve }) do
+    c.env.SLASH_OVERLORD1 = "/ov"
+    c.env.SlashCmdList.OVERLORD = function() end
+end
 local viewer = AS == "eve" and eve or alice
 alice = viewer
 -- Record every sub-tab row the pages build, so each sub-page can be opened.
@@ -138,6 +143,11 @@ end
 if AS == "alice" then API:OpenTab("Muster"); sub("Muster", "Events"); click("New event"); write("muster--events-new"); click("Close") end
 sub("Muster", "Sightings"); click("Alerts"); write("muster--sightings-alerts"); click("Alerts")
 if AS == "alice" then API:OpenTab("Codex"); sub("Codex", "Best-in-slot"); click("Edit list"); write("codex--best-in-slot-edit"); click("Done") end
+
+API:OpenTab("Codex"); sub("Codex", "Journal"); click("Raids"); write("codex--journal-raids"); click("Dungeons")
+-- Options: a tab picked in Tab order, and Muster moved first.
+API:OpenTab("Options"); click("Muster"); click("Move left"); click("Move left"); write("options--tab-order")
+alice.ns.UI:ResetTabOrder()
 
 local f = assert(io.open(OUT .. "/index.txt", "w"))
 f:write(table.concat(index, "\n"), "\n")
