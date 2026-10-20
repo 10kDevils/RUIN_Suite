@@ -4,7 +4,7 @@
   "boards": {
     "Codex.dc.html": {
       "expand": "fill",
-      "h": 5350,
+      "h": 5590,
       "is_interactive": true,
       "title": "Codex",
       "w": 1280,
