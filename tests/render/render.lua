@@ -63,6 +63,10 @@ try("muster", function()
     cara.env.SlashCmdList.RUINMUSTERINTEL("timer songflower")
     Server:Advance(3)
 end)
+try("pathfinder", function()
+    alice.env.RUIN_API:GetModule("Pathfinder"):PublishRoute("westfall_10_15")
+    Server:Advance(20)
+end)
 try("finder", function()
     local cdb = cara.env.RUIN_FinderCharDB
     cdb.needT, cdb.needH, cdb.needD = 0, 1, 0

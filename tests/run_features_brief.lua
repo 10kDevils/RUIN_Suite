@@ -248,3 +248,44 @@ do
     T.openAllSubTabs(alice, "Codex")
     errorsSoFar("tab order and journal")
 end
+
+print("Pathfinder: officer routes (Pathfinder 0.3.12)")
+do
+    local pa, pc, pe = alice.env.RUIN_API:GetModule("Pathfinder"), cara.env.RUIN_API:GetModule("Pathfinder"), eve.env.RUIN_API:GetModule("Pathfinder")
+    check(alice.env.RUIN_API:IsOfficerName("Cara Cole") and not alice.env.RUIN_API:IsOfficerName("Nobody Here"), "Core tells officers apart")
+    check(#alice.mns.RUIN_Pathfinder.Routes >= 14, "the new Alliance routes are built in (" .. #alice.mns.RUIN_Pathfinder.Routes .. ")")
+
+    local r = pa:PublishRoute("elwynn_1_10")
+    Server:Advance(40)
+    check(r and r.official and not r.official.approved, "an officer publishes a route")
+
+    local got = eve.env.RUIN_PathfinderDB.official[r.id]
+    check(got and got.official and got.official.by == "Alice Ash" and #got.steps == #r.steps and got.builtin == "elwynn_1_10", "it reaches a member with the officer mark")
+    -- a member can't publish, and a member's message is ignored
+    check(pe:PublishRoute("westfall_10_15") == nil, "members can't publish")
+    eve.env.RUIN_API:GetModule("Pathfinder"):Send("OFFICIAL", { id = "ofake", title = "Fake", steps = { { act = "note", text = "x" } }, ot = os.time() }, "ORG")
+    Server:Advance(40)
+    check(cara.env.RUIN_PathfinderDB.official.ofake == nil, "a non-officer's route push is ignored")
+    -- approving a shared route
+    eve.env.RUIN_PathfinderDB.custom.cme = { id = "cme", title = "Eve's Duskwood", author = "Eve Ember", steps = { { act = "note", text = "go" } } }
+    pe:ShareRoute("cme")
+    Server:Advance(40)
+    local inbox = alice.env.RUIN_PathfinderDB.inbox[1]
+    check(inbox and inbox.route.title == "Eve's Duskwood", "Alice got Eve's shared route")
+    local copyId
+    for id in pairs(alice.env.RUIN_PathfinderDB.custom) do copyId = id end
+    local tmp = alice.mns.RUIN_Pathfinder
+    local added = { title = inbox.route.title, author = "Eve Ember", steps = inbox.route.steps }
+    alice.env.RUIN_PathfinderDB.custom.capprove = added; added.id = "capprove"
+    local ap = pa:PublishRoute("capprove", "Eve Ember")
+    Server:Advance(40)
+    check(ap and ap.official.approved, "publishing a member's route marks it officer-approved")
+    check(cara.env.RUIN_PathfinderDB.official[ap.id] and cara.env.RUIN_PathfinderDB.official[ap.id].official.approved, "approved route reaches everyone")
+    -- withdraw
+    pa:WithdrawRoute(r.id)
+    Server:Advance(40)
+    check(eve.env.RUIN_PathfinderDB.official[r.id] == nil, "withdrawn from everyone")
+    T.openAllSubTabs(alice, "Pathfinder")
+    T.openAllSubTabs(eve, "Pathfinder")
+    errorsSoFar("officer routes")
+end

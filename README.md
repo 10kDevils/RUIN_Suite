@@ -13,15 +13,15 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |
 | `.github/workflows/release.yml` | Builds the zip and attaches it to a release when a `v*` tag is pushed or the workflow is run by hand (needs the `SUITE_TOKEN` secret, see the file) |
 
-## The addons (app version 0.3.13)
+## The addons (app version 0.3.14)
 
 In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Options by default; each player can rearrange them under Options → Tab order. Guild and Options use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |
-| RUIN Core | 0.3.13 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
+| RUIN Core | 0.3.14 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page and community links, Settings, org key, org-wide guild and officer chat, presence, module API. Required by every module. |
 | RUIN Codex | 0.3.9 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Gear Path (upgrades ranked by time, solo and group), class macros you can add in one click, dungeon journal, learned drops, spec weights, officer best-in-slot lists, raid planning |
-| RUIN Pathfinder | 0.3.9 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, class track, recorder, route sharing, follow a partner; uses Questie when installed |
+| RUIN Pathfinder | 0.3.12 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, class track, recorder, route sharing, follow a partner; uses Questie when installed |
 | RUIN Finder | 0.3.5 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting |
 | RUIN Muster | 0.3.7 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, rally points, bounties, world sightings with map pins and under-attack calls, boss and buff timers |
 | RUIN Exchange | 0.3.4 | [RUIN_Exchange](https://github.com/10kDevils/RUIN_Exchange) | Pooled auction prices and trends, crafters, craft requests, leveling plan, bag sweep |
