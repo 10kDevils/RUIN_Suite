@@ -513,6 +513,7 @@ function F.Dump(root)
         end
         out[#out + 1] = e
     end
+    local deferred = {}
     local function frame(f, alpha, clip, depth)
         if not f._shown then return end
         local a = alpha * (f._alpha or 1)
@@ -548,7 +549,14 @@ function F.Dump(root)
             if (p.c._level or 0) ~= (q.c._level or 0) then return (p.c._level or 0) < (q.c._level or 0) end
             return p.i < q.i
         end)
-        for _, k in ipairs(kids) do frame(k.c, a, clip, depth + 1) end
+        for _, k in ipairs(kids) do
+            -- a child in a higher strata than the window (a dropdown list) draws over everything, like the game
+            if depth > 0 and (STRATA[k.c._strata or ""] or 0) >= (STRATA.DIALOG or 99) then
+                deferred[#deferred + 1] = { c = k.c, a = a }
+            else
+                frame(k.c, a, clip, depth + 1)
+            end
+        end
         if f._scrollBar and r then
             local child = f._scrollChild
             local cr = child and rect(child)
@@ -558,6 +566,8 @@ function F.Dump(root)
         end
     end
     frame(root or UIParent, 1, nil, 0)
+    local i = 1
+    while deferred[i] do frame(deferred[i].c, deferred[i].a, nil, 1); i = i + 1 end
     return out
 end
 

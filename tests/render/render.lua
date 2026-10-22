@@ -66,6 +66,38 @@ end)
 try("pathfinder", function()
     alice.env.RUIN_API:GetModule("Pathfinder"):PublishRoute("westfall_10_15")
     Server:Advance(20)
+    -- quest logs shared across RUIN, and a stand-in Questie for the Quests page
+    local function log(c, list) c.questLog = list; for _, q in ipairs(list) do c.questTitles[q.id] = q.title end end
+    log(alice, { { title = "Westfall Stew", id = 38, complete = false }, { title = "The Killing Fields", id = 9, complete = true },
+                 { title = "Goretusk Liver Pie", id = 22, complete = false } })
+    log(eve, { { title = "Westfall Stew", id = 38, complete = true }, { title = "The Killing Fields", id = 9, complete = false } })
+    log(cara, { { title = "Westfall Stew", id = 38, complete = false } })
+    local quests = {
+        [38] = { name = "Westfall Stew", level = 13, req = 9, starts = { 235 }, ends = { 235 }, text = "Bring stew ingredients to Salma Saldean." ,
+                 obj = { { Type = "item", Id = 1, Text = "Stringy Vulture Meat: 0/6" }, { Type = "item", Id = 2, Text = "Murloc Eye: 0/6" } } },
+        [9] = { name = "The Killing Fields", level = 15, req = 8, starts = { 233 }, ends = { 233 }, obj = { { Type = "monster", Id = 480, Text = "Harvest Watcher slain: 20/20" } } },
+        [22] = { name = "Goretusk Liver Pie", level = 12, req = 9, starts = { 235 }, ends = { 235 }, obj = { { Type = "item", Id = 3, Text = "Goretusk Liver: 0/8" } } },
+    }
+    local npcs = { [235] = { name = "Salma Saldean", spawns = { [40] = { { 56.4, 30.5 } } } },
+                   [233] = { name = "Farmer Saldean", spawns = { [40] = { { 56.0, 31.2 } } } },
+                   [480] = { name = "Rusty Harvest Golem", spawns = { [40] = { { 50.0, 30.0 } } } } }
+    local DB = { QuestPointers = {} }
+    function DB.GetQuest(id) local q = quests[id]; if not q then return nil end
+        return { name = q.name, level = q.level, requiredLevel = q.req, Starts = { NPC = q.starts }, Finisher = { NPC = q.ends }, ObjectiveData = q.obj or {} } end
+    function DB:GetNPC(id) return npcs[id] end
+    function DB:GetObject() return nil end
+    function DB:GetItem() return nil end
+    local Zone = {}
+    function Zone:GetUiMapIdByAreaId(a) return a == 40 and 1436 or nil end
+    function Zone:GetAreaIdByUiMapId(m) return m == 1436 and 40 or nil end
+    for _, c in ipairs({ alice, eve }) do
+        c.env.QuestieLoader = { ImportModule = function(_, n) return n == "QuestieDB" and DB or Zone end }
+        c.mns.RUIN_Pathfinder.QB.Forget()
+    end
+    for _, c in ipairs({ alice, eve, cara }) do c.env.RUIN_API:GetModule("Pathfinder"):ShareQuests(true) end
+    Server:Advance(10)
+    for _, c in ipairs({ alice, eve }) do c.env.RUIN_API:GetModule("Pathfinder"):StartRoute("westfall_10_15") end
+    Server:Advance(5)
 end)
 try("finder", function()
     local cdb = cara.env.RUIN_FinderCharDB
@@ -146,7 +178,10 @@ local function sub(label, name)
 end
 if AS == "alice" then API:OpenTab("Muster"); sub("Muster", "Events"); click("New event"); write("muster--events-new"); click("Close") end
 sub("Muster", "Sightings"); click("Alerts"); write("muster--sightings-alerts"); click("Alerts")
-if AS == "alice" then API:OpenTab("Codex"); sub("Codex", "Best-in-slot"); click("Edit list"); write("codex--best-in-slot-edit"); click("Done") end
+-- the day list open on the New event form
+if AS == "alice" then API:OpenTab("Muster"); sub("Muster", "Events"); click("New event"); alice.mns.RUIN_Muster.MusterUI.when.day:Open(); write("muster--events-new-day"); click("Close") end
+API:OpenTab("Codex"); sub("Codex", "Macros"); click("Commands"); write("codex--macros-commands"); click("Class macros")
+alice.env.SlashCmdList.RUINCODEX("deadmines"); write("codex--journal-deadmines")
 
 API:OpenTab("Codex"); sub("Codex", "Journal"); click("Raids"); write("codex--journal-raids"); click("Dungeons")
 -- Options: a tab picked in Tab order, and Muster moved first.

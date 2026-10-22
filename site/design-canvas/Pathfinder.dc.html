@@ -196,6 +196,10 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 .wow-subs span.on{color:#fff;background:#131c2b;border-color:#54b7d9;box-shadow:inset 0 -2px 0 #54b7d9}
 .inp{background:#070b13;border-color:#2a4466}
 .erow{border-bottom-color:#1c2a40}.erow .d{color:#e6b862}.erow .r{color:#f29a6c;margin-left:8px;font-size:13px}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);padding:24px}
+.card .k{font-family:'Grenze Gotisch',Georgia,serif;font-size:30px;color:#fff;line-height:1;margin-bottom:8px}
+.card p{margin:0;color:var(--muted)}
 </style>
 </helmet>
 <div class="site">
@@ -221,9 +225,9 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div>
 <p class="eyebrow">RUIN Gaming Companion App · Leveling</p>
 <h1 class="h1">Pathfinder</h1>
-<p class="lede">Questing routes, one step at a time. A small tracker tells you what to do next and ticks itself off as you go, and shows who in RUIN is right there with you.</p>
+<p class="lede">Questing routes, one step at a time. A small tracker tells you what to do next and ticks itself off as you go, Questie's database fills in the map, and you see who in RUIN has the same quests.</p>
 <div class="chips">
-<span class="chip">Version 0.3.12</span>
+<span class="chip">Version 0.3.13</span>
 <span class="chip">/path</span>
 <span class="chip">Needs RUIN Core</span>
 <span class="chip">Works with Questie</span>
@@ -276,6 +280,21 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 
 <section class="sec alt">
 <div class="wrap">
+<p class="label">New in 0.3.13 · Questie and shared quests</p>
+<h2 class="h2">Your quest log, with RUIN beside you</h2>
+<p class="intro">With Questie installed, Pathfinder reads its quest database while you play: where each quest starts and ends, where its targets are, its level and objectives. The new Quests page lists your log and, for every quest, who in RUIN has it too.</p>
+<div class="three">
+<div class="card"><div class="k">Every step on the map</div><p>Steps without a place get one from Questie: the quest giver, the hand-in, or the nearest spot of the targets. Hover a step for Questie's details.</p></div>
+<div class="card"><div class="k">Skip what you've done</div><p>Steps for quests you've already finished, or already have, tick themselves off, so a route picks up wherever you are.</p></div>
+<div class="card"><div class="k">Who has it</div><p>"Westfall Stew: Cara and Eve have it, Eve is ready to hand in." Show it on the map, or invite them with one button. Steps others are on say "2 in RUIN".</p></div>
+<div class="card"><div class="k">Draft a route</div><p>One button makes a route of the quests Questie lists for your zone and level, ready to start or polish with the recorder.</p></div>
+</div>
+<p class="muted" style="margin-top:14px">The built-in Alliance routes were checked against the WoW Forever quest database: every quest step carries its quest ID, wrong givers and broken chains were fixed (Elwynn, Westfall, Dun Morogh, Duskwood, Redridge on Forever's redrawn map), and missing quests were added. Nothing of Questie's is copied into RUIN.</p>
+</div>
+</section>
+
+<section class="sec alt">
+<div class="wrap">
 <p class="label">Where it lives</p>
 <h2 class="h2">Out of the way until you need it</h2>
 <div class="lives">
@@ -292,11 +311,17 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div>
 <p class="label">What it shares with RUIN</p>
 <h2 class="h2">Your place on the route</h2>
-<p class="muted">The route you chose and your step number, when it changes and every two minutes. Nothing about your quest log beyond that.</p>
-<div class="facts"><span class="fact">route</span><span class="fact">step number</span><span class="fact">routes you choose to share</span></div>
+<p class="muted">The route you chose and your step number, when it changes and every two minutes. The quest IDs in your log, which are ready to hand in, and which of your route's quests you've done, when they change and every five minutes (Share with RUIN turns it off).</p>
+<div class="facts"><span class="fact">route</span><span class="fact">step number</span><span class="fact">quest IDs in your log</span><span class="fact">routes you choose to share</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.12</p>
+<p class="label">New in 0.3.13</p>
+<ul class="list">
+<li>Questie integration: places for every step, quest details on hover, quests you've done skipped, routes drafted for your zone</li>
+<li>A Quests page: your log, who in RUIN has each quest, Show on map and Invite them</li>
+<li>Alliance routes checked against the WoW Forever quest database, with quest IDs on every step</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.12</p>
 <ul class="list">
 <li>Built-in Alliance routes for levels 1–30: Elwynn, Dun Morogh, Teldrassil, Zephras Isle, Westfall, Loch Modan, Darkshore, Redridge, Duskwood, Wetlands, Ashenvale and the Hall of Thanes</li>
 <li>Officers publish routes to every RUIN member, or approve one a member shared; RUIN routes carry an officer badge</li>
@@ -333,7 +358,7 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Pathfinder 0.3.12 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
+<span>RUIN Pathfinder 0.3.13 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
 <div class="pn"><a href="Finder.dc.html">Previous: Finder</a><a href="Codex.dc.html">Next: Codex</a></div>
 </div>
 </footer>

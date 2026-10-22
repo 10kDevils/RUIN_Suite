@@ -47,8 +47,34 @@ check(alice.ns.Comms:IsJoined("ORG") and cara.ns.Comms:IsJoined("ORG") and eve.n
 errorsSoFar("setup")
 
 -- Tables shared with the per-module sections below
+-- A stand-in for Questie's database, shaped like Questie's own API
+-- (QuestieDB.GetQuest, QuestieDB:GetNPC, ZoneDB:GetUiMapIdByAreaId ...).
+--   data = { quests = { [id] = { name, level, req, starts = { npc }, ends = { npc }, obj = { {Type, Id, Text} }, zone } },
+--            npcs = { [id] = { name, spawns = { [areaId] = { { x, y } } } } }, area = { [areaId] = uiMapId }, done = { [id] = true } }
+local function fakeQuestie(c, data)
+    local DB = { QuestPointers = {} }
+    function DB.GetQuest(id)
+        local q = data.quests[id]
+        if not q then return nil end
+        return { name = q.name, level = q.level, requiredLevel = q.req, Starts = { NPC = q.starts }, Finisher = { NPC = q.ends },
+                 ObjectiveData = q.obj or {}, objectivesText = { q.text }, zoneOrSort = q.zone }
+    end
+    function DB:GetNPC(id) return data.npcs[id] end
+    function DB:GetObject() return nil end
+    function DB:GetItem() return nil end
+    function DB.QueryQuestSingle(id, field) if field == "zoneOrSort" then return data.quests[id] and data.quests[id].zone end end
+    function DB.IsDoable() return true end
+    for id in pairs(data.quests) do DB.QuestPointers[id] = true end
+    local Zone = {}
+    function Zone:GetUiMapIdByAreaId(a) return data.area[a] end
+    function Zone:GetAreaIdByUiMapId(m) for a, mm in pairs(data.area) do if mm == m then return a end end end
+    c.env.QuestieLoader = { ImportModule = function(_, name) return name == "QuestieDB" and DB or Zone end }
+    c.env.Questie = { db = { char = { complete = data.done or {} } } }
+    c.mns.RUIN_Pathfinder.QB.Forget()
+end
+
 T = { alice = alice, cara = cara, eve = eve, check = check, chatHas = chatHas, errorsSoFar = errorsSoFar,
-      openAllSubTabs = openAllSubTabs }
+      openAllSubTabs = openAllSubTabs, fakeQuestie = fakeQuestie }
 
 ---------------------------------------------------------------------------
 print("Muster")

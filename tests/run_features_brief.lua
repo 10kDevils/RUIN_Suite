@@ -96,45 +96,14 @@ do
     errorsSoFar("guild page")
 end
 
-print("Gear Path (Codex)")
+print("Codex 0.3.10: gear tracking left for a gear addon")
 do
-    local cx = alice.env.RUIN_API:GetModule("Codex")
-    local src = cx.ParseSource("quest 15m Duskwood")
-    check(src and src.k == "quest" and src.m == 15 and src.z == "Duskwood", "officer source note parses")
-    cx:SetBis("WARRIOR", "Arms", "1-29", 1, 100, src)
-    cx:SendBis("WARRIOR", "Arms", "1-29")
-    Server:Advance(4)
-    local list = cara.env.RUIN_CodexDB.bis["WARRIOR:Arms:1-29"]
-    check(list and list.src and list.src[1] and list.src[1].m == 15, "the source and minutes reached Cara")
-
-    local ccx = cara.env.RUIN_API:GetModule("Codex")
-    local path, sum = ccx:GearPath()
-    local byId = {}
-    for _, e in ipairs(path) do byId[e.id] = e end
-    local helm, barb = byId[100], byId[5191]
-    check(helm and helm.kind == "quest" and helm.minutes == 15 and helm.tag == "Quick" and not helm.estimated,
-        "the BiS helm: quest, 15 minutes, Quick, officer-set")
-    check(helm and helm.confidenceLabel == "High", "officer-set source counts as high confidence")
-    check(barb and barb.kind == "dungeon" and barb.tag == "Medium" and barb.solo == false and barb.estimated,
-        "the Deadmines drop: dungeon, Medium, needs a group, estimated time")
-    check(path[1] and path[1].id == 100, "time efficient puts the quick quest reward first")
-    local solo = ccx:GearPath({ group = false })
-    local hasBarb = false
-    for _, e in ipairs(solo) do if e.id == 5191 then hasBarb = true end end
-    check(not hasBarb, "Solo only hides the dungeon drop")
-    local groupOnly = ccx:GearPath({ solo = false })
-    check(groupOnly[1] and groupOnly[1].id == 5191 and #groupOnly == 1, "Group only shows just the dungeon drop")
-    check(sum.total == 1 and sum.collected == 0 and sum.next and sum.next.id == 100, "collected 0/1, next upgrade named")
-    check(ccx.TimeTag(10) == "Quick" and ccx.TimeTag(45) == "Medium" and ccx.TimeTag(60) == "Long", "Quick / Medium / Long thresholds")
-    -- an old 0.3.0 list without sources still ranks, with estimated times
-    cara.env.RUIN_CodexDB.bis["WARRIOR:Arms:1-29"].src = nil
-    local again = ccx:GearPath()
-    local h2
-    for _, e in ipairs(again) do if e.id == 100 then h2 = e end end
-    check(h2 and h2.kind == "unknown" and h2.estimated, "lists without sources still work, marked as estimates")
-    T.openAllSubTabs(cara, "Codex")
+    local cx = cara.env.RUIN_API:GetModule("Codex")
+    check(cx.GearPath == nil and cx.SetBis == nil, "Gear Path and best-in-slot lists are gone")
     cara.env.SlashCmdList.RUINCODEX("path")
+    check(chatHas(cara, "have left Codex"), "/codex path says where they went")
     cara.env.SlashCmdList.RUINCODEX("journal")
+    T.openAllSubTabs(cara, "Codex")
     errorsSoFar("gear path")
 end
 
@@ -170,17 +139,16 @@ do
     Server.fire(alice, "QUEST_ACCEPTED", 176)
     last = steps[#steps]
     check(last and last.act == "accept" and last.qid == 176, "accepting a quest records its ID")
-    alice.env.QuestieLoader = { ImportModule = function(_, name)
-        if name == "QuestieDB" then
-            return { GetQuest = function(id) return id == 176 and { Starts = { NPC = { 68 } }, Finisher = { Id = 69 } } or nil end,
-                     GetNPC = function(id) return { spawns = { [12] = { { id == 68 and 42.1 or 45.0, 65.5 } } } } end }
-        end
-        return { GetUiMapIdByAreaId = function() return 1429 end }
-    end }
-    local spot = pf.QuestieSpot(176, "start")
+    T.fakeQuestie(alice, { quests = { [176] = { name = "Wanted: Hogger", level = 11, starts = { 68 }, ends = { 69 } } },
+        npcs = { [68] = { name = "Wanted poster", spawns = { [12] = { { 42.1, 65.5 } } } },
+                 [69] = { name = "Marshal Dughan", spawns = { [12] = { { 45.0, 65.5 } } } } }, area = { [12] = 1429 } })
+    local QB = alice.mns.RUIN_Pathfinder.QB
+    local spot = QB.Spot(176, "start")
     check(spot and spot.map == 1429 and math.abs(spot.x - 0.421) < 0.001, "Questie gives the quest giver's spot")
-    local fin = pf.QuestieSpot(176, "finish")
+    local fin = QB.Spot(176, "finish")
     check(fin and math.abs(fin.x - 0.45) < 0.001, "and where it's handed in")
+    alice.env.QuestieLoader, alice.env.Questie = nil, nil
+    QB.Forget()
     local shared = alice.env.RUIN_API.Util.Decode("ROUTE", alice.env.RUIN_API.Util.Encode("ROUTE", { title = "t", steps = { last } }))
     local back = cara.env.RUIN_API:GetModule("Pathfinder"):ImportRoute(alice.env.RUIN_API.Util.Encode("ROUTE", shared))
     check(back and back.steps[1].qid == 176 and back.steps[1].t == nil, "shared routes keep quest IDs but not recorded times")
@@ -288,4 +256,120 @@ do
     T.openAllSubTabs(alice, "Pathfinder")
     T.openAllSubTabs(eve, "Pathfinder")
     errorsSoFar("officer routes")
+end
+
+print("Pathfinder: quest IDs, Questie and shared quests (Pathfinder 0.3.13)")
+do
+    local P = alice.mns.RUIN_Pathfinder
+    local pa, pe = alice.env.RUIN_API:GetModule("Pathfinder"), eve.env.RUIN_API:GetModule("Pathfinder")
+    -- every quest step of the Alliance routes carries its quest ID
+    local missing = 0
+    for _, r in ipairs(P.Routes) do
+        if r.faction == "Alliance" and r.id ~= "zephras_1_12" then
+            for _, s in ipairs(r.steps) do
+                if (s.act == "accept" or s.act == "complete" or s.act == "turnin") and not s.qid then missing = missing + 1 end
+            end
+        end
+    end
+    check(missing == 0, "Alliance route quest steps all have quest IDs (" .. missing .. " without)")
+    local function routeOf(id) for _, r in ipairs(P.Routes) do if r.id == id then return r end end end
+    local rr = routeOf("redridge_15_22")
+    local solomon
+    for _, s in ipairs(rr.steps) do if s.qid == 120 and s.act == "accept" then solomon = s end end
+    check(solomon and solomon.at and solomon.at.x < 27, "Redridge uses Forever's redrawn map (Magistrate Solomon at " .. tostring(solomon and solomon.at.x) .. ")")
+    local wf = routeOf("westfall_10_15")
+    check(wf.steps[2].qid == 36 and wf.steps[4].act == "turnin" and wf.steps[4].qid == 36, "Westfall Stew is delivered to Salma first")
+    -- quests you've done tick themselves off
+    local done = { [783] = true }
+    alice.env.C_QuestLog.IsQuestFlaggedCompleted = function(id) return done[id] or false end
+    alice.questLog = { { title = "Kobold Camp Cleanup", id = 7, complete = false } }
+    pa:StartRoute("elwynn_1_10")
+    local step = alice.env.RUIN_PathfinderCharDB.step
+    check(step == 4, "a finished quest and one already in the log are skipped (step " .. step .. ")")
+    pa:Advance(-1)
+    Server.fire(alice, "QUEST_LOG_UPDATE")
+    check(alice.env.RUIN_PathfinderCharDB.step == 3, "stepping back by hand isn't undone by the skipping")
+    pa:Advance(1)
+    check(alice.env.RUIN_PathfinderCharDB.step == 4, "and forward again works")
+    -- shared quest status
+    eve.questLog = { { title = "Kobold Camp Cleanup", id = 7, complete = true }, { title = "Brotherhood of Thieves", id = 18, complete = false } }
+    pe:ShareQuests(true)
+    pa:ShareQuests(true)
+    Server:Advance(10)
+    local have, ready = pa:WhoHas(7)
+    check(#have == 1 and have[1] == "Eve Ember" and #ready == 1, "Alice sees Eve has Kobold Camp Cleanup, ready to hand in")
+    local h2 = pe:WhoHas(7)
+    check(#h2 == 1 and h2[1] == "Alice Ash", "and Eve sees Alice has it")
+    -- Questie: a step without a place gets one, and a draft route for the zone
+    T.fakeQuestie(alice, {
+        quests = { [7] = { name = "Kobold Camp Cleanup", level = 2, starts = { 197 }, ends = { 197 }, zone = 12,
+                           obj = { { Type = "monster", Id = 6, Text = "Kobold Vermin slain" } } },
+                   [33] = { name = "Wolves Across the Border", level = 2, starts = { 196 }, ends = { 196 }, zone = 12,
+                            obj = { { Type = "monster", Id = 299, Text = "Young Wolf" } } } },
+        npcs = { [197] = { name = "Marshal McBride", spawns = { [12] = { { 48.9, 41.6 } } } },
+                 [196] = { name = "Eagan Peltskinner", spawns = { [12] = { { 48.9, 40.2 } } } },
+                 [6] = { name = "Kobold Vermin", spawns = { [12] = { { 48.9, 36.4 }, { 49.5, 36.1 } } } },
+                 [299] = { name = "Young Wolf", spawns = { [12] = { { 46.4, 38.7 } } } } },
+        area = { [12] = 1429 } })
+    local QB = P.QB
+    check(QB.Has() and QB.Quest(7).starts[1] == "Marshal McBride" and QB.Quest(7).objectives[1] == "Kobold Vermin slain", "Questie's quest details are read")
+    alice.pos = { map = 1429, x = 0.48, y = 0.40 }
+    local o = QB.Spot(7, "objective", 1429, 0.48, 0.40)
+    check(o and math.abs(o.y - 0.361) < 0.01, "the nearest target spawn is found")
+    alice.env.UnitLevel = function() return 2 end
+    local draft = pa:DraftFromQuestie()
+    check(draft and #draft.steps >= 5 and draft.steps[1].act == "accept" and draft.steps[#draft.steps].act == "turnin"
+          and draft.steps[1].qid and alice.env.RUIN_PathfinderDB.custom[draft.id], "a route is drafted from Questie for the zone")
+    -- the Quests page and tooltips
+    alice.env.RUIN_API:OpenTab("Pathfinder")
+    T.openAllSubTabs(alice, "Pathfinder")
+    local tipLines = {}
+    local tip = { AddLine = function(_, l) tipLines[#tipLines + 1] = l end }
+    alice.mns.RUIN_Pathfinder.QB.Forget()
+    errorsSoFar("pathfinder questie")
+    alice.env.QuestieLoader, alice.env.Questie = nil, nil
+    QB.Forget()
+    alice.env.C_QuestLog.IsQuestFlaggedCompleted = nil
+    alice.questLog = {}
+    eve.questLog = {}
+end
+
+print("Muster: day list and hour / minute / AM-PM boxes (Core 0.3.15, Muster 0.3.8)")
+do
+    local W = alice.env.RUIN_API.Widgets
+    local p = W.WhenPicker(alice.env.UIParent)
+    local t = p:GetTime()
+    local d = os.date("*t", t)
+    local tm = os.date("*t", os.time() + 86400)
+    check(d.hour == 20 and d.min == 0 and d.day == tm.day, "starts as tomorrow, 8:00 PM")
+    check(p.day:GetText():match("^%a%a%a %d+/%d+$") and p.ampm:GetText() == "PM" and p.hour:GetText() == "8" and p.min:GetText() == "00",
+        "the day reads like Wed 10/21 (" .. p.day:GetText() .. "), with hour, minute and PM")
+    p.day:Open()
+    check(p.day.menu:IsShown() and p.day.items[1]:GetText():find("^Today"), "the day list opens with Today first")
+    p.day.items[3]._scripts.OnClick(p.day.items[3])
+    p.hour:SetText("9"); p.min:SetText("30")
+    p.ampm:Open(); p.ampm.items[1]._scripts.OnClick(p.ampm.items[1])
+    local t2 = os.date("*t", p:GetTime())
+    local in2 = os.date("*t", os.time() + 2 * 86400)
+    check(t2.day == in2.day and t2.hour == 9 and t2.min == 30 and not p.day.menu:IsShown(), "picking a day and 9:30 AM gives that time")
+    p.hour:SetText("13")
+    check(p:GetTime() == nil, "an hour past 12 is refused")
+    p.ampm:Open(); p.ampm.items[2]._scripts.OnClick(p.ampm.items[2]); p.hour:SetText("12"); p.min:SetText("00")
+    check(os.date("*t", p:GetTime()).hour == 12, "12 PM is noon")
+    -- the New event form posts at the picked time
+    local mu = alice.mns.RUIN_Muster.MusterUI
+    alice.env.RUIN_API:OpenTab("Muster")
+    mu.formOpen = true
+    mu.when.day.items = mu.when.day.items or {}
+    mu.when:SetTime(os.time() + 3 * 86400)
+    local before = 0
+    for _ in pairs(alice.env.RUIN_MusterDB.events) do before = before + 1 end
+    local post = mu.postBtn
+    mu.titleBox:SetText("Picker test")
+    post._scripts.OnClick(post)
+    local ev
+    for _, e in pairs(alice.env.RUIN_MusterDB.events) do if e.title == "Picker test" then ev = e end end
+    check(ev and math.abs(ev.at - mu.when:GetTime()) < 1, "the form posts the event at the picked time")
+    mu.when:SetTime(os.time() - 86400 * 0 - 3600)
+    errorsSoFar("when picker")
 end

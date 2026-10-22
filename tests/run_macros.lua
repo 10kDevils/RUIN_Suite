@@ -255,9 +255,38 @@ do
     check(Mac.Show("mage-ice-block") and not Mac.Show("nonsense"), "the page can jump to a macro")
     errorsSoFar("macro page")
     -- the other Codex pages still work after the new tab went in
-    alice.env.SlashCmdList.RUINCODEX("bis")
-    alice.env.SlashCmdList.RUINCODEX("path")
+    alice.env.SlashCmdList.RUINCODEX("commands")
     alice.env.SlashCmdList.RUINCODEX("journal")
     alice.env.SlashCmdList.RUINCODEX("Deadmines")
     errorsSoFar("codex pages")
+end
+
+print("Macro command reference (Codex 0.3.10)")
+do
+    local g = macroGame(alice)
+    local cmds = mod.MacroCommands
+    local bad = {}
+    local ids = {}
+    for _, rec in ipairs(cmds) do
+        local r = Mac.Check(rec)
+        if not r.ok or not rec.note or not rec.cmd or ids[rec.id] then bad[#bad + 1] = rec.n .. ": " .. tostring(r.errors[1]) end
+        ids[rec.id] = true
+    end
+    check(#cmds >= 40 and #bad == 0, ("%d commands, each a valid macro with a note (%s)"):format(#cmds, table.concat(bad, "; ")))
+    local groups = {}
+    for _, rec in ipairs(cmds) do groups[rec.group] = (groups[rec.group] or 0) + 1 end
+    local everyGroup = true
+    for i, gname in ipairs(mod.MacroCommandGroups) do if i > 1 and not groups[gname] then everyGroup = false end end
+    check(everyGroup, "every group has commands")
+    check(#Mac.Commands("Pet") == groups.Pet and #Mac.Commands("All", "castsequence") >= 1, "filter by group and search")
+    check(#Mac.For("MAGE", "All specs", "All tags", "") == #Mac.For("MAGE", "All specs", "All tags", ""), "class macros list unchanged")
+    local cs = Mac.Get("cmd-sequence")
+    check(cs and cs.cmd:find("castsequence"), "commands are found by id")
+    local status = Mac.Add("cmd-smart-tab", false)
+    check(status == "created" and g.acc[1].body == "/targetenemy [noharm][dead]", "a command example can be added as a macro")
+    Mac.SetMode("commands")
+    alice.env.RUIN_API:OpenTab("Codex")
+    T.openAllSubTabs(alice, "Codex")
+    Mac.SetMode("macros")
+    errorsSoFar("macro commands")
 end

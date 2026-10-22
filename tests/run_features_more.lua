@@ -215,25 +215,35 @@ do
     check(alice.env.RUIN_CodexDB.spec == "Protection", "spec override set")
     check(tipLines(alice, helm):find("%(Protection%)"), "tooltip now uses Protection weights")
     alice.env.SlashCmdList.RUINCODEX("spec auto")
-    -- officer best-in-slot list reaches Cara and marks the item on her tooltip
-    cx:SetBis("WARRIOR", "Arms", "1-29", 1, 100)
-    cx:SendBis("WARRIOR", "Arms", "1-29")
-    Server:Advance(4)
-    check(cara.env.RUIN_CodexDB.bis["WARRIOR:Arms:1-29"] and cara.env.RUIN_CodexDB.bis["WARRIOR:Arms:1-29"].i[1] == 100, "best-in-slot list reached Cara")
-    check(tipLines(cara, helm):find("RUIN best%-in%-slot for Arms %(1%-29%)"), "Cara's tooltip marks it best-in-slot")
-    -- export / import
-    local s = alice.env.RUIN_API.Util.Encode("BIS", { c = "WARRIOR", s = "Fury", b = "30-44", i = { [1] = 100 } })
-    cx:ImportBis(s)
-    check(alice.env.RUIN_CodexDB.bis["WARRIOR:Fury:30-44"] and alice.env.RUIN_CodexDB.bis["WARRIOR:Fury:30-44"].i[1] == 100, "best-in-slot list imported from a string")
-    -- next upgrades: the BiS helm and a learned drop
+    -- "Equip: Increases damage and healing done by magical spells..." counts for casters
+    local IS = alice.mns.RUIN_Codex.ItemStats
+    local st = {}
+    check(IS.ParseLine("Equip: Increases damage and healing done by magical spells and effects by up to 12.", st) and st.SP == 12 and st.HEAL == 12,
+        "spell damage and healing lines are read")
+    local st2 = {}
+    IS.ParseLine("+7 Shadow Spell Damage", st2)
+    IS.ParseLine("Equip: Improves your chance to get a critical strike with spells by 1%.", st2)
+    check(st2.SP_SHADOW == 7 and st2.CRIT == 14, "school damage and crit percent lines too")
+    -- boss loot in the Journal: the sample list, marked with what RUIN looted
     eve.instance = "The Deadmines"
     Server.fire(eve, "CHAT_MSG_LOOT", "You receive loot: |cff0070dd|Hitem:5191::::::::|h[Cruel Barb]|h|r.", "Eve Ember")
     Server:Advance(3)
-    local ups = cara.env.RUIN_API:GetModule("Codex"):Upgrades(10)
-    local ids = {}
-    for _, e in ipairs(ups) do ids[e.id] = e end
-    check(ids[100] and ids[100].pct and ids[100].sources[1]:find("best%-in%-slot"), "upgrades list includes the best-in-slot helm")
-    check(ids[5191] and ids[5191].sources[1]:find("Deadmines"), "and the drop RUIN learned in the Deadmines")
+    local CN = cara.mns.RUIN_Codex
+    local dm
+    for _, d in ipairs(CN.Dungeons) do if d.id == "dm" then dm = d end end
+    local loot = CN.Loot.For(dm)
+    local vc
+    for _, b in ipairs(loot.bosses) do if b.name == "Edwin VanCleef" then vc = b end end
+    check(vc and #vc.items == 4 and vc.items[2].id == 5191 and not loot.verified, "the Deadmines sample lists VanCleef's loot, unverified")
+    check(cara.env.RUIN_CodexDB.drops["The Deadmines"][5191], "Eve's drop reached Cara")
+    -- another addon adds a loot list; malformed entries are skipped
+    local ok = cara.env.RUIN_API:GetModule("Codex"):AddLoot("Shadowfang Keep", { source = "test", verified = true,
+        bosses = { ["Rethilgore"] = { 6220, "junk", { 6641, 12.5 } } } })
+    local sfk
+    for _, d in ipairs(CN.Dungeons) do if d.id == "sfk" then sfk = d end end
+    local l2 = CN.Loot.For(sfk)
+    check(ok and l2.verified and l2.bosses[1].name == "Rethilgore" and #l2.bosses[1].items == 2 and l2.bosses[1].items[2].chance == 12.5,
+        "AddLoot takes a list by instance name and skips what isn't an item")
     -- raid planning posts a Muster event
     local ev = cx:PlanRaid(alice.mns.RUIN_Codex.Raids[1], os.date("%Y-%m-%d %H:%M", os.time() + 86400), 20)
     Server:Advance(3)
