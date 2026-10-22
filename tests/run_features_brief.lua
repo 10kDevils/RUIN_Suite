@@ -373,3 +373,111 @@ do
     mu.when:SetTime(os.time() - 86400 * 0 - 3600)
     errorsSoFar("when picker")
 end
+
+print("Core 0.3.16: item names, crafters, channel numbers, org admin, guild roster and chat")
+do
+    local RI = alice.env.RUIN_API.Items
+    -- item names: never a bare ID
+    check(RI.Text(99999) == "|cff888888Loading item...|r", "an item the game hasn't sent yet reads Loading item...")
+    check(RI.Text(99999, "Cruel Barb", 3):find("%[Cruel Barb%]"), "a data file's name stands in until then")
+    RI.RememberLinks("You receive loot: |cff0070dd|Hitem:5191::::|h[Cruel Barb]|h|r.")
+    check(RI.Text(5191):find("Cruel Barb") and select(3, RI.Info(5191)) == 3, "names seen in links are remembered with their quality")
+    check(RI.Text(100):find("New Helm"), "items the game knows show as links")
+    local journal = alice.mns.RUIN_Codex.Loot.For(alice.mns.RUIN_Codex.Dungeons[3])
+    check(journal and journal.bosses[1].items[1].name == "Rhahk'Zor's Hammer", "the sample loot list carries item names")
+
+    -- crafters: recipe, crafter, quality, by profession
+    Server.fire(eve, "TRADE_SKILL_SHOW")
+    Server:Advance(10)
+    local e = alice.env.RUIN_ExchangeDB.crafters[eve.guid]
+    check(e and e.made and e.made.Alchemy and e.made.Alchemy.i[1] == 13510 and e.made.Alchemy.q[1] == 1,
+        "a crafter's recipes carry the item made and its quality")
+    alice.env.RUIN_API:OpenTab("Exchange")
+    local found
+    for _, f in ipairs(alice.frames) do
+        if f.quality and f.quality.GetText and tostring(f.quality:GetText()):find("Common") then found = true end
+    end
+    check(found, "the Crafters list shows each recipe's quality")
+
+    -- channel numbers: RUIN's channels move behind the game's, never /1
+    local Comms = alice.ns.Comms
+    local ours = {}
+    for _, ch in ipairs(Comms.ChannelList()) do if Comms.IsOurChannel(ch.name) then ours[#ours + 1] = ch.name end end
+    alice.joined, alice.joinedById = {}, {}
+    for i, n in ipairs(ours) do alice.joined[n] = i; alice.joinedById[i] = n end
+    alice.defaultChannels = { [#ours + 1] = "General", [#ours + 2] = "Trade", [#ours + 3] = "LocalDefense" }
+    Comms:SortChannels()
+    Server:Advance(15)
+    local list = Comms.ChannelList()
+    check(list[1].name == "General" and list[2].name == "Trade" and list[3].name == "LocalDefense" and Comms.IsOurChannel(list[#list].name)
+        and Comms.IsOurChannel(list[#list - 1].name), "RUIN's channels end up after General, Trade and LocalDefense")
+    check(Comms:IsJoined("ORG"), "and stay connected")
+
+    -- org admin: every character on the admin's account, export for the admin only
+    local Org = alice.ns.Org
+    check(Org:IsAdmin() and alice.env.RUIN_DB.adminOf and alice.env.RUIN_DB.adminOf.RUIN == alice.guid, "the admin's account is noted")
+    local realGUID = alice.ns.playerGUID
+    alice.ns.playerGUID = "Player-1-0000ALT1"
+    check(Org:IsAdmin() and not Org:IsAdminCharacter(), "another character on the same account is admin too")
+    alice.ns.playerGUID = realGUID
+    check(not cara.ns.Org:IsAdmin(), "a guild leader with the key is not")
+    cara.ns.UI:ShowExport()
+    check(chatHas(cara, "Only the org admin can export"), "only the admin can export the key")
+    -- edit and remove guilds
+    local rev = Org:Rev()
+    check(Org:AddGuild("Test Guild", 1, "TG") and Org:EditGuild("Test Guild", "Test Guild Two", 3, "T2"), "the admin renames a guild and sets its officer rank")
+    local g = Org:Get().guilds["Test Guild Two"]
+    check(g and g.o == 3 and g.tag == "T2" and Org:Get().guilds["Test Guild"] == nil and Org:Rev() > rev, "the key has the new entry")
+    check(not cara.ns.Org:EditGuild("Briar Fang", "X", 1), "nobody else can edit guilds")
+    Server:Advance(20)
+    check(cara.ns.Org:Get().guilds["Test Guild Two"] ~= nil, "the change reaches the other guilds' officers")
+    check(Org:RemoveGuild("Test Guild Two"), "and the admin removes it")
+    Server:Advance(60)
+    alice.env.RUIN_API:OpenTab("Options")
+    T.openAllSubTabs(alice, "Options")
+
+    -- guild roster and moderation
+    Server.guilds["Ashen Order"][2] = { name = "Grimlock", rank = 3, rankName = "Member", guid = "Player-1-00000011", level = 58,
+                                         zone = "Tanaris", note = "Main tank", officerNote = "Bank access", online = false, lastOnline = { 0, 0, 3, 0 } }
+    alice.ns:ScanRoster()
+    local grim = alice.ns.roster[alice.ns.NormalizeName("Grimlock")]
+    check(grim and grim.zone == "Tanaris" and grim.rankName == "Member" and grim.note == "Main tank" and grim.officerNote == "Bank access"
+        and grim.lastOnline == 3 * 86400, "the roster reads zone, rank, notes and last online like the guild window")
+    local G = alice.ns.Guild
+    check(not G:CanOn("promote", grim), "without the guild rank's rights nothing is offered")
+    local did = {}
+    for _, fn in ipairs({ "CanGuildPromote", "CanGuildDemote", "CanGuildRemove", "CanEditOfficerNote", "CanEditPublicNote", "CanViewOfficerNote" }) do
+        alice.env[fn] = function() return true end
+    end
+    alice.env.GuildPromote = function(n) did.promote = n end
+    alice.env.GuildDemote = function(n) did.demote = n end
+    alice.env.GuildUninvite = function(n) did.remove = n end
+    alice.env.GuildRosterSetOfficerNote = function(i, note) did.onote = { i, note } end
+    alice.env.GuildControlGetNumRanks = function() return 5 end
+    check(G:CanOn("promote", grim) and G:CanOn("demote", grim) and G:CanOn("remove", grim), "a guild master may promote, demote and remove a member")
+    check(not G:CanOn("remove", alice.ns.roster[alice.ns.NormalizeName("Alice Ash")]), "but not themselves")
+    G:Promote("Grimlock"); G:Demote("Grimlock"); G:Remove("Grimlock"); G:SetNote("Grimlock", "Raid tank", true)
+    check(did.promote == "Grimlock" and did.demote == "Grimlock" and did.remove == "Grimlock" and did.onote[1] == 2 and did.onote[2] == "Raid tank",
+        "promote, demote, remove and officer notes go to the game")
+    alice.env.RUIN_API:OpenTab("Guild")
+    alice.ns.UI:SelectGuildTab(2)
+    local rows = alice.ns.GuildUI.RosterRows()
+    check(#rows == 2, "the Roster tab lists online and offline members")
+
+    -- chat: your guild's lines and the org's, in the Chat tab and the pop-out
+    alice.ns.Chat.history = {}
+    alice.ns.Chat:SendGuild("Hello from the Chat tab")
+    Server:GuildSay("Briar Fang", Server.guilds["Briar Fang"][1], "Hello from Briar Fang")
+    Server:Advance(5)
+    local h = alice.ns.Chat.history
+    check(#h == 2 and h[1].own and h[1].text == "Hello from the Chat tab" and not h[2].own and h[2].gu == "Briar Fang",
+        "the chat log has your guild's and the other guilds' lines")
+    alice.ns.UI:SelectGuildTab(3)
+    alice.env.RUIN_DB.settings.chatScope = "guild"
+    alice.ns.GuildUI.ToggleChatWindow(true)
+    check(alice.env.RUIN_GuildChatWindow and alice.env.RUIN_GuildChatWindow:IsShown(), "guild chat pops out into its own window")
+    alice.ns.GuildUI.ToggleChatWindow(false)
+    alice.env.RUIN_DB.settings.chatScope = "org"
+    T.openAllSubTabs(alice, "Guild")
+    errorsSoFar("core 0.3.16")
+end

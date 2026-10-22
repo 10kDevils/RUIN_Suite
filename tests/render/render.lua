@@ -10,9 +10,14 @@ dofile(here .. "/../harness.lua")
 
 local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster" }
 Server.guilds["Ashen Order"] = {
-    { name = "Alice Ash", rank = 0, guid = "Player-1-00000001", level = 60, class = "WARLOCK" },
-    { name = "Grimlock", rank = 3, guid = "Player-1-00000011", level = 58, class = "WARRIOR" },
-    { name = "Shade", rank = 3, guid = "Player-1-00000012", level = 52, class = "WARLOCK" },
+    { name = "Alice Ash", rank = 0, rankName = "Guild Master", guid = "Player-1-00000001", level = 60, class = "WARLOCK",
+      className = "Warlock", zone = "Stormwind City", note = "Raid lead", officerNote = "Org admin" },
+    { name = "Grimlock", rank = 1, rankName = "Officer", guid = "Player-1-00000011", level = 58, class = "WARRIOR",
+      className = "Warrior", zone = "Blackrock Mountain", note = "Main tank", officerNote = "Bank access" },
+    { name = "Shade", rank = 3, rankName = "Member", guid = "Player-1-00000012", level = 52, class = "WARLOCK",
+      className = "Warlock", zone = "Tanaris", note = "Alt of Umbra" },
+    { name = "Bramblepaw", rank = 4, rankName = "Initiate", guid = "Player-1-00000013", level = 24, class = "DRUID",
+      className = "Druid", zone = "Duskwood", online = false, lastOnline = { 0, 0, 2, 5 }, note = "Leveling", officerNote = "Trial ends Fri" },
 }
 Server.guilds["Briar Fang"] = {
     { name = "Cara Cole", rank = 0, guid = "Player-1-00000002" },
@@ -110,6 +115,26 @@ try("finder", function()
 end)
 Server:Advance(5)
 
+try("crafters", function()
+    for _, c in ipairs({ eve, cara }) do Server.fire(c, "TRADE_SKILL_SHOW") end
+    Server:Advance(8)
+end)
+try("chat", function()
+    local g = Server.guilds["Ashen Order"]
+    Server:GuildSay("Ashen Order", g[2], "Molten Core tonight, invites at 7:45")
+    Server:GuildSay("Briar Fang", Server.guilds["Briar Fang"][1], "Anyone want to run Scholomance after?")
+    Server:Advance(3)
+    Server:GuildSay("Ashen Order", g[1], "Bring fire resistance gear please")
+    Server:Advance(3)
+end)
+-- the guild master's rights in the game's guild window
+for _, fn in ipairs({ "CanGuildPromote", "CanGuildDemote", "CanGuildRemove", "CanGuildInvite", "CanEditPublicNote",
+                      "CanEditOfficerNote", "CanViewOfficerNote", "CanEditMOTD" }) do
+    alice.env[fn] = function() return true end
+end
+alice.env.GuildControlGetNumRanks = function() return 5 end
+alice.env.GuildControlGetRankName = function(i) return ({ "Guild Master", "Officer", "Veteran", "Member", "Initiate" })[i] end
+
 -- Overlord Forever "installed" (its /ov command exists), so the Guild page shows that state.
 for _, c in ipairs({ alice, eve }) do
     c.env.SLASH_OVERLORD1 = "/ov"
@@ -185,8 +210,13 @@ alice.env.SlashCmdList.RUINCODEX("deadmines"); write("codex--journal-deadmines")
 
 API:OpenTab("Codex"); sub("Codex", "Journal"); click("Raids"); write("codex--journal-raids"); click("Dungeons")
 -- Options: a tab picked in Tab order, and Muster moved first.
-API:OpenTab("Options"); click("Muster"); click("Move left"); click("Move left"); write("options--tab-order")
+API:OpenTab("Options"); sub("Options", "Display"); click("Muster"); click("Move left"); click("Move left"); write("options--tab-order")
 alice.ns.UI:ResetTabOrder()
+-- a member picked on the roster, and the pop-out chat
+API:OpenTab("Guild"); sub("Guild", "Roster")
+for _, fr in ipairs(alice.frames) do if fr.e and fr.e.name == "Shade" and fr._scripts.OnMouseUp then fr._scripts.OnMouseUp(fr) end end
+write("guild--roster-selected")
+alice.ns.GuildUI.ToggleChatWindow(true); alice.ns.GuildUI.window:ClearAllPoints(); alice.ns.GuildUI.window:SetPoint("CENTER"); alice.ns.GuildUI.RefreshChat(); write("guild--chat-popout"); alice.ns.GuildUI.ToggleChatWindow(false)
 
 local f = assert(io.open(OUT .. "/index.txt", "w"))
 f:write(table.concat(index, "\n"), "\n")

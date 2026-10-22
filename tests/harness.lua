@@ -2,7 +2,16 @@
 -- Addon folders sit next to tests/ in the suite repo; override with RUIN_CORE_DIR.
 local TEST_DIR = (arg and arg[0] or ""):match("^(.*)/") or "."
 local ADDON_DIR = arg[1] or os.getenv("RUIN_CORE_DIR") or (TEST_DIR .. "/../RUIN_Core")
-local FILES = { "Core.lua", "Util.lua", "Widgets.lua", "Theme.lua", "Map.lua", "Comms.lua", "OrgKey.lua", "Presence.lua", "Chat.lua", "Modules.lua", "UI.lua" }
+-- Core's files, in the order its TOC loads them.
+local FILES = {}
+do
+    local toc = io.open(ADDON_DIR .. "/RUIN_Core.toc")
+    for line in toc:lines() do
+        local f = line:match("^%s*([%w_]+%.lua)%s*$")
+        if f then FILES[#FILES + 1] = f end
+    end
+    toc:close()
+end
 
 Server = { epoch = os.time(), time = 0, clients = {}, byName = {}, channels = {}, timers = {}, errors = {}, guilds = {},
            sent = 0, maxLen = 0, line = 0 }
@@ -156,6 +165,28 @@ function Server:NewClient(opts)
             c.joinedById[id] = name
         end
     end
+    -- the game's own channels hold 1-4 unless a test says otherwise
+    c.defaultChannels = c.defaultChannels or { [1] = "General", [2] = "Trade", [3] = "LocalDefense", [4] = "LookingForGroup" }
+    env.GetChannelList = function()
+        local all = {}
+        for id, n in pairs(c.defaultChannels) do all[#all + 1] = { id, n } end
+        for id, n in pairs(c.joinedById) do all[#all + 1] = { id, n } end
+        table.sort(all, function(a, b) return a[1] < b[1] end)
+        local out = {}
+        for _, e in ipairs(all) do out[#out + 1] = e[1]; out[#out + 1] = e[2]; out[#out + 1] = false end
+        return unpack(out)
+    end
+    env.C_ChatInfo.SwapChatChannelsByChannelIndex = function(a, b)
+        local function nameAt(id) return c.defaultChannels[id] and { "d", c.defaultChannels[id] } or (c.joinedById[id] and { "j", c.joinedById[id] }) end
+        local na, nb = nameAt(a), nameAt(b)
+        c.defaultChannels[a], c.defaultChannels[b], c.joinedById[a], c.joinedById[b] = nil, nil, nil, nil
+        local function put(id, e)
+            if not e then return end
+            if e[1] == "d" then c.defaultChannels[id] = e[2] else c.joinedById[id] = e[2]; c.joined[e[2]] = id end
+        end
+        put(b, na); put(a, nb)
+        c.swaps = (c.swaps or 0) + 1
+    end
     env.LeaveChannelByName = function(name)
         for chName, id in pairs(c.joined) do
             if lower(chName) == lower(name) then c.joined[chName] = nil; c.joinedById[id] = nil end
@@ -171,10 +202,21 @@ function Server:NewClient(opts)
     env.GetGuildRosterInfo = function(i)
         local m = roster()[i]
         if not m then return nil end
-        return m.name, "Rank", m.rank, m.level or 20, "Warrior", "Zone", "", "", true, 0, m.class or "WARRIOR",
-               0, 0, false, false, 0, m.guid
+        local online = m.online ~= false
+        return m.name, m.rankName or ("Rank" .. tostring(m.rank)), m.rank, m.level or 20, m.className or "Warrior", m.zone or "Zone",
+               m.note or "", m.officerNote or "", online, 0, m.class or "WARRIOR", 0, 0, false, false, 0, m.guid
     end
     env.C_GuildInfo = { GuildRoster = function() schedule(Server.time + 0.1, function() fire(c, "GUILD_ROSTER_UPDATE") end) end }
+    env.GetGuildRosterLastOnline = function(i) local m = roster()[i]; if m and m.lastOnline then return unpack(m.lastOnline) end end
+    env.SendChatMessage = function(text, chatType)
+        c.sentChat = c.sentChat or {}
+        table.insert(c.sentChat, { text, chatType })
+        if chatType == "GUILD" and c.guild then
+            local me
+            for _, m in ipairs(roster()) do if m.guid == c.guid then me = m end end
+            Server:GuildSay(c.guild, me or { name = c.name, guid = c.guid }, text)
+        end
+    end
     env.UnitGUID = function() return c.guid end
     env.UnitName = function(u) if u == "target" then return c.targetName or c.target end return c.name end
     env.UnitIsDeadOrGhost = function(u) return u == "target" and c.targetDead or false end
@@ -306,6 +348,9 @@ function Server:NewClient(opts)
         GetBaseProfessionInfo = function() return { professionName = "Alchemy", skillLevel = 120, maxSkillLevel = 150 } end,
         GetRecipeInfo = function(id) return { learned = true, name = id == 1 and "Flask of the Titans" or "Minor Healing Potion",
                                               relativeDifficulty = id == 1 and 0 or 1 } end,
+        GetRecipeItemLink = function(id)
+            return id == 1 and "|cffffffff|Hitem:13510::|h[Flask of the Titans]|h|r" or "|cffffffff|Hitem:118::|h[Minor Healing Potion]|h|r"
+        end,
         GetRecipeSchematic = function(id)
             return { reagentSlotSchematics = { { reagents = { { itemID = 2589 } }, quantityRequired = id == 1 and 2 or 1 } } }
         end,
