@@ -630,7 +630,7 @@ do
 end
 
 ---------------------------------------------------------------------------
-print("Core 0.3.18, Finder 0.3.6, Codex 0.3.12: Settings and Feedback, Finder invites and join requests, scroll bars")
+print("Core 0.3.19, Finder 0.3.6, Codex 0.3.12: Settings and Feedback, Finder invites and join requests, scroll bars")
 do
     -- Settings: renamed, with Org / Options / Feedback
     local UI = alice.ns.UI
@@ -642,22 +642,12 @@ do
     end
     check(names == "Org,Options,Feedback", "its sub-tabs are Org, Options and Feedback")
 
-    -- Feedback: to the org admin in-game, kept until the admin's RUIN confirms
+    -- Feedback: a GitHub link with the text filled in; nothing goes to anyone in-game
     local FB = cara.ns.Feedback
-    check(not FB:Send("Bug", "hi"), "too-short feedback is refused")
-    local ok, how = FB:Send("Bug", "The roster doesn't sort by zone when I click it twice.")
-    check(ok and how == "sent" and FB:Waiting() == 1, "feedback is sent and kept until confirmed")
-    Server:Advance(30)
-    local inbox = alice.ns.Feedback:Inbox()
-    check(#inbox >= 1 and inbox[#inbox].by == "Cara Cole" and inbox[#inbox].cat == "Bug" and inbox[#inbox].text:find("sort by zone"),
-        "the org admin's inbox gets it, with who sent it")
-    check(FB:Waiting() == 0 and chatHas(cara, "reached the org admin"), "the sender hears it arrived")
-    check(alice.ns.Feedback:NewCount() >= 1 and alice.ns.Feedback:MarkdownNew():find("### %[Bug%] from Cara Cole"), "the admin copies it as Markdown for GitHub")
+    check(FB.Send == nil and FB.Inbox == nil, "feedback isn't sent inside the game")
     local link = FB.IssueLink("Idea", "Add a dark mode & more")
     check(link:find("^https://github.com/10kDevils/RUIN_Suite/issues/new%?labels=feedback&title=%%5BIdea%%5D%%20Add%%20a%%20dark%%20mode%%20%%26%%20more"),
         "the GitHub link opens a new issue with the text filled in")
-    alice.ns.Feedback:MarkAllPosted()
-    check(alice.ns.Feedback:NewCount() == 0, "the admin marks it posted")
     alice.env.RUIN_API:OpenTab("Settings")
     T.openAllSubTabs(alice, "Settings")
 

@@ -138,9 +138,6 @@ try("org rosters and key phrase", function()
     for _, c in ipairs({ cara, eve }) do c.ns:ScanRoster() end
     for _, c in ipairs({ cara, eve }) do c.ns.OrgRoster:Send(true) end
     Server:Advance(40)
-    cara.ns.Feedback:Send("Bug", "The roster doesn't sort by zone when I click the column twice.")
-    eve.ns.Feedback:Send("Idea", "Could Finder show how long someone has been looking?")
-    Server:Advance(30)
     cara.ns.Guild:SetEventRank(2)
     alice.ns.Guild:SetEventRank(2)
     Server:Advance(5)
