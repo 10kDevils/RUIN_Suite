@@ -11,19 +11,21 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `tests/` | Lua 5.1 test harness that simulates several game clients (`tests/run.sh`) |
 | `tests/render/` | Draws every page and sub-page outside the game as PNG screenshots, for checking layout and colors (see its README) |
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |
+| `tools/feedback_to_github.py` | Posts the feedback players send from Settings → Feedback as GitHub issues (run on the org admin's computer; see *Feedback* below) |
+| `.github/ISSUE_TEMPLATE/feedback.yml` | The feedback form for players who post on GitHub themselves |
 | `.github/workflows/release.yml` | Builds the zip and attaches it to a release when a `v*` tag is pushed or the workflow is run by hand (needs the `SUITE_TOKEN` secret, see the file) |
 
-## The addons (app version 0.3.17)
+## The addons (app version 0.3.18)
 
-In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Options by default; each player can rearrange them under Options → Tab order. Guild and Options use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
+In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Settings by default; each player can rearrange them under Settings → Options → Tab order. Guild and Settings use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |
-| RUIN Core | 0.3.17 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page (every guild's roster with moderation, guild and org chat with a pop-out) and community links, Options with the org admin's guild list, org key or key phrase, org-wide guild and officer chat, presence, module API. Required by every module. |
-| RUIN Codex | 0.3.11 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Class macros you can add in one click, a macro command reference, dungeon and raid journal with boss loot lists and learned drops, run planning, an upgrade line on item tooltips |
+| RUIN Core | 0.3.18 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page (every guild's roster with moderation, guild and org chat with a pop-out) and community links, Options with the org admin's guild list, org key or key phrase, org-wide guild and officer chat, presence, module API. Required by every module. |
+| RUIN Codex | 0.3.12 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Class macros you can add in one click, a macro command reference, dungeon and raid journal with boss loot lists and learned drops, run planning, an upgrade line on item tooltips |
 | RUIN Pathfinder | 0.3.14 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, Alliance routes 1-30 checked against the Forever quest database, Questie integration, quests shared across RUIN, class track, recorder, officer routes, follow a partner |
-| RUIN Finder | 0.3.5 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting |
-| RUIN Muster | 0.3.9 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, rally points, bounties, world sightings with map pins and under-attack calls, boss and buff timers |
+| RUIN Finder | 0.3.6 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting |
+| RUIN Muster | 0.3.10 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, rally points, bounties, world sightings with map pins and under-attack calls, boss and buff timers |
 | RUIN Exchange | 0.3.6 | [RUIN_Exchange](https://github.com/10kDevils/RUIN_Exchange) | Pooled auction prices and trends, crafters by profession with item quality, craft requests, leveling plan, bag sweep |
 
 RUIN Intel ([RUIN_Intel](https://github.com/10kDevils/RUIN_Intel)) is retired: its sightings and timers moved to RUIN Muster, and starting a group from a sighting is in RUIN Finder.
@@ -48,10 +50,22 @@ Extract the zip into your WoW Forever `Interface/AddOns` folder. Players who onl
 
 Versioning: the third number counts meaningful changes since the second number last went up; the first two numbers change only for app milestones. The app's version is RUIN Core's.
 
+## Feedback
+
+Players send feedback from **Settings → Feedback** in the RUIN window. WoW addons can't reach the internet, so it travels inside the game, on the org channel, to the org admin's RUIN, which keeps it in the admin's SavedVariables (`WTF/Account/<ACCOUNT>/SavedVariables/RUIN_Core.lua`). To turn it into issues here, labeled `feedback`:
+
+1. Once: install Python 3 and the GitHub CLI and run `gh auth login` (or make a fine-grained token with *Issues: read and write* on this repo and put it in `GITHUB_TOKEN`).
+2. Log out of WoW (or `/reload`) so the file is written, then run
+   `python3 tools/feedback_to_github.py --file "<WoW folder>/WTF/Account/<ACCOUNT>/SavedVariables/RUIN_Core.lua"`
+   (`--find "<WoW folder>"` lists the files; `--dry-run` shows what it would post). It remembers what it posted in `tools/feedback_posted.json`.
+3. In the game, press *Mark all posted* on Settings → Feedback to tidy the inbox.
+
+Without the script: *Copy new for GitHub* in the game gives the new feedback as Markdown to paste into an issue. Players with a GitHub account can also use *Copy GitHub link*, which opens a new issue with their text filled in. Issues here are public; feedback with anything private belongs in Discord.
+
 ## Tests
 
 ```sh
 LUA=/path/to/lua5.1 ./tests/run.sh
 ```
 
-The harness loads the real addon files into several simulated clients in different guilds and checks chat, keys, every module's messages and pages. Last run: 238 checks passing.
+The harness loads the real addon files into several simulated clients in different guilds and checks chat, keys, every module's messages and pages. Last run: 441 checks passing.

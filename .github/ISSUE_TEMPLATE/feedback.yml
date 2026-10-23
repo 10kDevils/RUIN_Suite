@@ -1,0 +1,28 @@
+name: RUIN feedback
+description: A bug, an idea or a question about the RUIN Gaming Companion App
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of feedback
+      options:
+        - Bug
+        - Idea
+        - Question
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: text
+    attributes:
+      label: Your feedback
+      description: What happened, what you expected, or your idea. Which page or addon (Finder, Muster, Pathfinder, Codex, Exchange, Settings...)?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: RUIN version
+      description: Settings > Options > About shows it (for example 0.3.18).

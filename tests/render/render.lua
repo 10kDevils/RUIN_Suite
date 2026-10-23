@@ -138,6 +138,9 @@ try("org rosters and key phrase", function()
     for _, c in ipairs({ cara, eve }) do c.ns:ScanRoster() end
     for _, c in ipairs({ cara, eve }) do c.ns.OrgRoster:Send(true) end
     Server:Advance(40)
+    cara.ns.Feedback:Send("Bug", "The roster doesn't sort by zone when I click the column twice.")
+    eve.ns.Feedback:Send("Idea", "Could Finder show how long someone has been looking?")
+    Server:Advance(30)
     cara.ns.Guild:SetEventRank(2)
     alice.ns.Guild:SetEventRank(2)
     Server:Advance(5)
@@ -225,7 +228,7 @@ alice.env.SlashCmdList.RUINCODEX("deadmines"); write("codex--journal-deadmines")
 
 API:OpenTab("Codex"); sub("Codex", "Journal"); click("Raids"); write("codex--journal-raids"); click("Dungeons")
 -- Options: a tab picked in Tab order, and Muster moved first.
-API:OpenTab("Options"); sub("Options", "Display"); click("Muster"); click("Move left"); click("Move left"); write("options--tab-order")
+API:OpenTab("Options"); sub("Settings", "Options"); click("Muster"); click("Move left"); click("Move left"); write("options--tab-order")
 alice.ns.UI:ResetTabOrder()
 -- a member picked on the roster, and the pop-out chat
 API:OpenTab("Guild"); sub("Guild", "Roster")

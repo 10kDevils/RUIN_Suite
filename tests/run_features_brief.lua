@@ -6,8 +6,8 @@ local alice, cara, eve, check, chatHas, errorsSoFar = T.alice, T.cara, T.eve, T.
 print("RUIN window and tabs (brief layout)")
 do
     local labels = alice.ns.UI:TabLabels()
-    check(table.concat(labels, ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Options",
-        "tabs in order: Guild, Finder, Muster, Pathfinder, Codex, Exchange, Options (" .. table.concat(labels, ",") .. ")")
+    check(table.concat(labels, ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Settings",
+        "tabs in order: Guild, Finder, Muster, Pathfinder, Codex, Exchange, Settings (" .. table.concat(labels, ",") .. ")")
     local R = alice.env.RUIN_API
     check(R:OpenTab("Codex") and R:OpenTab("Pathfinder") and R:OpenTab("Muster"), "module pages open by name")
     check(R.appName == "RUIN Gaming Companion App" and alice.ns.APP_NAME == "RUIN Gaming Companion App", "the app is named RUIN Gaming Companion App")
@@ -195,14 +195,14 @@ end
 print("Tab order (Options) and the Codex journal (Core 0.3.13, Codex 0.3.9)")
 do
     local UI = alice.ns.UI
-    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Options", "usual tab order")
+    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Settings", "usual tab order")
     check(UI:MoveTab("Muster", -1) and UI:MoveTab("Muster", -1), "Muster moved to the front")
-    check(table.concat(UI:TabLabels(), ",") == "Muster,Guild,Finder,Pathfinder,Codex,Exchange,Options", "tab strip follows your order")
+    check(table.concat(UI:TabLabels(), ",") == "Muster,Guild,Finder,Pathfinder,Codex,Exchange,Settings", "tab strip follows your order")
     check(alice.env.RUIN_DB.settings.tabOrder[1] == "Muster", "order saved in RUIN Core's settings")
     check(not UI:MoveTab("Muster", -1), "can't move past the first place")
     check(not UI:MoveTab("Settings", -1), "Options stays last")
     alice.env.SlashCmdList.RUIN("tabs reset")
-    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Options" and alice.env.RUIN_DB.settings.tabOrder == nil, "/ruin tabs reset restores it")
+    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Settings" and alice.env.RUIN_DB.settings.tabOrder == nil, "/ruin tabs reset restores it")
     -- Codex: Journal last, dungeons and raids both plan runs in Muster
     local cx = alice.env.RUIN_API:GetModule("Codex")
     local dg = alice.mns.RUIN_Codex.Dungeons[1]
@@ -627,4 +627,70 @@ do
     Server:Advance(10)
     check(eve.env.RUIN_ExchangeDB.crafters[eve.guid].profs.Enchanting, "Enchanting's window is read too")
     errorsSoFar("core 0.3.17")
+end
+
+---------------------------------------------------------------------------
+print("Core 0.3.18, Finder 0.3.6, Codex 0.3.12: Settings and Feedback, Finder invites and join requests, scroll bars")
+do
+    -- Settings: renamed, with Org / Options / Feedback
+    local UI = alice.ns.UI
+    check(table.concat(UI:TabLabels(), ",") == "Guild,Finder,Muster,Pathfinder,Codex,Exchange,Settings", "the Options tab is now Settings")
+    check(alice.env.RUIN_API:OpenTab("Options") and alice.env.RUIN_API:OpenTab("Settings"), "and still opens by its old name")
+    local names
+    for _, st in ipairs(alice.subtabs) do
+        if st.names and st.names[1] == "Org" then names = table.concat(st.names, ",") end
+    end
+    check(names == "Org,Options,Feedback", "its sub-tabs are Org, Options and Feedback")
+
+    -- Feedback: to the org admin in-game, kept until the admin's RUIN confirms
+    local FB = cara.ns.Feedback
+    check(not FB:Send("Bug", "hi"), "too-short feedback is refused")
+    local ok, how = FB:Send("Bug", "The roster doesn't sort by zone when I click it twice.")
+    check(ok and how == "sent" and FB:Waiting() == 1, "feedback is sent and kept until confirmed")
+    Server:Advance(30)
+    local inbox = alice.ns.Feedback:Inbox()
+    check(#inbox >= 1 and inbox[#inbox].by == "Cara Cole" and inbox[#inbox].cat == "Bug" and inbox[#inbox].text:find("sort by zone"),
+        "the org admin's inbox gets it, with who sent it")
+    check(FB:Waiting() == 0 and chatHas(cara, "reached the org admin"), "the sender hears it arrived")
+    check(alice.ns.Feedback:NewCount() >= 1 and alice.ns.Feedback:MarkdownNew():find("### %[Bug%] from Cara Cole"), "the admin copies it as Markdown for GitHub")
+    local link = FB.IssueLink("Idea", "Add a dark mode & more")
+    check(link:find("^https://github.com/10kDevils/RUIN_Suite/issues/new%?labels=feedback&title=%%5BIdea%%5D%%20Add%%20a%%20dark%%20mode%%20%%26%%20more"),
+        "the GitHub link opens a new issue with the text filled in")
+    alice.ns.Feedback:MarkAllPosted()
+    check(alice.ns.Feedback:NewCount() == 0, "the admin marks it posted")
+    alice.env.RUIN_API:OpenTab("Settings")
+    T.openAllSubTabs(alice, "Settings")
+
+    -- Finder: Invite for players, Request to join for groups, counts that follow the group
+    local edb = eve.env.RUIN_FinderCharDB
+    eve.env.SlashCmdList.RUINFINDER("group dungeon")
+    edb.needT, edb.needH, edb.needD = 1, 0, 2
+    local cf = cara.env.RUIN_API:GetModule("Finder")
+    cf:Send("JOINREQ", { g = cara.guid, c = "WARRIOR", l = 20, role = "Tank", a = "Dungeon" }, "PEER", "Eve Ember")
+    Server:Advance(5)
+    local invited
+    eve.env.C_PartyInfo = { InviteUnit = function(n) invited = n end }
+    check(chatHas(eve, "asks to join your group") and eve.env.RUIN_ConfirmDialog and eve.env.RUIN_ConfirmDialog.onAccept, "the group leader gets the request")
+    eve.env.RUIN_ConfirmDialog.onAccept()
+    check(invited == "Cara Cole", "and invites with one click")
+    local party = {}
+    local realGUID = eve.env.UnitGUID
+    eve.env.GetNumGroupMembers = function() return #party end
+    eve.env.IsInRaid = function() return false end
+    eve.env.UnitGUID = function(u) local i = tonumber((u or ""):match("^party(%d)$")); if i then return party[i] and party[i].guid end return realGUID(u) end
+    eve.env.UnitName = (function(old) return function(u) local i = tonumber((u or ""):match("^party(%d)$")); if i then return party[i] and party[i].name end return old(u) end end)(eve.env.UnitName)
+    eve.env.UnitGroupRolesAssigned = function() return "NONE" end
+    local F = eve.env.RUIN_API:GetModule("Finder")
+    F.OnGroupChanged()
+    party[1] = { guid = cara.guid, name = "Cara Cole" }
+    F.OnGroupChanged()
+    check(edb.needT == 0 and edb.needD == 2, "a tank joining takes the tank off what the group needs")
+    party[2] = { guid = "Player-1-00000099", name = "Rando" }
+    F.OnGroupChanged()
+    check(edb.needD == 1, "someone unknown counts as DPS")
+    party[1] = nil; party[1] = party[2]; party[2] = nil
+    F.OnGroupChanged()
+    check(edb.needT == 1, "and when the tank leaves, the group needs one again")
+    eve.env.UnitGUID = realGUID
+    errorsSoFar("core 0.3.18")
 end
