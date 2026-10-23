@@ -462,7 +462,9 @@ do
     alice.env.RUIN_API:OpenTab("Guild")
     alice.ns.UI:SelectGuildTab(2)
     local rows = alice.ns.GuildUI.RosterRows()
-    check(#rows == 2, "the Roster tab lists online and offline members")
+    local own = 0
+    for _, r in ipairs(rows) do if r.own then own = own + 1 end end
+    check(own == 2, "the Roster tab lists online and offline members")
 
     -- chat: your guild's lines and the org's, in the Chat tab and the pop-out
     alice.ns.Chat.history = {}
@@ -480,4 +482,149 @@ do
     alice.env.RUIN_DB.settings.chatScope = "org"
     T.openAllSubTabs(alice, "Guild")
     errorsSoFar("core 0.3.16")
+end
+
+---------------------------------------------------------------------------
+print("Core 0.3.17: every guild's roster, own notes, key phrases, event creators; Exchange login check")
+do
+    -- every guild's roster on the org channel (officer notes stay home)
+    Server.guilds["Briar Fang"][1].officerNote = "Secret officer stuff"
+    Server.guilds["Briar Fang"][1].zone = "Darnassus"
+    Server.guilds["Briar Fang"][1].note = "Guild leader"
+    cara.ns:ScanRoster(); eve.ns:ScanRoster()
+    Server:Advance(400)
+    local OR = alice.ns.OrgRoster
+    OR:AskMissing()
+    Server:Advance(60)
+    local seen = {}
+    for _, e in ipairs(OR:Members()) do seen[e.name] = e end
+    check(seen["Cara Cole"] and seen["Cara Cole"].guild == "Briar Fang" and seen["Eve Ember"], "the Roster lists the other guild's members")
+    check(seen["Cara Cole"].zone == "Darnassus" and seen["Cara Cole"].note == "Guild leader" and seen["Cara Cole"].officerNote == nil,
+        "with zone and public note, but never their officer notes")
+    check(seen["Grimlock"] and seen["Grimlock"].own, "and your own guild, offline members included")
+    local onlyBriar = 0
+    alice.env.RUIN_API:OpenTab("Guild")
+    alice.ns.UI:SelectGuildTab(2)
+    alice.ns.GuildUI.SetRosterGuild("Briar Fang")
+    for _, r in ipairs((alice.ns.GuildUI.RosterRows())) do if r.guild ~= "Briar Fang" then onlyBriar = -99 else onlyBriar = onlyBriar + 1 end end
+    check(onlyBriar == 2, "the guild filter shows one guild")
+    alice.ns.GuildUI.SetRosterGuild("*")
+    check(not alice.ns.Guild:CanOn("promote", seen["Eve Ember"]), "moderation is only for your own guild")
+
+    -- Overview: only players connected through RUIN
+    local rows = alice.ns.UI:GuildRows()
+    local names = {}
+    for _, r in ipairs(rows) do names[r.name] = true end
+    check(names["Alice Ash"] and names["Cara Cole"] and names["Eve Ember"] and not names["Grimlock"], "the Overview lists only players connected with RUIN")
+
+    -- your own note, even when the rank can't edit others' notes
+    local G = alice.ns.Guild
+    alice.env.CanEditPublicNote = function() return false end
+    local me = alice.ns.roster[alice.ns.NormalizeName("Alice Ash")]
+    local meRow = {}
+    for k, v in pairs(me) do meRow[k] = v end
+    meRow.guild = "Ashen Order"
+    check(G:CanOn("publicNote", meRow) and not G:CanOn("publicNote", seen["Grimlock"]), "everyone can try their own note; others' notes need the rank")
+    local wrote
+    alice.env.GuildRosterSetPublicNote = function(i, note) wrote = { i, note } end
+    G:SetNote("Alice Ash", "Raid leader", false)
+    Server:Advance(6)
+    check(wrote and wrote[2] == "Raid leader", "your note goes to the game")
+    check(chatHas(alice, "didn't change the note"), "and if the game refuses, RUIN says why")
+
+    -- key phrases
+    local Org = alice.ns.Org
+    check(not Org.CheckPhrase("abc") and Org.CheckPhrase("  Dragons   EAT at dawn ") == "dragons eat at dawn", "phrases are checked and normalized")
+    local ch = Org.PhraseChannel("Dragons eat at DAWN")
+    check(ch.n == Org.PhraseChannel("dragons eat at dawn").n and ch.n:match("^ruin%x+$") and #ch.p >= 16, "a phrase always leads to the same channel")
+    check(Org:AddGuild("Copper Crown", 1, "Copper"), "a new guild is added to the org")
+    check(Org:ChooseNewKey("dragons eat at dawn") and Org:Get().ph == "dragons eat at dawn" and Org:Get().c.n == ch.n, "the admin chooses a key phrase")
+    check(not cara.ns.Org:ChooseNewKey("nope nope nope"), "nobody else can")
+    Server:Advance(120)
+    check(cara.ns.Org:Get().c.n == ch.n and eve.ns.Org:Get().c.n == ch.n and eve.ns.Comms:IsJoined("ORG"), "every guild follows to the phrase's channel")
+    check(cara.ns.Org:Get().ph == "dragons eat at dawn" and eve.ns.Org:Get().ph == nil, "officers see the phrase; members' keys don't carry it")
+    Server.guilds["Copper Crown"] = { { name = "Gus Gale", rank = 3, guid = "Player-1-00000021" } }
+    local gus = Server:NewClient({ name = "Gus Gale", guid = "Player-1-00000021", guild = "Copper Crown", rank = 3, modules = { "RUIN_Muster", "RUIN_Exchange" } })
+    Server:Advance(10)
+    check(not gus.ns.Org:Get(), "a new player starts without a key")
+    gus.env.RUIN_TextDialog = nil
+    gus.ns.UI:PromptImport()
+    gus.env.RUIN_TextDialog.onAccept("Dragons eat at dawn")
+    Server:Advance(60)
+    check(gus.ns.Org:Get() and gus.ns.Org:Get().org == "RUIN" and gus.ns.Comms:IsJoined("ORG") and gus.ns.Comms:IsJoined("ORG"), "typing the phrase under Import key joins the org")
+    check(gus.ns.Org:Get().oc == nil and gus.ns.Org:Get().ph == nil, "with the member key only")
+    Server.guilds["Iron Hand"] = { { name = "Hal Hart", rank = 0, guid = "Player-1-00000022" } }
+    local hal = Server:NewClient({ name = "Hal Hart", guid = "Player-1-00000022", guild = "Iron Hand", rank = 0, modules = {} })
+    Server:Advance(10)
+    hal.ns.Org:JoinWithPhrase("dragons eat at dawn")
+    Server:Advance(60)
+    check(chatHas(hal, "is not in the org yet") and not hal.ns.Comms:IsJoined("ORG"), "a guild outside the org gets the key but is told to ask the admin")
+    local before = #gus.chat
+    gus.ns.Org:Forget()
+    gus.ns.Org:JoinWithPhrase("dragons eat at dusk")
+    Server:Advance(120)
+    check(chatHas(gus, "No RUIN member answered") and not gus.ns.Org:Get(), "a wrong phrase times out with a hint")
+    gus.ns.Org:JoinWithPhrase("dragons eat at dawn")
+    Server:Advance(60)
+    check(gus.ns.Comms:IsJoined("ORG"), "and the right one works")
+
+    -- who can create events: officers choose for their guild
+    local M = eve.env.RUIN_API:GetModule("Muster")
+    eve.env.RUIN_MusterDB.practice = false
+    check(eve.ns.Guild:EventRank() == 1 and not M:CanPost(), "by default only officers create events")
+    check(not eve.ns.Guild:SetEventRank(3), "a member can't change it")
+    check(cara.ns.Guild:SetEventRank(2), "an officer lets rank 2 create events")
+    Server:Advance(10)
+    check(eve.ns.Guild:EventRank() == 2 and M:CanPost(), "the guild gets the setting and Muster follows it")
+    check(alice.ns.Guild:EventRank() == 1, "other guilds keep their own")
+    eve.ns.Comms:Send("GSET", { gu = "Briar Fang", er = 9, t = 1e10, by = "Eve Ember" }, "GUILD")
+    Server:Advance(10)
+    check(cara.ns.Guild:EventRank() == 2, "a non-officer can't change it by sending")
+    Server.guilds["Briar Fang"][3] = { name = "Fay Fern", rank = 3, guid = "Player-1-00000023" }
+    local fay = Server:NewClient({ name = "Fay Fern", guid = "Player-1-00000023", guild = "Briar Fang", rank = 3, modules = { "RUIN_Muster" } })
+    Server:Advance(90)
+    check(fay.ns.Guild:EventRank() == 2, "a guildmate who logs in later gets it too")
+    local mine = M:Create("Eve's dungeon run", "2027-01-10 20:00", { kind = "Dungeon" })
+    local CM = cara.env.RUIN_API:GetModule("Muster")
+    local theirs = CM:Create("Cara's raid", "2027-01-11 20:00", { kind = "Raid" })
+    Server:Advance(10)
+    check(mine and theirs and eve.env.RUIN_MusterDB.events[theirs.id], "an allowed member posts an event")
+    M:Delete(theirs.id)
+    check(eve.env.RUIN_MusterDB.events[theirs.id] ~= nil, "but can't delete an officer's event")
+    M:Delete(mine.id)
+    check(eve.env.RUIN_MusterDB.events[mine.id] == nil, "and can delete their own")
+    CM:Delete(theirs.id)
+    Server:Advance(5)
+    cara.env.RUIN_API:OpenTab("Options")
+    T.openAllSubTabs(cara, "Options")
+
+    -- Exchange: professions at login
+    local X = eve.env.RUIN_API:GetModule("Exchange")
+    eve.env.GetProfessions = function() return 1, nil, nil, nil, 2 end
+    eve.env.GetProfessionInfo = function(i)
+        if i == 1 then return "Alchemy", 0, 120, 150 end
+        return "Cooking", 0, 50, 75
+    end
+    local need = X.NeedsScan()
+    check(#need == 1 and need[1].name == "Cooking", "Exchange knows which professions it hasn't read yet")
+    eve.env.GetProfessionInfo = function(i)
+        if i == 1 then return "Alchemy", 0, 130, 150 end
+        return "Cooking", 0, 50, 75
+    end
+    check(#X.NeedsScan() == 2, "and which have gone up since")
+    X.RefreshScanPrompt(true)
+    check(eve.env.RUIN_ExchangeScan and eve.env.RUIN_ExchangeScan:IsShown() and eve.env.RUIN_ExchangeScan1:IsShown(), "the Add your recipes window offers one click each")
+    alice.env.RUIN_ExchangeDB.crafters[eve.guid] = nil
+    X.ShareMine(true)
+    Server:Advance(60)
+    check(alice.env.RUIN_ExchangeDB.crafters[eve.guid] and alice.env.RUIN_ExchangeDB.crafters[eve.guid].profs.Alchemy,
+        "recipes on record are shared again without opening the window")
+    -- classic clients: Enchanting has its own window
+    eve.env.GetNumCrafts = function() return 1 end
+    eve.env.GetCraftInfo = function() return "Enchant Bracer - Minor Health", "", "easy" end
+    eve.env.GetCraftDisplaySkillLine = function() return "Enchanting", 40, 75 end
+    Server.fire(eve, "CRAFT_SHOW")
+    Server:Advance(10)
+    check(eve.env.RUIN_ExchangeDB.crafters[eve.guid].profs.Enchanting, "Enchanting's window is read too")
+    errorsSoFar("core 0.3.17")
 end

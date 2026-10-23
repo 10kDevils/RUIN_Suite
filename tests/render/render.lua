@@ -127,6 +127,21 @@ try("chat", function()
     Server:GuildSay("Ashen Order", g[1], "Bring fire resistance gear please")
     Server:Advance(3)
 end)
+try("org rosters and key phrase", function()
+    alice.ns.Org:ChooseNewKey("dragons eat at dawn")
+    Server:Advance(60)
+    local bf = Server.guilds["Briar Fang"]
+    local names = { [0] = "Chieftain", [1] = "Warden", [2] = "Hunter", [3] = "Cub" }
+    for _, m in ipairs(bf) do m.zone = m.zone or "Darnassus"; m.rankName = m.rankName or names[m.rank] end
+    bf[#bf + 1] = { name = "Moss Vale", rank = 3, rankName = "Member", guid = "Player-1-00000031", level = 41, class = "DRUID",
+                    zone = "Feralas", note = "Herbalist", online = false, lastOnline = { 0, 0, 1, 4 } }
+    for _, c in ipairs({ cara, eve }) do c.ns:ScanRoster() end
+    for _, c in ipairs({ cara, eve }) do c.ns.OrgRoster:Send(true) end
+    Server:Advance(40)
+    cara.ns.Guild:SetEventRank(2)
+    alice.ns.Guild:SetEventRank(2)
+    Server:Advance(5)
+end)
 -- the guild master's rights in the game's guild window
 for _, fn in ipairs({ "CanGuildPromote", "CanGuildDemote", "CanGuildRemove", "CanGuildInvite", "CanEditPublicNote",
                       "CanEditOfficerNote", "CanViewOfficerNote", "CanEditMOTD" }) do
@@ -217,6 +232,17 @@ API:OpenTab("Guild"); sub("Guild", "Roster")
 for _, fr in ipairs(alice.frames) do if fr.e and fr.e.name == "Shade" and fr._scripts.OnMouseUp then fr._scripts.OnMouseUp(fr) end end
 write("guild--roster-selected")
 alice.ns.GuildUI.ToggleChatWindow(true); alice.ns.GuildUI.window:ClearAllPoints(); alice.ns.GuildUI.window:SetPoint("CENTER"); alice.ns.GuildUI.RefreshChat(); write("guild--chat-popout"); alice.ns.GuildUI.ToggleChatWindow(false)
+
+-- Exchange's "Add your recipes" window at login
+if AS == "alice" then
+    alice.env.GetProfessions = function() return 1, nil, nil, nil, 2 end
+    alice.env.GetProfessionInfo = function(i) if i == 1 then return "Tailoring", 0, 75, 150 end return "Cooking", 0, 40, 75 end
+    API:OpenTab("Exchange"); sub("Exchange", "Search")
+    local X = API:GetModule("Exchange")
+    X.RefreshScanPrompt(true)
+    write("exchange--add-recipes")
+    alice.env.RUIN_ExchangeScan:Hide()
+end
 
 local f = assert(io.open(OUT .. "/index.txt", "w"))
 f:write(table.concat(index, "\n"), "\n")

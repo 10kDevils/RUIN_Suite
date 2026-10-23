@@ -252,7 +252,7 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <h1 class="h1">One banner for every RUIN guild</h1>
 <p class="lede">RUIN Core is the heart of the RUIN Gaming Companion App. It links the guild chats of every guild in the organization, links their officers, and gives every RUIN addon one shared line of communication. Install it once; add whichever modules you want.</p>
 <div class="chips">
-<span class="chip">RUIN Core 0.3.16</span>
+<span class="chip">RUIN Core 0.3.17</span>
 <span class="chip">/ruin</span>
 <span class="chip">Required by every module</span>
 </div>
@@ -307,8 +307,11 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <div class="manage"><b>Presence and versions</b><span>Who is online with RUIN across every guild, and a heads-up when a newer version is out.</span></div>
 <div class="manage"><b>The RUIN window</b><span>Navy with the gold RUIN mark and a tab for each module you install, shared alerts, and a couch mode for Steam Deck and TV play.</span></div>
 <div class="manage"><b>Guild page and links</b><span>Who's online across RUIN, your guild's message of the day, and RUIN's Discord, website and stream links, set once by the org admin for everyone.</span></div>
-<div class="manage"><b>Guild roster and chat</b><span>New in 0.3.16: the game's guild roster with zone, rank and notes; officers promote, demote, remove and write officer notes as their rank allows. Guild chat (or every RUIN guild's) in its own tab or a pop-out window.</span></div>
-<div class="manage"><b>Org admin tools</b><span>New in 0.3.16: the org admin sees every guild in the org, renames it, sets its officer rank or removes it, from any character on their account. Only the admin can export the org key. RUIN's hidden channels always take the last channel numbers.</span></div>
+<div class="manage"><b>Every guild's roster</b><span>New in 0.3.17: the Roster lists every member of every RUIN guild, online and offline, with zone, rank, notes and a guild filter; officers promote, demote, remove and write officer notes for their own guild as their rank allows, and everyone can edit their own note. Overview shows who's connected through RUIN right now.</span></div>
+<div class="manage"><b>Guild chat</b><span>Your guild's chat, or every RUIN guild's, in its own tab or a pop-out window.</span></div>
+<div class="manage"><b>Org admin tools</b><span>The org admin sees every guild in the org, renames it, sets its officer rank or removes it, from any character on their account. Only the admin can export the org key. RUIN's hidden channels always take the last channel numbers.</span></div>
+<div class="manage"><b>Key phrase</b><span>New in 0.3.17: give the org a key phrase like "dragons eat at dawn". New members type it under Import key and RUIN fetches the key from a member online. Choose new key sets a new phrase when people leave.</span></div>
+<div class="manage"><b>Who creates events</b><span>New in 0.3.17: each guild's officers choose which ranks can create Muster events, under Options.</span></div>
 <div class="manage"><b>Retail and Forever</b><span>One download for both games. Each game keeps its own RUIN settings.</span></div>
 <div class="manage"><b>Map pins</b><span>Modules mark objectives, sightings and quest steps on your world map and minimap, faded by age and colored by module.</span></div>
 </div>
@@ -371,7 +374,7 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <p class="intro">Done once for the whole org. Members don't type anything.</p>
 <div class="steps">
 <div class="step"><span class="n">1</span><h3>The org admin creates the key</h3><p>RUIN's main guild master opens <code>/ruin</code>, opens Options and presses Create org key, then Add guild for each RUIN guild with its officer rank.</p></div>
-<div class="step"><span class="n">2</span><h3>Send it to each guild leader</h3><p>Target the other guild's leader and press Send key to target. They see an Accept prompt. No copying and pasting.</p></div>
+<div class="step"><span class="n">2</span><h3>Send it to each guild leader</h3><p>Target the other guild's leader and press Send key to target. They see an Accept prompt. Or give them the org's key phrase to type under Import key.</p></div>
 <div class="step"><span class="n">3</span><h3>Members get it automatically</h3><p>Inside each guild, officers share the key with members as they log in. Officers also receive the officer channel.</p></div>
 </div>
 </div>
@@ -391,7 +394,8 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <tr><td>/ruin status</td><td>Connection status: org, channels, bridge, members online.</td></tr>
 <tr><td>/ruin versions</td><td>Which RUIN versions are running across the org.</td></tr>
 <tr><td>/ruin key send &lt;name&gt;</td><td>Offer the org key to another guild's leader.</td></tr>
-<tr><td>/ruin key rotate</td><td>Org admin: new channel passwords for everyone, to lock out anyone who left.</td></tr>
+<tr><td>/ruin key join &lt;phrase&gt;</td><td>Join the org with its key phrase (same as typing it under Import key).</td></tr>
+<tr><td>/ruin key newkey [phrase]</td><td>Org admin: a new key phrase, or a new random key, to lock out anyone who left.</td></tr>
 <tr><td>/ruin bridge on | off</td><td>Allow or stop relaying for guildmates without the addon.</td></tr>
 <tr><td>/ruin couch</td><td>Couch mode: the window at 115% for Steam Deck and TV play.</td></tr>
 <tr><td>/ruin overlord</td><td>Check that RUIN can see Overlord Forever: installed, switched on, and its /ov command.</td></tr>
