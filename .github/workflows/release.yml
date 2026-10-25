@@ -2,10 +2,10 @@
 #
 # * Push to main: when RUIN Core's version (## Version in RUIN_Core.toc) has
 #   no release yet, this builds the zip and publishes the release
-#   v<version><TAG_SUFFIX> (for example v0.4.1_Beta-1) with the version's
-#   change log entries as notes. So a new version is published as soon as the
+#   v<version> (for example v0.4.2) with the version's change log entries as
+#   notes. So a new version is published as soon as the
 #   suite repo's submodules point at it; nothing else to do.
-# * Push a tag like v0.4.1_Beta-1 yourself: builds the zip and attaches it to
+# * Push a tag like v0.4.2 yourself: builds the zip and attaches it to
 #   that tag's release (as before).
 # * Run it by hand from the Actions tab: builds the zip (and publishes the
 #   release if the version has none).
@@ -21,10 +21,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-env:
-  # Added after the version in the tag and title. Change it for the next
-  # beta ("_Beta-2"), or empty it for 1.0.
-  TAG_SUFFIX: "_Beta-1"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,10 +35,12 @@ jobs:
         id: v
         run: |
           version=$(sed -n 's/^## Version: *//p' RUIN_Core/RUIN_Core.toc | tr -d '\r')
-          tag="v${version}${TAG_SUFFIX}"
+          tag="v${version}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+          # a release for this version already exists, also under an older
+          # name like v0.4.1_Beta-1
+          if git ls-remote --tags origin | awk '{print $2}' | grep -Eq "^refs/tags/${tag//./\\.}(_.*)?(\^\{\})?$"; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"

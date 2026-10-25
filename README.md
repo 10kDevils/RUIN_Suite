@@ -45,7 +45,7 @@ Extract the zip into your WoW Forever `Interface/AddOns` folder. Players who onl
 
 1. Commit the change in each addon repo that changed and push it.
 2. In this repo, move each submodule to its new commit (`git -C RUIN_Codex checkout <commit or tag>`), commit, and push.
-3. That's it: the push to `main` runs the release workflow, which sees that RUIN Core's version has no release yet, builds the zip and publishes the release `v<version>_Beta-1` with the change log entries of the addons that changed. (The `_Beta-1` part is `TAG_SUFFIX` in `.github/workflows/release.yml`: change it for the next beta, empty it for 1.0.) Pushing a tag like `v0.4.1_Beta-1` yourself still works too.
+3. That's it: the push to `main` runs the release workflow, which sees that RUIN Core's version has no release yet, builds the zip and publishes the release `v<version>` (for example `v0.4.2`) with the change log entries of the addons that changed. Pushing a tag like `v0.4.2` yourself still works too.
 
 Versioning: the third number counts meaningful changes since the second number last went up; the first two numbers change only for app milestones. The app's version is RUIN Core's.
 
