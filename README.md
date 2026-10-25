@@ -14,7 +14,7 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `.github/ISSUE_TEMPLATE/feedback.yml` | The feedback form on GitHub (Settings → Feedback in the game opens a new issue with the player's text filled in) |
 | `.github/workflows/release.yml` | Publishes each new version: on a push to `main` whose RUIN Core version has no release yet, builds the zip and creates the release with notes from the change logs (also on a pushed `v*` tag, or run by hand) |
 
-## The addons (app version 0.4.1, beta)
+## The addons (app version 0.4.1)
 
 In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Settings by default; each player can rearrange them under Settings → Options → Tab order. Guild and Settings use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
 
