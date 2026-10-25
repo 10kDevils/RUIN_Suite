@@ -244,6 +244,14 @@ if AS == "alice" then
     alice.env.RUIN_ExchangeScan:Hide()
 end
 
+-- the Choose new key dialog: its text box sits under the hint, however long
+if AS == "alice" then
+    API:OpenTab("Settings"); sub("Settings", "Org")
+    alice.ns.UI:PromptNewKey()
+    write("settings--choose-new-key")
+    alice.env.RUIN_TextDialog:Hide()
+end
+
 local f = assert(io.open(OUT .. "/index.txt", "w"))
 f:write(table.concat(index, "\n"), "\n")
 f:close()
