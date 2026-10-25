@@ -12,7 +12,7 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `tests/render/` | Draws every page and sub-page outside the game as PNG screenshots, for checking layout and colors (see its README) |
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |
 | `.github/ISSUE_TEMPLATE/feedback.yml` | The feedback form on GitHub (Settings → Feedback in the game opens a new issue with the player's text filled in) |
-| `.github/workflows/release.yml` | Builds the zip and attaches it to a release when a `v*` tag is pushed or the workflow is run by hand (needs the `SUITE_TOKEN` secret, see the file) |
+| `.github/workflows/release.yml` | Publishes each new version: on a push to `main` whose RUIN Core version has no release yet, builds the zip and creates the release with notes from the change logs (also on a pushed `v*` tag, or run by hand) |
 
 ## The addons (app version 0.4.1, beta)
 
@@ -45,7 +45,7 @@ Extract the zip into your WoW Forever `Interface/AddOns` folder. Players who onl
 
 1. Commit the change in each addon repo that changed and push it.
 2. In this repo, move each submodule to its new commit (`git -C RUIN_Codex checkout <commit or tag>`), commit, and push.
-3. Publish a release named after RUIN Core's version (for example `v0.4.0`; tick *Set as a pre-release* while the app is in beta). The release workflow builds the zip and attaches it.
+3. That's it: the push to `main` runs the release workflow, which sees that RUIN Core's version has no release yet, builds the zip and publishes the release `v<version>_Beta-1` with the change log entries of the addons that changed. (The `_Beta-1` part is `TAG_SUFFIX` in `.github/workflows/release.yml`: change it for the next beta, empty it for 1.0.) Pushing a tag like `v0.4.1_Beta-1` yourself still works too.
 
 Versioning: the third number counts meaningful changes since the second number last went up; the first two numbers change only for app milestones. The app's version is RUIN Core's.
 

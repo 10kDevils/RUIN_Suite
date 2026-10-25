@@ -1,16 +1,30 @@
-# Builds the suite zip and attaches it to a GitHub release when you push a
-# tag like v0.3.0, or when you run it by hand from the Actions tab.
+# Builds the suite zip and publishes it as a GitHub release.
 #
-# The addon repos are private, so the checkout needs a token that can read
-# them: create a fine-grained personal access token with read-only "Contents"
-# access to the RUIN_* repos and save it in this repo as the secret SUITE_TOKEN.
+# * Push to main: when RUIN Core's version (## Version in RUIN_Core.toc) has
+#   no release yet, this builds the zip and publishes the release
+#   v<version><TAG_SUFFIX> (for example v0.4.1_Beta-1) with the version's
+#   change log entries as notes. So a new version is published as soon as the
+#   suite repo's submodules point at it; nothing else to do.
+# * Push a tag like v0.4.1_Beta-1 yourself: builds the zip and attaches it to
+#   that tag's release (as before).
+# * Run it by hand from the Actions tab: builds the zip (and publishes the
+#   release if the version has none).
+#
+# The addon repos are public, so no extra token is needed; if they ever go
+# private again, add a fine-grained token with read-only "Contents" access to
+# the RUIN_* repos as the secret SUITE_TOKEN.
 name: Release suite
 on:
   push:
+    branches: [main]
     tags: ["v*"]
   workflow_dispatch:
 permissions:
   contents: write
+env:
+  # Added after the version in the tag and title. Change it for the next
+  # beta ("_Beta-2"), or empty it for 1.0.
+  TAG_SUFFIX: "_Beta-1"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,11 +32,69 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.SUITE_TOKEN }}
+          fetch-depth: 0
+          token: ${{ secrets.SUITE_TOKEN || github.token }}
+
+      - name: Work out the version
+        id: v
+        run: |
+          version=$(sed -n 's/^## Version: *//p' RUIN_Core/RUIN_Core.toc | tr -d '\r')
+          tag="v${version}${TAG_SUFFIX}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "RUIN Core $version -> $tag"
+
       - name: Build zip
         run: ./build.sh
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Release notes from the change logs
+        if: github.ref_type != 'tag' && steps.v.outputs.exists == 'false'
+        run: |
+          python3 - <<'EOF'
+          import os, re
+          out = ["RUIN Gaming Companion App %s. Extract the zip into your WoW Forever `Interface/AddOns` folder.\n" % os.environ["VERSION"]]
+          rows = []
+          import subprocess
+          # the addons that changed since the last release (their submodule moved)
+          prev = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "HEAD"], capture_output=True, text=True).stdout.strip()
+          changed = None
+          if prev:
+              changed = set(subprocess.run(["git", "diff", "--name-only", prev, "HEAD"], capture_output=True, text=True).stdout.split())
+              print("changes since", prev, ":", sorted(c for c in changed if c.startswith("RUIN_")))
+          for addon in ["RUIN_Core", "RUIN_Finder", "RUIN_Muster", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange"]:
+              toc = open(f"{addon}/{addon}.toc", encoding="utf-8").read()
+              ver = re.search(r"^## Version:\s*(\S+)", toc, re.M).group(1)
+              rows.append(f"| {addon.replace('_', ' ')} | {ver} |")
+              log = open(f"{addon}/CHANGELOG.md", encoding="utf-8").read()
+              m = re.search(r"^## " + re.escape(ver) + r"\b.*?\n(.*?)(?=^## |\Z)", log, re.M | re.S)
+              if m and m.group(1).strip() and (changed is None or addon in changed):
+                  out.append(f"**{addon.replace('_', ' ')} {ver}**\n\n" + m.group(1).strip() + "\n")
+          if len(out) == 1:
+              out.append("No addon changed since %s.\n" % prev)
+          out.append("| Addon | Version |\n| --- | --- |\n" + "\n".join(rows))
+          out.append("\nFound a problem? Settings → Feedback in the RUIN window.")
+          open("notes.md", "w", encoding="utf-8").write("\n".join(out))
+          EOF
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+
+      - name: Publish the new version
+        if: github.ref_type != 'tag' && steps.v.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          body_path: notes.md
+          files: dist/*.zip
+
+      - name: Attach to a tag's release
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
