@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RUIN Org Setup Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column on RUIN's navy, steps as a numbered spine, screenshots beside the steps they show; prints light. */
+:root {
+  --bg: #0a1020; --panel: #121c38; --line: #2b3c6e; --gold: #d8ae4f; --gold2: #f2d48a;
+  --text: #ece6d6; --head: #ffffff; --muted: #aaa79d; --teal: #54b7d9; --good: #5cd973; --bad: #e0675a;
+  --display: 'Grenze Gotisch', Caladea, Georgia, serif;
+  --body: 'Alegreya Sans', Optima, 'Segoe UI', Carlito, system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 18px; line-height: 1.6; }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 64px; }
+a { color: var(--teal); }
+.kicker { font-family: var(--mono); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin: 0; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(48px, 9vw, 88px); line-height: .95; margin: 8px 0 16px; color: #fff6dc; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 5vw, 44px); line-height: 1.05; margin: 0 0 10px; color: var(--gold2); text-wrap: balance; }
+h3 { font-size: 20px; margin: 0 0 6px; color: var(--head); }
+p { margin: 0 0 12px; max-width: 66ch; }
+.lede { font-size: 21px; color: var(--text); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+.chip { font-family: var(--mono); font-size: 13px; padding: 5px 10px; border: 1px solid rgba(242,212,138,.45); color: var(--gold2); }
+section { padding-block: 36px 8px; border-top: 1px solid var(--line); margin-top: 36px; }
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; margin-top: 14px; }
+.role { background: var(--panel); border: 1px solid var(--line); padding: 16px 18px; min-width: 0; }
+.role b { display: block; color: var(--gold2); font-size: 19px; margin-bottom: 4px; }
+.role p { font-size: 16px; color: var(--muted); margin: 0; }
+ul.check { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 8px; }
+ul.check li { padding-left: 28px; position: relative; max-width: 66ch; }
+ul.check li::before { content: ""; position: absolute; left: 4px; top: .5em; width: 10px; height: 10px; border: 2px solid var(--gold); transform: rotate(45deg); }
+ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 18px 0 0; display: grid; gap: 22px; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 44px 1fr; gap: 14px; }
+ol.steps > li::before { content: counter(step); font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 40px; text-align: center; color: var(--bg); background: var(--gold); width: 40px; height: 40px; }
+ol.steps > li > div { min-width: 0; }
+.ui { font-family: var(--body); font-weight: 700; color: var(--head); background: #17244a; border: 1px solid var(--line); padding: 0 6px; white-space: nowrap; }
+code, .code { font-family: var(--mono); font-size: 15px; color: var(--gold2); background: rgba(0,0,0,.35); padding: 1px 6px; }
+pre.code { display: block; padding: 10px 12px; overflow-x: auto; margin: 8px 0 12px; }
+figure { margin: 14px 0 6px; }
+figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); }
+figure.small img { max-width: min(100%, 520px); }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 6px; }
+.note { border-left: 3px solid var(--teal); background: rgba(84,183,217,.08); padding: 10px 14px; margin: 12px 0; max-width: 70ch; }
+.note.warn { border-left-color: var(--gold); background: rgba(216,174,79,.08); }
+.note p:last-child { margin: 0; }
+.ways { display: grid; gap: 14px; margin-top: 14px; }
+.way { background: var(--panel); border: 1px solid var(--line); padding: 16px 18px; min-width: 0; }
+.way .tag { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--gold2); font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; }
+td:first-child { width: 38%; }
+.ok { color: var(--good); } .no { color: var(--bad); }
+footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+@media (max-width: 520px) { ol.steps > li { grid-template-columns: 34px 1fr; } ol.steps > li::before { width: 32px; height: 32px; font-size: 24px; line-height: 32px; } }
+@media print {
+  :root { --bg: #ffffff; --panel: #f6f3ea; --line: #d6cfbd; --gold: #9a7417; --gold2: #7a5a0e; --text: #1c2233; --muted: #5a5f6e; --teal: #1d6f8f; --good: #1d7a33; --bad: #a3332a; --head: #14213f; color-scheme: light; }
+  body { font-size: 12pt; }
+  h1 { color: #14213f; font-size: 44pt; }
+  .ui { background: #eef1f8; }
+  code, .code { background: #f3efe3; }
+  .wrap { padding-block: 0; max-width: none; }
+  section { break-inside: auto; }
+  ol.steps > li, .way { break-inside: auto; }
+  .role, figure, .note, tr, pre { break-inside: avoid; }
+  figure img { max-width: 70%; }
+  figure.small img { max-width: 58%; }
+  .way .tag { display: block; break-after: avoid; }
+  .way .tag + h3 { break-before: avoid; }
+  section { margin-top: 20px; padding-block: 20px 4px; }
+  ol.steps { gap: 14px; }
+  h2, h3 { break-after: avoid; }
+  a { color: var(--teal); text-decoration: none; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <p class="kicker">RUIN Gaming Companion App · Setup guide</p>
+    <h1>Raise your Org</h1>
+    <p class="lede">An Org is a group of guilds that RUIN connects: shared guild chat, every guild's roster, events, crafters and the looking-for-group board. This guide takes you from nothing to a running Org with all your guilds in it.</p>
+    <div class="meta"><span class="chip">RUIN Core 0.4.1</span><span class="chip">About 10 minutes</span><span class="chip">/ruin</span></div>
+  </header>
+
+  <section>
+    <h2>Who does what</h2>
+    <p>Setting up an Org takes one person at the start, then one leader per guild. Members don't do anything.</p>
+    <div class="roles">
+      <div class="role"><b>The Org admin</b><p>Creates the Org, adds and removes guilds, and hands the key to each guild's leader. Usually the guild master of the main guild. Every character on the admin's WoW account is admin.</p></div>
+      <div class="role"><b>Guild leaders and officers</b><p>Accept the key once for their guild. After that, their RUIN passes it to members automatically.</p></div>
+      <div class="role"><b>Members</b><p>Install RUIN and log in. They get the key from an officer, or type the Org's key phrase.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Before you start</h2>
+    <ul class="check">
+      <li>Everyone who will use RUIN has the app installed: extract the zip into your WoW Forever <code>Interface/AddOns</code> folder and enable the RUIN addons at the character screen. Get the latest zip from <a href="https://github.com/10kDevils/RUIN_Suite/releases/latest">github.com/10kDevils/RUIN_Suite/releases</a>.</li>
+      <li>You, the admin, are in a guild. RUIN adds your guild to the Org when you create it.</li>
+      <li>For each other guild, you know its name exactly as the game writes it (capitals and spaces count) and its <b>officer rank</b>.</li>
+    </ul>
+    <div class="note">
+      <p><b>Officer rank</b> is a number. Ranks count down from the top of the guild's rank list: <b>0</b> is the guild master, <b>1</b> the rank below, and so on. The officer rank is the lowest rank that counts as an officer, so <b>1</b> means "the guild master and the rank below". Officers get RUIN's officer chat and pass the key to their members.</p>
+    </div>
+    <div class="note warn">
+      <p><b>Pick the admin's account with care.</b> The admin role stays with the WoW account that creates the Org; RUIN 0.4.1 can't hand it to someone else. If the Org needs a new admin later, the new admin creates a new Org and the guilds take the new key.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>1. Create the Org</h2>
+    <p>The admin does this once.</p>
+    <ol class="steps">
+      <li><div>
+        <h3>Open RUIN's Settings</h3>
+        <p>Type <code>/ruin</code> (or pick RUIN in the minimap's addon menu), open the <span class="ui">Settings</span> tab, then the <span class="ui">Org</span> page.</p>
+      </div></li>
+      <li><div>
+        <h3>Press Create org key</h3>
+        <p>Type the Org's name (for example <b>RUIN</b>) and press <span class="ui">OK</span>. You are now the Org admin, and your guild is in the Org with ranks 0 and 1 as officers.</p>
+        <figure class="small"><img src="guide-img/create.png" alt="RUIN's Create org key window with the Org name RUIN typed in" width="624" height="291"><figcaption>The Org's name comes first.</figcaption></figure>
+      </div></li>
+      <li><div>
+        <h3>Choose a key phrase (optional)</h3>
+        <p>Next RUIN asks for a key phrase: 6 to 40 characters, like <b>dragons eat at dawn</b>. Anyone in one of the Org's guilds can then join by typing the phrase. Leave it empty for a random key instead; it is safer, but you hand it out in the game or as a long text to copy.</p>
+        <p>Capitals and extra spaces don't matter in a phrase. You can set or change it later with <span class="ui">Choose new key</span>.</p>
+      </div></li>
+      <li><div>
+        <h3>Check your own guild's officer rank</h3>
+        <p>Under <span class="ui">Guilds in the org</span>, pick your guild. If your officers sit lower than rank 1, change <span class="ui">Officers are ranks 0 to</span> (your own guild's rank names are shown) and press <span class="ui">Save changes</span>.</p>
+      </div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>2. Add the other guilds</h2>
+    <p>Still on <span class="ui">Settings → Org</span>, for each other guild:</p>
+    <ol class="steps">
+      <li><div>
+        <h3>Press Add guild</h3>
+        <p>Type the guild's name, its officer rank and a short tag, separated by commas, then press <span class="ui">OK</span>:</p>
+        <pre class="code">Briar Fang, 1, Briar</pre>
+        <p>The tag is what RUIN shows in chat and on the roster, like <b>[Briar]</b>. Leave it out and RUIN uses the guild's name.</p>
+        <figure class="small"><img src="guide-img/addguild.png" alt="RUIN's Add guild window with Briar Fang, 1, Briar typed in" width="624" height="303"><figcaption>Name, officer rank, tag.</figcaption></figure>
+      </div></li>
+      <li><div>
+        <h3>Check the list</h3>
+        <p>The guild appears under <span class="ui">Guilds in the org</span>. Pick it to fix a typo in the name, change the tag or the officer rank, then press <span class="ui">Save changes</span>. A name that doesn't match the game exactly is the most common reason a guild can't connect.</p>
+      </div></li>
+    </ol>
+    <figure><img src="guide-img/settings-org.png" alt="RUIN's Settings Org page for the admin: the Org key card with Import key, Export key, Send key to target, Add guild, Choose new key and Community links; Guild settings; and Guilds in the org with Ashen Order and Briar Fang" width="949" height="617"><figcaption>Settings → Org as the admin sees it: the key card, Guild settings, and the list of guilds with the editor.</figcaption></figure>
+  </section>
+
+  <section>
+    <h2>3. Give each guild the key</h2>
+    <p>Each added guild needs the key once, given to its guild master or an officer. Pick whichever way suits you.</p>
+    <div class="ways">
+      <div class="way">
+        <span class="tag">In the game, both online</span>
+        <h3>Send key to target</h3>
+        <p>Target the other guild's leader (or one of its officers) and press <span class="ui">Send key to target</span>. They see a prompt and press <span class="ui">Accept</span>. No typing or copying. Without a target, the button asks for their full character name.</p>
+        <figure class="small"><img src="guide-img/offer.png" alt="The prompt the other guild's leader sees: Alice Ash is offering you the RUIN org key for RUIN. Accept it? With Accept and Decline buttons" width="538" height="213"><figcaption>What the other leader sees.</figcaption></figure>
+      </div>
+      <div class="way">
+        <span class="tag">Easiest to pass around</span>
+        <h3>The key phrase</h3>
+        <p>Tell them the phrase (Discord, a whisper). They open <span class="ui">Settings → Org</span>, press <span class="ui">Import key</span>, type the phrase and press <span class="ui">OK</span>, or type <code>/ruin key join dragons eat at dawn</code>. RUIN fetches the key from an Org member who is online, within a few seconds.</p>
+        <figure class="small"><img src="guide-img/import.png" alt="RUIN's Import org key window with the phrase dragons eat at dawn typed in" width="624" height="289"><figcaption>The same box takes the phrase or the long key.</figcaption></figure>
+        <p>Someone from the Org has to be online for this to work, and the player's guild must already be added. The phrase gives the member key; the guild's officers get the officer channel from you or another officer later.</p>
+      </div>
+      <div class="way">
+        <span class="tag">When they're offline</span>
+        <h3>Export key</h3>
+        <p>Press <span class="ui">Export key</span> (admin only), copy the whole text that starts with <code>RUIN1:</code> and send it to the leader. They press <span class="ui">Import key</span>, paste it and press <span class="ui">OK</span>. This key includes the officer channel, so give it only to guild leaders.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Members connect by themselves</h2>
+    <p>Once a guild's leader or an officer has the key, their RUIN passes the member key to every guildmate running RUIN when they log in, and the officer channel to the other officers. Members can also type the key phrase under <span class="ui">Import key</span>.</p>
+    <h3>Check that it worked</h3>
+    <p>On <span class="ui">Settings → Org</span>, the key card should say <b>Guild: (your guild) <span class="ok">in org</span></b> and <b>Org channel: <span class="ok">connected</span></b>. <code>/ruin status</code> prints the same in chat. Right after logging in RUIN can take up to a minute to connect, because it lets the game's own channels join first.</p>
+    <p>Then try it: say something in guild chat, and players in the other guilds see it with your guild's tag. The <span class="ui">Guild</span> tab's Roster lists every guild's members.</p>
+  </section>
+
+  <section>
+    <h2>Running the Org</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>To do this</th><th>Do this</th></tr></thead>
+      <tbody>
+        <tr><td>Add a guild later</td><td><span class="ui">Add guild</span>, then give its leader the key (step 3).</td></tr>
+        <tr><td>Rename a guild, change its tag or officer rank</td><td>Pick it under <span class="ui">Guilds in the org</span>, change it, <span class="ui">Save changes</span>. Online officers get the change at once and pass it on.</td></tr>
+        <tr><td>Remove a guild</td><td>Pick it and press <span class="ui">Remove guild</span>. The officer channel changes. With a key phrase, also choose a new phrase so they can't rejoin.</td></tr>
+        <tr><td>Lock out people who left</td><td><span class="ui">Choose new key</span>: type a new phrase, or leave it empty for a random key. Officers online get it at once; tell everyone else the new phrase.</td></tr>
+        <tr><td>Share Discord, website and stream links</td><td><span class="ui">Community links</span>: one per line, like <code>Discord = https://discord.gg/yourcode</code>. They show on everyone's Guild page.</td></tr>
+        <tr><td>Let more ranks create events (RUIN Muster)</td><td>Each guild's officers set <span class="ui">Can create events: ranks 0 to</span> under Guild settings.</td></tr>
+        <tr><td>Run the Org from an alt</td><td>Nothing to do: every character on the admin's account is admin, once the admin character has logged in.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>If something goes wrong</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>You see</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td><span class="no">"Your guild is not listed in this key yet"</span> or <span class="no">not in org key</span></td><td>The admin adds the guild with its name exactly as the game shows it (Settings → Org → Add guild, or fix the name under Guilds in the org).</td></tr>
+        <tr><td><span class="no">"You are not in a guild"</span></td><td>RUIN connects members of the Org's guilds. Join one of them first.</td></tr>
+        <tr><td><span class="no">"No RUIN member answered on that key phrase"</span></td><td>Check the spelling of the phrase, and try again when someone from the Org is online.</td></tr>
+        <tr><td><span class="no">"Import failed: the key is damaged"</span> or <span class="no">"incomplete"</span></td><td>Copy the whole exported key again, from <code>RUIN1:</code> to the last character.</td></tr>
+        <tr><td><span class="no">"Only the org admin can export the org key"</span></td><td>Only the admin exports. Officers use Send key to target, or share the key phrase.</td></tr>
+        <tr><td>Org channel stays <b>joining</b></td><td>Wait a minute after logging in. If it stays, the admin chooses a new key (someone outside RUIN may hold the channel).</td></tr>
+        <tr><td>Members don't get the key</td><td>An officer of their guild with the key must be online once while they are. Or give them the key phrase.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Commands</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>/ruin</code></td><td>Open or close the RUIN window.</td></tr>
+        <tr><td><code>/ruin key create &lt;name&gt;</code></td><td>Create the Org (you become admin).</td></tr>
+        <tr><td><code>/ruin key addguild &lt;guild&gt;, &lt;rank&gt;, &lt;tag&gt;</code></td><td>Admin: add a guild.</td></tr>
+        <tr><td><code>/ruin key editguild &lt;guild&gt;, &lt;new name&gt;, &lt;rank&gt;, &lt;tag&gt;</code></td><td>Admin: change a guild's entry.</td></tr>
+        <tr><td><code>/ruin key removeguild &lt;guild&gt;</code></td><td>Admin: remove a guild.</td></tr>
+        <tr><td><code>/ruin key send &lt;name&gt;</code></td><td>Offer the key to another guild's leader.</td></tr>
+        <tr><td><code>/ruin key join &lt;phrase&gt;</code></td><td>Join with the Org's key phrase.</td></tr>
+        <tr><td><code>/ruin key newkey [phrase]</code></td><td>Admin: a new key phrase, or a new random key.</td></tr>
+        <tr><td><code>/ruin status</code></td><td>Print your Org, guild and channel status.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>RUIN Gaming Companion App · Org setup guide for RUIN Core 0.4.1 · Found a problem? Settings → Feedback in the RUIN window.</footer>
+</div>
+
+</body>
+</html>

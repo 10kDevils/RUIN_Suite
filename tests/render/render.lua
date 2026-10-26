@@ -252,6 +252,16 @@ if AS == "alice" then
     alice.env.RUIN_TextDialog:Hide()
 end
 
+-- dialogs for the org setup guide
+if AS == "alice" then
+    API:OpenTab("Settings"); sub("Settings", "Org")
+    alice.ns.UI:PromptCreate(); write("guide--create"); alice.env.RUIN_TextDialog:Hide()
+    alice.ns.UI:PromptAddGuild(); alice.env.RUIN_TextDialog.edit:SetText("Briar Fang, 1, Briar"); write("guide--addguild"); alice.env.RUIN_TextDialog:Hide()
+    alice.ns.UI:PromptImport(); alice.env.RUIN_TextDialog.edit:SetText("dragons eat at dawn"); write("guide--import"); alice.env.RUIN_TextDialog:Hide()
+    alice.ns.UI:ShowConfirm("RUIN org key offered", "Alice Ash is offering you the RUIN org key for \"RUIN\".\n\nAccept it? Your guild's members will receive it from you automatically.", function() end)
+    write("guide--offer"); alice.env.RUIN_ConfirmDialog:Hide()
+end
+
 local f = assert(io.open(OUT .. "/index.txt", "w"))
 f:write(table.concat(index, "\n"), "\n")
 f:close()
