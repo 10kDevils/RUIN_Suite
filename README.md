@@ -14,13 +14,13 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | `.github/ISSUE_TEMPLATE/feedback.yml` | The feedback form on GitHub (Settings → Feedback in the game opens a new issue with the player's text filled in) |
 | `.github/workflows/release.yml` | Publishes each new version: on a push to `main` whose RUIN Core version has no release yet, builds the zip and creates the release with notes from the change logs (also on a pushed `v*` tag, or run by hand) |
 
-## The addons (app version 0.4.1)
+## The addons (app version 0.4.2)
 
 In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Settings by default; each player can rearrange them under Settings → Options → Tab order. Guild and Settings use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |
-| RUIN Core | 0.4.1 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page (every guild's roster with moderation, guild and org chat with a pop-out) and community links, Settings with the org admin's guild list, org key or key phrase, and feedback, org-wide guild and officer chat, presence, module API. Required by every module. |
+| RUIN Core | 0.4.2 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page (every guild's roster with moderation, guild and org chat with a pop-out) and community links, Settings with the org admin's guild list, org key or key phrase, and feedback, org-wide guild and officer chat, presence, module API. Required by every module. |
 | RUIN Codex | 0.4.0 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Class macros you can add in one click, a macro command reference, dungeon and raid journal with boss loot lists and learned drops, run planning, an upgrade line on item tooltips |
 | RUIN Pathfinder | 0.4.0 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, Alliance routes 1-30 checked against the Forever quest database, Questie integration, quests shared across RUIN, class track, recorder, officer routes, follow a partner |
 | RUIN Finder | 0.4.0 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting |
