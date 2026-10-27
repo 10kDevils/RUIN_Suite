@@ -254,6 +254,10 @@ for _, label in ipairs(alice.ns.UI:TabLabels()) do
         write(slug(label))
     else
         for _, st in ipairs(mine) do
+            -- a sub-tab row inside another tab's page: open that tab first
+            for _, outer in ipairs(mine) do
+                for k, pg in ipairs(outer.obj.pages) do if pg == st.parent then outer.obj:Select(k) end end
+            end
             for i, name in ipairs(st.obj.names) do
                 st.obj:Select(i)
                 write(slug(label) .. "--" .. slug(name))
