@@ -252,7 +252,7 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <h1 class="h1">One banner for every RUIN guild</h1>
 <p class="lede">RUIN Core is the heart of the RUIN Gaming Companion App. It links the guild chats of every guild in the organization, links their officers, and gives every RUIN addon one shared line of communication. Install it once; add whichever modules you want.</p>
 <div class="chips">
-<span class="chip">RUIN Core 0.4.2</span>
+<span class="chip">RUIN Core 0.4.3</span>
 <span class="chip">/ruin</span>
 <span class="chip">Required by every module</span>
 </div>
@@ -311,7 +311,7 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <div class="manage"><b>Guild chat</b><span>Your guild's chat, or every RUIN guild's, in its own tab or a pop-out window.</span></div>
 <div class="manage"><b>Org admin tools</b><span>The org admin sees every guild in the org, renames it, sets its officer rank or removes it, from any character on their account. Only the admin can export the org key. RUIN's hidden channels always take the last channel numbers.</span></div>
 <div class="manage"><b>Key phrase</b><span>New in 0.3.17: give the org a key phrase like "dragons eat at dawn". New members type it under Import key and RUIN fetches the key from a member online. Choose new key sets a new phrase when people leave.</span></div>
-<div class="manage"><b>Feedback</b><span>Settings has a Feedback page: write a bug or idea and copy a link that opens it as a new issue on RUIN's GitHub, filled in.</span></div>
+<div class="manage"><b>Feedback</b><span>Settings has a Feedback page: write a bug or idea and copy a link that opens it as a new issue on the Companion App's GitHub, filled in.</span></div>
 <div class="manage"><b>Who creates events</b><span>New in 0.3.17: each guild's officers choose which ranks can create Muster events, under Settings.</span></div>
 <div class="manage"><b>Retail and Forever</b><span>One download for both games. Each game keeps its own RUIN settings.</span></div>
 <div class="manage"><b>Map pins</b><span>Modules mark objectives, sightings and quest steps on your world map and minimap, faded by age and colored by module.</span></div>
@@ -328,6 +328,15 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 </div>
 <p class="caption">Three guilds, one conversation. Lines from other RUIN guilds carry a short guild tag.</p>
 </div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="label">New in 0.4.3 · The Guild page</p>
+<h2 class="h2">Seven tabs for the whole org</h2>
+<p class="intro">Overview, Census, Roster, People, Chat, Watch and Bank: the Guild page now covers every guild of the org, the people in it, and keeping RUIN a good place to be.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Census</h3><p style="margin:0;color:var(--muted)">Every guild of the org at a glance: members, online, average level, the guild master and when they were last on, RUIN users and free slots. Org totals, today's peak, a 30-day and a 24-hour graph, and where members are.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Census search</h3><p style="margin:0;color:var(--muted)">One box finds a guild, its tag, a guild master, a player or a zone, even with look-alike letters. Type recruiting or free 50 for guilds with room.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">People</h3><p style="margin:0;color:var(--muted)">The hierarchy of every guild, inactive members, and everyone by class, zone, level or profession. Officers hear once when their guild master has been away a few days.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Appointed offices</h3><p style="margin:0;color:var(--muted)">Guild masters name a Treasurer, a Recruiter, a Raid leader or any title they like. Everyone in RUIN sees who holds what, and modules use it: the Treasurer keeps Exchange's treasury book.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">The Watch</h3><p style="margin:0;color:var(--muted)">Report a player from the Watch tab, /ruin report or the right-click menu. An officer online takes it as a case every officer of the org sees, then warns, mutes, hides, resolves or dismisses, under a cover name if they like. Everything is logged.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Sanctions follow the BattleTag</h3><p style="margin:0;color:var(--muted)">A mute or hide covers every character of that player: each RUIN shares a salted hash of its BattleTag that can't be read back or matched across orgs. Only the org admin can sanction an officer.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Chat tools</h3><p style="margin:0;color:var(--muted)">Search the chat, pin lines, and click a line to whisper, report or copy it; officers delete a line for everyone. Block words of your own, and org-wide ones set by the admin.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Join screen</h3><p style="margin:0;color:var(--muted)">Players outside the org's guilds type the key phrase, find a guild's members online and ask to join. The request reaches the members who can invite, with Invite and Decline.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Update tools</h3><p style="margin:0;color:var(--muted)">A short What's new letter after each update. Right-click a player for their RUIN version, Ask to update for officers, and Report to the Watch.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Guild bank snapshots</h3><p style="margin:0;color:var(--muted)">When a guildmate opens the guild bank with RUIN on, everyone in the guild can see what it holds and its gold on the Bank tab, with search and the snapshot's age.</p></div></div>
 </div>
 </section>
 
@@ -392,6 +401,9 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <tr><td>/ruin</td><td>Open or close the RUIN window. Also on a key binding and the addon compartment.</td></tr>
 <tr><td>/ruin guild | settings</td><td>Open the Guild or Settings page.</td></tr>
 <tr><td>/ruin key links</td><td>Org admin: set Discord, website and stream links for everyone.</td></tr>
+<tr><td>/ruin census | people | watch | bank</td><td>Open that part of the Guild page.</td></tr>
+<tr><td>/ruin report [name]</td><td>Report a player to the officers (your target if you don't name one).</td></tr>
+<tr><td>/ruin news</td><td>What's new in this version.</td></tr>
 <tr><td>/ruin status</td><td>Connection status: org, channels, bridge, members online.</td></tr>
 <tr><td>/ruin versions</td><td>Which RUIN versions are running across the org.</td></tr>
 <tr><td>/ruin key send &lt;name&gt;</td><td>Offer the org key to another guild's leader.</td></tr>
@@ -412,12 +424,12 @@ td:first-child{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px
 <h2 class="h2">Six modules. Take what you need.</h2>
 <p class="intro">Every module works on its own with Core and fits alongside the others.</p>
 <div class="suite">
-<a class="mod" href="Finder.dc.html" style="--c:#d24f8a;--c2:#f08bb6"><div class="bar"></div><div class="in"><span class="tag">Grouping</span><b>Finder</b><p>An org-wide Looking For Group board. Flag yourself, see who else is looking, invite in one click, or list your group straight from a boss or rare sighting.</p><span class="more">Read more</span></div></a>
+<a class="mod" href="Finder.dc.html" style="--c:#d24f8a;--c2:#f08bb6"><div class="bar"></div><div class="in"><span class="tag">Grouping</span><b>Finder</b><p>An org-wide Looking For Group board, where members are, which layer they're on and a hop to theirs, RUIN marks on members' nameplates, and world boss and buff timers.</p><span class="more">Read more</span></div></a>
 <a class="mod" href="Warfront.dc.html" style="--c:#c41e3a;--c2:#f0707f"><div class="bar"></div><div class="in"><span class="tag">World PvP</span><b>Overlord</b><p>RUIN's world PvP runs on Overlord Forever. Warfront is retired; its bounties and rallies live in Muster.</p><span class="more">What changed</span></div></a>
 <a class="mod" href="Pathfinder.dc.html" style="--c:#4f9a3a;--c2:#8fd27a"><div class="bar"></div><div class="in"><span class="tag">Leveling</span><b>Pathfinder</b><p>A leveling checklist with a waypoint arrow and Alliance routes to 30, Questie's quest data when it's installed, and who in RUIN has the same quests.</p><span class="more">Read more</span></div></a>
 <a class="mod" href="Codex.dc.html" style="--c:#8a52d6;--c2:#c09cf0"><div class="bar"></div><div class="in"><span class="tag">Macros and dungeons</span><b>Codex</b><p>113 ready-made class macros you add in one click, a reference of 47 macro commands with examples, and a dungeon and raid journal with each boss's loot and what RUIN has looted.</p><span class="more">Read more</span></div></a>
-<a class="mod" href="Exchange.dc.html" style="--c:#d69a2a;--c2:#f0c66e"><div class="bar"></div><div class="in"><span class="tag">Trade</span><b>Exchange</b><p>Auction prices shared across RUIN, a crafter directory, and sell-or-vendor advice.</p><span class="more">Read more</span></div></a>
-<a class="mod" href="Muster.dc.html" style="--c:#d9622b;--c2:#f29a6c"><div class="bar"></div><div class="in"><span class="tag">Events</span><b>Muster</b><p>Org-wide events with role sign-ups, rally points, bounties, and one-press sightings of enemies, bosses and rares with world boss timers.</p><span class="more">Read more</span></div></a>
+<a class="mod" href="Exchange.dc.html" style="--c:#d69a2a;--c2:#f0c66e"><div class="bar"></div><div class="in"><span class="tag">Trade</span><b>Exchange</b><p>Auction prices shared across RUIN, a crafter directory, sell-or-vendor advice, the guild treasury book and a confirmed crafting history.</p><span class="more">Read more</span></div></a>
+<a class="mod" href="Muster.dc.html" style="--c:#d9622b;--c2:#f29a6c"><div class="bar"></div><div class="in"><span class="tag">Events</span><b>Muster</b><p>Org-wide events with role sign-ups, the War Room and loot notes, rally points, bounties, an automatic Most Wanted list, and one-press sightings.</p><span class="more">Read more</span></div></a>
 </div>
 </div>
 </section>

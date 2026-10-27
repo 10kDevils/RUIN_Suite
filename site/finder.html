@@ -215,7 +215,7 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <h1 class="h1">Finder</h1>
 <p class="lede">A Looking For Group board for the whole organization. Say what you want to do, and every RUIN member in every guild sees it within seconds.</p>
 <div class="chips">
-<span class="chip">Version 0.4.0</span>
+<span class="chip">Version 0.4.1</span>
 <span class="chip">/finder</span>
 <span class="chip">Needs RUIN Core</span>
 </div>
@@ -279,16 +279,33 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 </div>
 </section>
 
+<section class="sec">
+<div class="wrap">
+<p class="label">New in 0.4.1</p>
+<h2 class="h2">Where everyone is, and on which layer</h2>
+<p class="intro">Finder has four tabs now: Board, Where, Layers and Timers.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Where the members are</h3><p style="margin:0;color:var(--muted)">Online members of every RUIN guild by continent and zone, the names in each, a whisper button, and a pin on each zone of the world map. Only zones: nobody's exact position is shared.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Layer detection</h3><p style="margin:0;color:var(--muted)">Finder reads your layer from the creatures around you. Two different creatures must agree for a few seconds, so a pet or a stray creature doesn't fool it. The Layers tab shows who is on which layer.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Layer hop</h3><p style="margin:0;color:var(--muted)">Ask for a hop and a member on another layer of your zone invites you. Finder accepts that invite, the game moves you over, and Leave group takes you out once you're there.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Member marks</h3><p style="margin:0;color:var(--muted)">A small RUIN mark on the nameplates of players from the org's guilds, and their guild tag under your target frame.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Timers, moved from Muster</h3><p style="margin:0;color:var(--muted)">World boss kills and world buff drops: Now, Announce, and a warning a minute before a buff drops. Members on older Muster versions still get them.</p></div></div>
+</div>
+</section>
+
 <section class="sec alt">
 <div class="wrap shares">
 <div>
 <p class="label">What it shares with RUIN</p>
 <h2 class="h2">A small beacon, nothing more</h2>
 <p class="muted">While you're looking, Finder sends a short beacon on the org channel when you change something and every two minutes. Listings disappear five minutes after the last beacon, so the board only shows people who are actually online and looking.</p>
-<div class="facts"><span class="fact">roles</span><span class="fact">activity + where</span><span class="fact">note</span><span class="fact">class · level · spec</span><span class="fact">zone</span><span class="fact">group size</span><span class="fact">roles still needed (groups)</span></div>
+<div class="facts"><span class="fact">zone and layer number (Layers)</span><span class="fact">timers you report</span><span class="fact">roles</span><span class="fact">activity + where</span><span class="fact">note</span><span class="fact">class · level · spec</span><span class="fact">zone</span><span class="fact">group size</span><span class="fact">roles still needed (groups)</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.6</p>
+<p class="label">New in 0.4.1</p>
+<ul class="list">
+<li>Where: online members by continent and zone, with map pins</li>
+<li>Layers: your layer from the creatures around you, and who is on which</li>
+<li>Layer hop: a member on another layer invites you, Finder accepts, Leave group when you're there</li>
+<li>Member marks on the nameplates of the org's players</li>
+<li>World boss and buff timers moved here from Muster (/finder timer)</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.6</p>
 <ul class="list">
 <li>Ask and Invite on every player; Ask and Request to join on every group: the leader gets your role, class and level and invites you in one click</li>
 <li>Your group's listing counts down by itself as players join (and back up if they leave)</li>
@@ -326,7 +343,7 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Finder 0.4.0 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
+<span>RUIN Finder 0.4.1 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
 <div class="pn"><a href="index.html">Back to Core</a><a href="pathfinder.html">Next: Pathfinder</a></div>
 </div>
 </footer>

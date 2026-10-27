@@ -227,7 +227,7 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <h1 class="h1">Muster</h1>
 <p class="lede">Raid nights, PvP pushes and leveling groups for the whole org. Officers (and the ranks they allow) post, members sign up by role, and nobody forgets when it starts.</p>
 <div class="chips">
-<span class="chip">Version 0.4.0</span>
+<span class="chip">Version 0.4.1</span>
 <span class="chip">/muster</span>
 <span class="chip">/muster rally</span>
 <span class="chip">/muster spot</span>
@@ -263,6 +263,15 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="fstep"><span class="n">3</span><h3>Sign up by role</h3><p>Press T, H or D to join as tank, healer or DPS. X withdraws. Counts update for everyone at once.</p></div>
 <div class="fstep"><span class="n">4</span><h3>Get reminded</h3><p>Fifteen minutes before an event you signed up for, an alert with sound, wherever you are.</p></div>
 </div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="label">New in 0.4.1</p>
+<h2 class="h2">Know the enemy, plan the operation, keep the loot straight</h2>
+<p class="intro">Three new tabs: Wanted, War Room and Loot. World boss and buff timers moved to Finder.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Automatic Most Wanted</h3><p style="margin:0;color:var(--muted)">When an enemy player kills a RUIN member, the org learns who, from the game's death recap. The Wanted tab ranks this week's killers of RUIN members; officers post a bounty from a row, and a Most Wanted player near you raises a warning.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Slayers</h3><p style="margin:0;color:var(--muted)">RUIN members' honorable kills count on the Slayers list, and killing someone on the Most Wanted list is announced.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">War Room</h3><p style="margin:0;color:var(--muted)">Plan any event as an operation: squads with a leader and an objective, Auto squads from the sign-ups, and an after-action report. Everyone signed up sees their orders, and the reminder names their squad.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Loot notes</h3><p style="margin:0;color:var(--muted)">Who got what: main spec, off spec, bank or disenchant, points and a note. Drops your group loots are a click away, members say which drop they hope for, and everyone sees each player's loot this season.</p></div></div>
 </div>
 </section>
 
@@ -320,7 +329,14 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <div class="facts"><span class="fact">event title, time, type</span><span class="fact">sign-ups by role</span><span class="fact">rosters</span><span class="fact">soft reserves</span><span class="fact">rally points</span><span class="fact">bounties and claims</span></div>
 </div>
 <div>
-<p class="label">New in 0.3.9</p>
+<p class="label">New in 0.4.1</p>
+<ul class="list">
+<li>An automatic Most Wanted list from the death recap, with Slayers, Recent, a Bounty button and a warning when a wanted player is near</li>
+<li>The War Room: squads, leaders, objectives and after-action reports on any event</li>
+<li>Loot notes: awards with points, recent drops, members' wishes, loot this season</li>
+<li>World boss and buff timers moved to RUIN Finder (/muster timer still works)</li>
+</ul>
+<p class="label" style="margin-top:22px">New in 0.3.9</p>
 <ul class="list">
 <li>Each guild's officers choose which ranks can create events and rallies (Settings, RUIN Core 0.3.17); those members manage their own events</li>
 </ul>
@@ -368,15 +384,15 @@ a{color:#f2d48a}a:hover{color:#fff1c4}
 <section class="sec" id="sightings">
 <div class="wrap">
 <p class="label">New in 0.3.4 · From the retired Intel</p>
-<h2 class="h2">Sightings and timers</h2>
+<h2 class="h2">Sightings</h2>
 <p class="intro">Muster already reacts to what happens in the world, so RUIN Intel folded into it. See something, press one button, and every RUIN member gets the alert.</p>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Report what you see</h3><p style="margin:0;color:var(--muted)">Enemy group, under attack, world boss, rare, buff drop or other, with your location. Type /muster spot, or /intel, or bind a key for enemy groups and for under attack.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Alerts and pins</h3><p style="margin:0;color:var(--muted)">Everyone gets an alert and a pin on the world map and minimap that fades over 30 minutes. The Sightings page keeps the feed.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Find group</h3><p style="margin:0;color:var(--muted)">Boss, rare and enemy sightings have a Find group button that lists you in RUIN Finder for that activity. That is the one part of Intel that belongs to Finder.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">World boss and buff timers</h3><p style="margin:0;color:var(--muted)">The Timers page: press Now when a boss dies or a buff drops, or announce a drop in a few minutes. Shared with the org and re-sent to anyone who logs in.</p></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px"><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Report what you see</h3><p style="margin:0;color:var(--muted)">Enemy group, under attack, world boss, rare, buff drop or other, with your location. Type /muster spot, or /intel, or bind a key for enemy groups and for under attack.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Alerts and pins</h3><p style="margin:0;color:var(--muted)">Everyone gets an alert and a pin on the world map and minimap that fades over 30 minutes. The Sightings page keeps the feed.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">Find group</h3><p style="margin:0;color:var(--muted)">Boss, rare and enemy sightings have a Find group button that lists you in RUIN Finder for that activity. That is the one part of Intel that belongs to Finder.</p></div><div style="background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--gold);padding:20px"><h3 style="margin:0 0 6px;font-size:20px;color:#fff">World boss and buff timers</h3><p style="margin:0;color:var(--muted)">Moved to RUIN Finder in 0.4.1 (Finder → Timers). /muster timer passes on to it.</p></div></div>
 </div>
 </section>
 
 <footer class="foot">
 <div class="wrap">
-<span>RUIN Muster 0.4.0 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
+<span>RUIN Muster 0.4.1 · part of the RUIN Gaming Companion App · requires RUIN Core</span>
 <div class="pn"><a href="Exchange.dc.html">Previous: Exchange</a><a href="Main.dc.html">Back to Core</a></div>
 </div>
 </footer>
