@@ -121,7 +121,7 @@ do
     errorsSoFar("muster")
 end
 
-for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_macros.lua" }) do
+for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_features_043.lua", "/run_macros.lua" }) do
     local path = here .. extra
     local fh = io.open(path, "r")
     if fh then fh:close(); dofile(path) end

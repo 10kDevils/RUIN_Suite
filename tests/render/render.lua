@@ -142,6 +142,70 @@ try("org rosters and key phrase", function()
     alice.ns.Guild:SetEventRank(2)
     Server:Advance(5)
 end)
+try("0.4.3 samples", function()
+    -- census history, offices, a report and a mute, join request, bank
+    local C = alice.ns.Census
+    local h = alice.ns.db.census or {}
+    alice.ns.db.census = h
+    h.days, h.hours = {}, {}
+    local now = alice.env.GetServerTime()
+    for i = 29, 0, -1 do h.days[os.date("%Y-%m-%d", now - i * 86400)] = { c = 5 + math.floor((29 - i) / 4), o = 2 + (i % 4) } end
+    for i = 23, 0, -1 do local hr = now - now % 3600 - i * 3600; h.hours[hr] = ({ 1, 1, 0, 0, 1, 2, 3, 4, 4, 3, 2, 3, 4, 5, 5, 6, 7, 6, 5, 4, 3, 3, 2, 2 })[24 - i] end
+    alice.ns.People:Appoint("Treasurer", "Grimlock")
+    alice.ns.People:Appoint("Recruiter", "Shade")
+    eve.ns.Watch:Report("Spammy McSpam", "Spam", "flooding org chat with gold ads")
+    Server:Advance(10)
+    alice.ns.Watch:Sanction("mute", "Spammy McSpam", 86400, "gold ads")
+    cara.ns.Comms:Send("JOINASK", { m = "Hi! Could I join Ashen Order?", c = "WARRIOR", l = 34, gu = "Ashen Order" }, "PEER", "Alice Ash", cara.ns.Comms.PRIORITY.ALERT)
+    alice.ns.db.bank = { ["Ashen Order"] = { t = now - 3 * 3600, by = "Grimlock", money = 48213377, tabs = {
+        { n = "Raid mats", i = { { 2589, 120 }, { 3300, 4 } } }, { n = "Gear", i = { { 100, 1 }, { 5191, 2 } } } } } }
+    Server:Advance(5)
+    -- Finder: layers and timers
+    local L = alice.mns.RUIN_Finder.Layers
+    alice.env.GetRealZoneText = function() return "Stormwind City" end
+    alice.env.UnitExists = function(u) return u:find("nameplate") ~= nil end
+    alice.env.UnitIsPlayer = function(u) return not u:find("nameplate") end
+    alice.env.UnitPlayerControlled = function() return false end
+    local realGUID = alice.env.UnitGUID
+    alice.env.UnitGUID = function(u) if u == "nameplate1" then return "Creature-0-1-1-38117-68-1" elseif u == "nameplate2" then return "Creature-0-1-1-38117-1976-2" end return realGUID(u) end
+    L.Observe("nameplate1"); L.Observe("nameplate2")
+    alice.env.UnitGUID = realGUID
+    alice.env.UnitExists = function(u) return u == "target" and alice.target ~= nil end
+    alice.env.UnitIsPlayer = function() return true end
+    local F = alice.env.RUIN_API:GetModule("Finder")
+    F:Send("LAYER", { z = "Stormwind City", l = 41205 }, "ORG")
+    cara.env.RUIN_API:GetModule("Finder"):Send("LAYER", { z = "Stormwind City", l = 41205 }, "ORG")
+    eve.env.RUIN_API:GetModule("Finder"):Send("LAYER", { z = "Orgrimmar", l = 7710 }, "ORG")
+    Server:Advance(5)
+    -- Muster: Most Wanted, War Room, loot
+    local MW = alice.mns.RUIN_Muster.Wanted
+    for i, k in ipairs({ "Gankster", "Gankster", "Gankster", "Skullsplit", "Gankster", "Skullsplit", "Nightmaw" }) do
+        MW.AddDeath({ k = k, kg = k == "Nightmaw" and "Blood Pact" or "Horde Raiders", v = ({ "Eve Ember", "Shade", "Cara Cole", "Grimlock" })[i % 4 + 1],
+                      z = ({ "Tarren Mill", "Stranglethorn Vale", "Hillsbrad Foothills" })[i % 3 + 1], t = now - i * 3000 }, "Eve Ember")
+    end
+    MW.AddKill({ k = "Grimlock", v = "Gankster", z = "Tarren Mill", t = now - 600 }, "Grimlock")
+    MW.AddKill({ k = "Alice Ash", v = "Skullsplit", z = "Tarren Mill", t = now - 900 }, "Alice Ash")
+    local mev
+    for _, ev in pairs(alice.env.RUIN_MusterDB.events) do if ev.title == "Molten Core" then mev = ev end end
+    if mev then
+        alice.mns.RUIN_Muster.WarRoom.AutoSquads(mev, 2)
+        alice.mns.RUIN_Muster.WarRoom.SetObjective(mev, 1, "Tanks pull Lucifron; everyone else on adds")
+        alice.mns.RUIN_Muster.Loot.Award(mev, "|cffa335ee|Hitem:17076::|h[Bonereaver's Edge]|h|r", "Cara Cole", "Main spec", 40, "first drop")
+        alice.mns.RUIN_Muster.Loot.Award(mev, "|cff0070dd|Hitem:5191::|h[Cruel Barb]|h|r", "Eve Ember", "Off spec", 5, "")
+    end
+    Server.fire(alice, "CHAT_MSG_LOOT", "Grimlock receives loot: |cffa335ee|Hitem:17076::|h[Bonereaver's Edge]|h|r.")
+    -- Exchange: treasury and history
+    local T = alice.mns.RUIN_Exchange.Treasury
+    T.Record(500000, "Grimlock", "trade")
+    T.Record(250000, "Shade", "mail", "Guild dues")
+    T.Record(-120000, "Repair bot", "hand", "raid repairs")
+    cara.mns.RUIN_Exchange.History.Log("Robe of Power", "Alice Ash", "Tailoring")
+    eve.mns.RUIN_Exchange.History.Log("Flask of the Titans", "Alice Ash", "Alchemy")
+    Server:Advance(5)
+    local p = alice.mns.RUIN_Exchange.History.Pending()
+    if p[1] then alice.mns.RUIN_Exchange.History.Confirm(p[1].id, true) end
+    Server:Advance(5)
+end)
 -- the guild master's rights in the game's guild window
 for _, fn in ipairs({ "CanGuildPromote", "CanGuildDemote", "CanGuildRemove", "CanGuildInvite", "CanEditPublicNote",
                       "CanEditOfficerNote", "CanViewOfficerNote", "CanEditMOTD" }) do
@@ -232,6 +296,30 @@ API:OpenTab("Guild"); sub("Guild", "Roster")
 for _, fr in ipairs(alice.frames) do if fr.e and fr.e.name == "Shade" and fr._scripts.OnMouseUp then fr._scripts.OnMouseUp(fr) end end
 write("guild--roster-selected")
 alice.ns.GuildUI.ToggleChatWindow(true); alice.ns.GuildUI.window:ClearAllPoints(); alice.ns.GuildUI.window:SetPoint("CENTER"); alice.ns.GuildUI.RefreshChat(); write("guild--chat-popout"); alice.ns.GuildUI.ToggleChatWindow(false)
+
+-- a Watch case picked (officers)
+if AS == "alice" then
+    API:OpenTab("Guild"); sub("Guild", "Watch")
+    for _, fr in ipairs(alice.frames) do if fr.e and fr.e.case and fr._scripts.OnMouseUp then fr._scripts.OnMouseUp(fr); break end end
+    write("guild--watch-case")
+end
+
+-- the Join card a player outside the org's guilds sees, after a /who
+if AS == "alice" then
+    local R = alice.ns.Recruit
+    local needed = R.Needed
+    R.Needed = function() return true end
+    alice.env.C_FriendList = { SendWho = function() end, GetNumWhoResults = function() return 2 end,
+        GetWhoInfo = function(i) return ({ { fullName = "Cara Cole", fullGuildName = "Briar Fang", level = 20, filename = "WARRIOR", area = "Darnassus" },
+                                           { fullName = "Eve Ember", fullGuildName = "Briar Fang", level = 20, filename = "WARRIOR", area = "Teldrassil" } })[i] end }
+    API:OpenTab("Guild"); sub("Guild", "Overview")
+    alice.ns.UI:Refresh()
+    R:FindMembers("Briar Fang")
+    Server.fire(alice, "WHO_LIST_UPDATE")
+    write("guild--join")
+    R.Needed = needed
+    alice.ns.UI:Refresh()
+end
 
 -- Exchange's "Add your recipes" window at login
 if AS == "alice" then

@@ -460,7 +460,7 @@ do
     check(did.promote == "Grimlock" and did.demote == "Grimlock" and did.remove == "Grimlock" and did.onote[1] == 2 and did.onote[2] == "Raid tank",
         "promote, demote, remove and officer notes go to the game")
     alice.env.RUIN_API:OpenTab("Guild")
-    alice.ns.UI:SelectGuildTab(2)
+    alice.ns.UI:SelectGuildTab("Roster")
     local rows = alice.ns.GuildUI.RosterRows()
     local own = 0
     for _, r in ipairs(rows) do if r.own then own = own + 1 end end
@@ -474,7 +474,7 @@ do
     local h = alice.ns.Chat.history
     check(#h == 2 and h[1].own and h[1].text == "Hello from the Chat tab" and not h[2].own and h[2].gu == "Briar Fang",
         "the chat log has your guild's and the other guilds' lines")
-    alice.ns.UI:SelectGuildTab(3)
+    alice.ns.UI:SelectGuildTab("Chat")
     alice.env.RUIN_DB.settings.chatScope = "guild"
     alice.ns.GuildUI.ToggleChatWindow(true)
     check(alice.env.RUIN_GuildChatWindow and alice.env.RUIN_GuildChatWindow:IsShown(), "guild chat pops out into its own window")
@@ -504,7 +504,7 @@ do
     check(seen["Grimlock"] and seen["Grimlock"].own, "and your own guild, offline members included")
     local onlyBriar = 0
     alice.env.RUIN_API:OpenTab("Guild")
-    alice.ns.UI:SelectGuildTab(2)
+    alice.ns.UI:SelectGuildTab("Roster")
     alice.ns.GuildUI.SetRosterGuild("Briar Fang")
     for _, r in ipairs((alice.ns.GuildUI.RosterRows())) do if r.guild ~= "Briar Fang" then onlyBriar = -99 else onlyBriar = onlyBriar + 1 end end
     check(onlyBriar == 2, "the guild filter shows one guild")

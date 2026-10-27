@@ -60,18 +60,18 @@ do
     check(chatHas(alice, "UNDER ATTACK:"), "under-attack call reached Alice")
     cara.env.RUIN_Muster_UnderAttack()
     check(chatHas(cara, "already called for help"), "under-attack has a one-minute cooldown")
-    -- timers
+    -- timers (in RUIN Finder since 0.4.1; the old Muster command still works)
     cara.env.SlashCmdList.RUINMUSTERINTEL("timer dragonslayer 3")
     Server:Advance(2)
     check(chatHas(alice, "drops in"), "planned buff drop announced")
     Server:Advance(130)
     check(chatHas(alice, "drops in under a minute"), "one-minute warning")
     Server:Advance(60)
-    local rec = alice.env.RUIN_MusterDB.world.timers.dragonslayer
+    local rec = alice.env.RUIN_FinderDB.timers.dragonslayer
     check(rec and rec.last and not rec.plan, "buff marked dropped once the time passed")
     alice.env.SlashCmdList.RUINMUSTERINTEL("timer azuregos")
     Server:Advance(2)
-    check(cara.env.RUIN_MusterDB.world.timers.azuregos and cara.env.RUIN_MusterDB.world.timers.azuregos.last, "boss kill shared")
+    check(cara.env.RUIN_FinderDB.timers.azuregos and cara.env.RUIN_FinderDB.timers.azuregos.last, "boss kill shared")
     T.openAllSubTabs(alice, "Muster")
     errorsSoFar("sightings")
     -- Find group hands a sighting to Finder
