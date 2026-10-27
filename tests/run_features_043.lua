@@ -99,7 +99,19 @@ do
     cara.ns.Watch:SetStatus(cases[1].id, "resolved")
     Server:Advance(5)
     check(#alice.ns.Watch:Cases("open") == 0 and #alice.ns.Watch:Cases("closed") == 1, "resolving a case closes it for every officer")
+    -- members don't see the Watch tab; they report through a dialog
+    eve.env.RUIN_API:OpenTab("Guild")
+    local function watchHidden(c)
+        for _, st in ipairs(c.subtabs) do if st.names and st.names[6] == "Watch" then return st.hidden and st.hidden[6] end end
+    end
+    check(watchHidden(eve), "members don't see the Watch tab")
+    check(not watchHidden(alice), "officers do")
     eve.ns.Watch:PromptReport("Spammy")
+    eve.env.RUIN_TextDialog.onAccept("spam: gold ads in org chat")
+    Server:Advance(10)
+    local found
+    for _, c in ipairs(cara.ns.Watch:Cases("open")) do if c.target == "Spammy" and c.reason == "Spam" then found = true end end
+    check(found, "a member's report from the dialog opens a case with the reason they wrote")
     alice.env.RUIN_API:OpenTab("Guild")
     alice.ns.UI:SelectGuildTab("Watch")
     T.openAllSubTabs(eve, "Guild")
