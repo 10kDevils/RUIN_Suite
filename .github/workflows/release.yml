@@ -20,12 +20,31 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
-  build:
+  # Every test suite (including the security tests) must pass on Lua 5.1
+  # before anything is built or published.
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: recursive
+          token: ${{ secrets.SUITE_TOKEN || github.token }}
+      - name: Install Lua 5.1
+        run: sudo apt-get update -q && sudo apt-get install -y -q lua5.1
+      - name: Run the tests
+        run: ./tests/run.sh
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    # only this job can write (it publishes the release)
+    permissions:
+      contents: write
+    steps:
+      # third-party actions are pinned to a commit, so a moved tag can't change what runs here
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
           fetch-depth: 0
@@ -83,7 +102,7 @@ jobs:
 
       - name: Publish the new version
         if: github.ref_type != 'tag' && steps.v.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ steps.v.outputs.tag }}
           name: ${{ steps.v.outputs.tag }}
@@ -93,6 +112,6 @@ jobs:
 
       - name: Attach to a tag's release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: dist/*.zip

@@ -170,7 +170,9 @@ do
     check(#hooked >= 5, "RUIN adds to the game's player menus")
     alice.ns.Updates:ShowLetter("0.4.2")
     check(alice.env.RUIN_WhatsNew and alice.env.RUIN_WhatsNew:IsShown() ~= false, "the What's new letter opens")
-    check(#alice.ns.Updates:NotesSince("0.4.2") == 2 and #alice.ns.Updates:NotesSince("0.4.3") == 1, "with what changed since your version")
+    local U = alice.ns.Updates
+    check(#U:NotesSince("0.4.2") == #U:NotesSince("0.4.3") + 1 and #U:NotesSince(U.NOTES[2][1]) == 1 and #U:NotesSince(U.NOTES[1][1]) == 0,
+        "with what changed since your version")
 
     -- guild bank: Cara opens it, Eve sees it
     cara.env.GetNumGuildBankTabs = function() return 2 end
