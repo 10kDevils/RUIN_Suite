@@ -383,3 +383,50 @@ do
     T.openAllSubTabs(cara, "Exchange")
     errorsSoFar("exchange 0.4.1")
 end
+
+---------------------------------------------------------------------------
+print("Codex: drops shared with the org")
+do
+    local function drops(c) return c.env.RUIN_CodexDB.drops["Scarlet Monastery"] or {} end
+    for _, c in ipairs({ alice, cara, eve }) do c.instance = "Scarlet Monastery" end
+    -- your own loot
+    Server.fire(eve, "CHAT_MSG_LOOT", "You receive loot: |cff0070dd|Hitem:7720::::::::|h[Whitemane's Chapeau]|h|r.", "Eve Ember")
+    Server:Advance(3)
+    check(drops(alice)[7720] and drops(alice)[7720].n == 1 and drops(cara)[7720].n == 1, "your own loot reaches the org")
+    -- a RUIN member's loot seen by another RUIN member isn't counted twice
+    Server.fire(cara, "CHAT_MSG_LOOT", "Eve Ember receives loot: |cff0070dd|Hitem:7720::::::::|h[Whitemane's Chapeau]|h|r.", "Eve Ember")
+    Server:Advance(3)
+    check(drops(alice)[7720].n == 1, "a RUIN member's loot is reported once, by them")
+    -- a groupmate without RUIN: the first RUIN member of the group reports it, once
+    local party = { "Eve Ember", "Grunt" }
+    for _, c in ipairs({ cara, eve }) do
+        c.env.GetNumGroupMembers = function() return #party end
+        c.env.IsInRaid = function() return false end
+        c.env.UnitName = (function(old) return function(u)
+            local k = tonumber((u or ""):match("^party(%d)$"))
+            if k then
+                local list = {}
+                for _, n in ipairs({ "Cara Cole", "Eve Ember", "Grunt" }) do if n ~= c.name then list[#list + 1] = n end end
+                return list[k]
+            end
+            return old(u)
+        end end)(c.env.UnitName)
+    end
+    for _, c in ipairs({ cara, eve }) do
+        Server.fire(c, "CHAT_MSG_LOOT", "Grunt receives loot: |cffa335ee|Hitem:7719::::::::|h[Raging Berserker's Helm]|h|r.", "Grunt")
+    end
+    Server:Advance(3)
+    check(drops(alice)[7719] and drops(alice)[7719].n == 1, "a groupmate without RUIN: their loot is shared, once")
+    -- not loot: quest rewards, roll results
+    Server.fire(eve, "CHAT_MSG_LOOT", "You receive item: |cff0070dd|Hitem:7718::::::::|h[Herod's Shoulder]|h|r.", "Eve Ember")
+    Server.fire(eve, "CHAT_MSG_LOOT", "Eve Ember won: |cff0070dd|Hitem:7717::::::::|h[Ravager]|h|r", "Eve Ember")
+    Server:Advance(3)
+    check(not drops(alice)[7718] and not drops(alice)[7717], "quest items and roll results aren't counted as drops")
+    -- a member who was offline catches up
+    alice.env.RUIN_CodexDB.drops["Scarlet Monastery"] = nil
+    alice.env.RUIN_API:GetModule("Codex"):Send("DROPQ", { n = 0 }, "ORG")
+    Server:Advance(20)
+    check(drops(alice)[7720] and drops(alice)[7719], "a member who missed drops gets them when they connect")
+    for _, c in ipairs({ alice, cara, eve }) do c.instance = nil end
+    errorsSoFar("codex drops")
+end
