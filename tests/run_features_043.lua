@@ -430,3 +430,69 @@ do
     for _, c in ipairs({ alice, cara, eve }) do c.instance = nil end
     errorsSoFar("codex drops")
 end
+
+---------------------------------------------------------------------------
+print("Core: the Planner page (Ruinous Forever Planner)")
+do
+    local RFP = os.getenv("RFP_DIR")
+    local fh = RFP and io.open(RFP .. "/RuinousForeverPlanner.toc")
+    if not fh then
+        print("  skip  RFP_DIR not set: the Planner page needs a copy of Ruinous Forever Planner to test against")
+    else
+        fh:close()
+        check(alice.ns.Planner:P() == nil, "without the planner there's no Planner page")
+        local function loadRFP(c)
+            local P = {}
+            for line in io.lines(RFP .. "/RuinousForeverPlanner.toc") do
+                local f = line:match("^%s*([%w_]+%.lua)%s*$")
+                if f then
+                    local chunk = assert(loadfile(RFP .. "/" .. f)); setfenv(chunk, c.env)
+                    local ok, err = pcall(chunk, "RuinousForeverPlanner", P)
+                    if not ok then print("       load " .. f .. ": " .. tostring(err)) end
+                end
+            end
+            P.Init(); P.Scan()
+            return P
+        end
+        local AP, CP = loadRFP(alice), loadRFP(cara)
+        check(AP.char and CP.char, "the planner loads and knows each character")
+        alice.ns.Planner:AddPage(); cara.ns.Planner:AddPage()
+        local labels = table.concat(alice.ns.UI:TabLabels(), ",")
+        check(labels:find("Planner", 1, true), "the Planner page appears in the RUIN window (" .. labels .. ")")
+        alice.env.RUIN_API:OpenTab("Planner")
+        T.openAllSubTabs(alice, "Planner")
+        -- every page builds from the planner's own functions
+        local Pl = alice.ns.Planner
+        local bad = {}
+        for _, page in ipairs({ "Now", "Gear", "Quests", "Guide", "Rating", "Class quests", "Professions", "Sell", "Group", "Inventory", "Preparation", "Priorities", "Help" }) do
+            local ok, lines = pcall(Pl.PageLines, AP, page)
+            if not ok or type(lines) ~= "table" or #lines == 0 then bad[#bad + 1] = page .. ": " .. tostring(ok and "no lines" or lines) end
+        end
+        for _, b in ipairs(bad) do print("       " .. b) end
+        check(#bad == 0, "every planner page renders from the planner's own functions")
+        local now = Pl.PageLines(AP, "Now")
+        check(#now > 0, "Now shows the planner's next actions (" .. tostring(now[1]) .. ")")
+        -- the profile row drives the planner
+        AP.Profile("WARRIOR", AP.Data.profiles.WARRIOR[2] or AP.Data.profiles.WARRIOR[1])
+        AP.Context("PvP")
+        check(AP.char.context == "PvP", "PvE / PvP switches the planner's context")
+        AP.Context("PvE")
+        -- org goals: shared and shown by dungeon
+        AP.GroupGoals = function() return { { item = { id = 5191, name = "Cruel Barb", activity = "The Deadmines" }, title = "Cruel Barb", why = "x" } } end
+        CP.GroupGoals = function() return { { item = { id = 5193, name = "Cape of the Brotherhood", activity = "The Deadmines" }, title = "Cape", why = "y" } } end
+        alice.ns.Planner:Share(true); cara.ns.Planner:Share(true)
+        Server:Advance(5)
+        local goals = alice.ns.Planner:OrgGoals()
+        check(goals[1] and goals[1].activity == "The Deadmines" and #goals[1].people == 2, "the Org tab lists who needs drops from which dungeon")
+        -- Exchange helpers
+        local X = alice.env.RUIN_API:GetModule("Exchange")
+        check(type(X.CraftersOf) == "function" and type(X.PriceOf) == "function", "Exchange offers crafters and prices to the Planner page")
+        alice.env.RUIN_ExchangeDB.prices[2589] = { p = 1234, t = alice.env.GetServerTime() }
+        check(X.PriceOf(2589) == 1234, "and RUIN's auction price for an item")
+        for i = 1, #alice.subtabs do
+            local st = alice.subtabs[i]
+            if st.names and st.names[1] == "Now" and st.names[7] == "Org" then for j = 1, 7 do st:Select(j) end end
+        end
+        errorsSoFar("planner page")
+    end
+end

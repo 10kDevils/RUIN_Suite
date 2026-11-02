@@ -206,6 +206,23 @@ try("0.4.3 samples", function()
     if p[1] then alice.mns.RUIN_Exchange.History.Confirm(p[1].id, true) end
     Server:Advance(5)
 end)
+-- Ruinous Forever Planner, when a copy is given (RFP_DIR): the Planner page
+try("planner", function()
+    local RFP = os.getenv("RFP_DIR")
+    if not (RFP and io.open(RFP .. "/RuinousForeverPlanner.toc")) then return end
+    for _, c in ipairs({ alice, cara, eve }) do
+        local P = {}
+        for line in io.lines(RFP .. "/RuinousForeverPlanner.toc") do
+            local f = line:match("^%s*([%w_]+%.lua)%s*$")
+            if f then local chunk = assert(loadfile(RFP .. "/" .. f)); setfenv(chunk, c.env); pcall(chunk, "RuinousForeverPlanner", P) end
+        end
+        P.Init(); P.Scan()
+        P.GroupGoals = function() return { { item = { id = 5191, name = c == eve and "Cruel Barb" or "Cape of the Brotherhood", activity = "The Deadmines" }, title = "x", why = "y" } } end
+        c.ns.Planner:AddPage()
+        c.ns.Planner:Share(true)
+    end
+    Server:Advance(5)
+end)
 -- the guild master's rights in the game's guild window
 for _, fn in ipairs({ "CanGuildPromote", "CanGuildDemote", "CanGuildRemove", "CanGuildInvite", "CanEditPublicNote",
                       "CanEditOfficerNote", "CanViewOfficerNote", "CanEditMOTD" }) do
