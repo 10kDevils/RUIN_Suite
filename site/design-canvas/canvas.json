@@ -64,15 +64,6 @@
       "w": 1280,
       "x": 4080,
       "y": 0
-    },
-    "Warfront.dc.html": {
-      "expand": "fill",
-      "h": 1750,
-      "is_interactive": true,
-      "title": "Warfront (retired)",
-      "w": 1280,
-      "x": 2720,
-      "y": 0
     }
   },
   "createdOnFiles": {
@@ -101,8 +92,7 @@
     "Codex.dc.html",
     "Exchange.dc.html",
     "Muster.dc.html",
-    "Intel.dc.html",
-    "Warfront.dc.html"
+    "Intel.dc.html"
   ],
   "pages": [],
   "title": "RUIN Gaming Companion App"
