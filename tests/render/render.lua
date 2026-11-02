@@ -316,6 +316,13 @@ alice.ns.UI:ResetTabOrder()
 API:OpenTab("Guild"); sub("Guild", "Roster")
 for _, fr in ipairs(alice.frames) do if fr.e and fr.e.name == "Shade" and fr._scripts.OnMouseUp then fr._scripts.OnMouseUp(fr) end end
 write("guild--roster-selected")
+-- the What's new letter on its own (the main window hidden so the shot crops to it)
+do
+    local mainFrame = alice.env.RUIN_MainFrame
+    if mainFrame then mainFrame:Hide() end
+    alice.ns.Updates:ShowLetter("0.4.6"); write("whats-new"); alice.env.RUIN_WhatsNew:Hide()
+    if mainFrame then mainFrame:Show() end
+end
 alice.ns.GuildUI.ToggleChatWindow(true); alice.ns.GuildUI.window:ClearAllPoints(); alice.ns.GuildUI.window:SetPoint("CENTER"); alice.ns.GuildUI.RefreshChat(); write("guild--chat-popout"); alice.ns.GuildUI.ToggleChatWindow(false)
 
 -- a Watch case picked (officers)

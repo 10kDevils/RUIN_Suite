@@ -45,6 +45,22 @@ def clipcss(e, ox, oy):
     x, y, w, h = c["x"] - e["x"], c["y"] - e["y"], c["w"], c["h"]
     return f"clip-path: inset({y}px {e['w']-(x+w)}px {e['h']-(y+h)}px {x}px);"
 
+_media = {}
+def media_uri(name):
+    """RUIN_Core/Media/<name>.tga as a PNG data URI (cached)."""
+    if name not in _media:
+        import base64, io, os
+        from PIL import Image
+        here = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(here, "..", "..", "RUIN_Core", "Media", name + ".tga")
+        for f in os.listdir(os.path.dirname(path)):
+            if f.lower() == name.lower() + ".tga":
+                path = os.path.join(os.path.dirname(path), f)
+        buf = io.BytesIO()
+        Image.open(path).convert("RGBA").save(buf, "PNG")
+        _media[name] = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    return _media[name]
+
 def region(e, ox, oy):
     x, y, w, h, a = e["x"] - ox, e["y"] - oy, e["w"], e["h"], e.get("a", 1)
     base = f"left:{x:.1f}px;top:{y:.1f}px;width:{max(w,0):.1f}px;height:{max(h,0):.1f}px;opacity:{a:.3f};" + clipcss(e, ox, oy)
@@ -62,7 +78,14 @@ def region(e, ox, oy):
         elif e.get("tex"):
             tex = e["tex"].lower()
             tint = e.get("vertex")
-            if "icons" in tex or tex.isdigit():
+            media = re.search(r"ruin_core[\\/]media[\\/](\w+)", tex)
+            if media:
+                # RUIN's own art: draw the real texture, trimmed by its texcoords
+                l, r_, t, b = e.get("coords") or [0, 1, 0, 1]
+                bw, bh = w / max(r_ - l, 1e-6), h / max(b - t, 1e-6)
+                style += (f"background-image:url({media_uri(media.group(1))});background-repeat:no-repeat;"
+                          f"background-size:{bw:.1f}px {bh:.1f}px;background-position:{-l*bw:.1f}px {-t*bh:.1f}px;")
+            elif "icons" in tex or tex.isdigit():
                 col = rgba(tint) if tint else "#5b4a2e"
                 style += f"background:linear-gradient(135deg,{col},#22190d);outline:1px solid rgba(0,0,0,.6);"
             else:

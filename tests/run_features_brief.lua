@@ -424,6 +424,35 @@ do
         and alice.ns:CanRegisterEvent("PLAYER_DEAD"), "Retail: restricted events are skipped, others still register")
     alice.ns.CLIENT = "forever"
 
+    -- the RUIN emblem: shipped textures, drawn to the art's shape, used for the brand
+    local B = alice.ns.Brand
+    local rec = {}
+    local parent = { CreateTexture = function()
+        local t = {}
+        function t:SetTexture(p) rec.path = p end
+        function t:SetTexCoord(...) rec.coords = { ... } end
+        function t:SetSize(w, h) rec.w, rec.h = w, h end
+        return t
+    end }
+    B.Draw(parent, 34)
+    check(rec.path == B.EMBLEM and rec.path:find("RUIN_Core\\Media\\Emblem", 1, true) and rec.h == 34 and rec.w == 90
+        and #rec.coords == 4, "the wide emblem draws at the art's width for its height")
+    B.Draw(parent, 18, "tall")
+    check(rec.path == B.TALL and rec.w == 19 and rec.h == 18, "the tall emblem too")
+    check(alice.ns.THEMES.Guild.icon == B.ICON and alice.env.RUIN_API.Brand == B and alice.env.RUIN_API.apiLevel >= 13,
+        "the Guild page and modules use the emblem")
+    local function tga(name)
+        local f = io.open((arg[0]:match("^(.*)/") or ".") .. "/../RUIN_Core/Media/" .. name .. ".tga", "rb")
+        if not f then return nil end
+        local h = f:read(18); f:close()
+        local w, ht = h:byte(13) + h:byte(14) * 256, h:byte(15) + h:byte(16) * 256
+        local pot = function(n) return n > 0 and math.floor(2 ^ math.floor(math.log(n) / math.log(2) + 0.5)) == n end
+        return h:byte(3) == 2 and h:byte(17) == 32 and pot(w) and pot(ht)
+    end
+    check(tga("Emblem") and tga("EmblemTall") and tga("EmblemIcon"), "the emblem textures are 32-bit TGAs with power-of-two sizes")
+    local toc = io.open((arg[0]:match("^(.*)/") or ".") .. "/../RUIN_Core/RUIN_Core.toc"):read("*a")
+    check(toc:find("IconTexture: Interface\\AddOns\\RUIN_Core\\Media\\EmblemIcon", 1, true), "the addon list shows the emblem")
+
     -- org admin: every character on the admin's account, export for the admin only
     local Org = alice.ns.Org
     check(Org:IsAdmin() and alice.env.RUIN_DB.adminOf and alice.env.RUIN_DB.adminOf.RUIN == alice.guid, "the admin's account is noted")

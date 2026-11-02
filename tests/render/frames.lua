@@ -322,7 +322,7 @@ function methods:SetGradient(dir, c1, c2)
 end
 function methods:SetRotation(r) self._rot = r end
 function methods:SetMask(path) self._round = path and tostring(path):find("Portrait") and true or false end
-function methods:SetTexCoord() end
+function methods:SetTexCoord(l, r, t, b) if tonumber(b) then self._coords = { l, r, t, b } end end
 function methods:SetBlendMode() end
 
 -- font strings
@@ -495,6 +495,7 @@ function F.Dump(root)
             e.color = o._color
             e.tex = o._tex and tostring(o._tex) or nil
             e.vertex = o._vertex
+            e.coords = o._coords
             e.rot = o._rot
             e.round = o._round
             if not e.color and not e.tex and not e.grad then return end
