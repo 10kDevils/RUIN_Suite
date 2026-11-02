@@ -416,6 +416,13 @@ do
     -- if the game ever blocks the swap (Retail does), RUIN stops trying for the session
     Server.fire(alice, "ADDON_ACTION_BLOCKED", "RUIN_Core", "C_ChatInfo.SwapChatChannelsByChannelIndex()")
     check(not Comms:CanSortChannels() and Comms:SortChannels() == false, "a blocked channel swap is never tried again")
+    -- Retail keeps the combat log (and pings) for Blizzard's UI: RUIN never registers them there
+    check(alice.ns:CanRegisterEvent("COMBAT_LOG_EVENT_UNFILTERED"), "WoW Forever may listen to the combat log")
+    alice.ns.CLIENT = "retail"
+    check(not alice.ns:CanRegisterEvent("COMBAT_LOG_EVENT_UNFILTERED") and not alice.ns:CanRegisterEvent("MINIMAP_PING")
+        and alice.ns:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", function() end) == false
+        and alice.ns:CanRegisterEvent("PLAYER_DEAD"), "Retail: restricted events are skipped, others still register")
+    alice.ns.CLIENT = "forever"
 
     -- org admin: every character on the admin's account, export for the admin only
     local Org = alice.ns.Org
