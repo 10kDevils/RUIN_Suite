@@ -412,6 +412,10 @@ do
     check(list[1].name == "General" and list[2].name == "Trade" and list[3].name == "LocalDefense" and Comms.IsOurChannel(list[#list].name)
         and Comms.IsOurChannel(list[#list - 1].name), "RUIN's channels end up after General, Trade and LocalDefense")
     check(Comms:IsJoined("ORG"), "and stay connected")
+    check(Comms:CanSortChannels(), "WoW Forever sorts channels")
+    -- if the game ever blocks the swap (Retail does), RUIN stops trying for the session
+    Server.fire(alice, "ADDON_ACTION_BLOCKED", "RUIN_Core", "C_ChatInfo.SwapChatChannelsByChannelIndex()")
+    check(not Comms:CanSortChannels() and Comms:SortChannels() == false, "a blocked channel swap is never tried again")
 
     -- org admin: every character on the admin's account, export for the admin only
     local Org = alice.ns.Org
