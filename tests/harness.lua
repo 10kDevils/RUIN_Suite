@@ -97,6 +97,12 @@ local function route(c, prefix, text, chatType, target)
     elseif chatType == "WHISPER" then
         local o = Server.byName[target]
         if o then deliver(o, prefix, text, "WHISPER", c.name, o.name, 0, 0, "", 0) end
+    elseif chatType == "PARTY" or chatType == "INSTANCE_CHAT" then
+        -- a test sets c.partyOf (any value) on each member of one party
+        assert(c.partyOf, c.name .. " sent to PARTY without a party")
+        for _, o in ipairs(Server.clients) do
+            if o ~= c and o.partyOf == c.partyOf then deliver(o, prefix, text, chatType, c.name, "", 0, 0, "", 0) end
+        end
     else
         error("unknown chat type " .. tostring(chatType))
     end
