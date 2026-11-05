@@ -83,8 +83,16 @@ def region(e, ox, oy):
                 # RUIN's own art: draw the real texture, trimmed by its texcoords
                 l, r_, t, b = e.get("coords") or [0, 1, 0, 1]
                 bw, bh = w / max(r_ - l, 1e-6), h / max(b - t, 1e-6)
-                style += (f"background-image:url({media_uri(media.group(1))});background-repeat:no-repeat;"
-                          f"background-size:{bw:.1f}px {bh:.1f}px;background-position:{-l*bw:.1f}px {-t*bh:.1f}px;")
+                if tint:
+                    # a tinted texture (SetVertexColor): the art's alpha as a mask over the tint color
+                    uri = media_uri(media.group(1))
+                    style += (f"background:{rgba(tint)};-webkit-mask-image:url({uri});mask-image:url({uri});"
+                              f"-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;"
+                              f"-webkit-mask-size:{bw:.1f}px {bh:.1f}px;mask-size:{bw:.1f}px {bh:.1f}px;"
+                              f"-webkit-mask-position:{-l*bw:.1f}px {-t*bh:.1f}px;mask-position:{-l*bw:.1f}px {-t*bh:.1f}px;")
+                else:
+                    style += (f"background-image:url({media_uri(media.group(1))});background-repeat:no-repeat;"
+                              f"background-size:{bw:.1f}px {bh:.1f}px;background-position:{-l*bw:.1f}px {-t*bh:.1f}px;")
             elif "icons" in tex or tex.isdigit():
                 col = rgba(tint) if tint else "#5b4a2e"
                 style += f"background:linear-gradient(135deg,{col},#22190d);outline:1px solid rgba(0,0,0,.6);"

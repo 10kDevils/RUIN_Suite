@@ -217,6 +217,12 @@ function Server:NewClient(opts)
     env.SendChatMessage = function(text, chatType)
         c.sentChat = c.sentChat or {}
         table.insert(c.sentChat, { text, chatType })
+        if (chatType == "PARTY" or chatType == "INSTANCE_CHAT") and c.partyOf then
+            local ev = chatType == "PARTY" and "CHAT_MSG_PARTY" or "CHAT_MSG_INSTANCE_CHAT"
+            for _, o in ipairs(Server.clients) do
+                if o.partyOf == c.partyOf then schedule(Server.time + 0.1, function() fire(o, ev, text, c.name) end) end
+            end
+        end
         if chatType == "GUILD" and c.guild then
             local me
             for _, m in ipairs(roster()) do if m.guid == c.guid then me = m end end

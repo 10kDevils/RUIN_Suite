@@ -323,6 +323,41 @@ do
     alice.ns.Updates:ShowLetter("0.4.6"); write("whats-new"); alice.env.RUIN_WhatsNew:Hide()
     if mainFrame then mainFrame:Show() end
 end
+-- the party dungeon signal strip: five in the party, DM loud, SFK quiet (the main window hidden)
+do
+    local mainFrame = alice.env.RUIN_MainFrame
+    if mainFrame then mainFrame:Hide() end
+    -- other HUD frames off, so the shot crops to the strip
+    local huds = {}
+    for _, n in ipairs({ "RUIN_PathfinderTracker", "RUIN_PathfinderRecBadge", "RUIN_FinderBadge", "RUIN_GuildChatWindow" }) do
+        local h = alice.env[n]
+        if h and h:IsShown() then huds[#huds + 1] = h; h:Hide() end
+    end
+    local others = { "Brin", "Sela", "Tomas", "Kell" }
+    alice.env.IsInGroup = function() return true end
+    alice.env.IsInRaid = function() return false end
+    alice.env.GetNumGroupMembers = function() return 5 end
+    local realName = alice.env.UnitName
+    alice.env.UnitName = function(u) local i = tonumber((u or ""):match("^party(%d)$")); if i then return others[i] end return realName(u) end
+    local PP = alice.ns.PartyPlan
+    PP.mineD = { { n = "DM", k = "N", q = 0, i = {} }, { n = "SFK", k = "C", q = 1, i = {} } }
+    local now = alice.env.GetTime()
+    PP.reports.brin = { name = "Brin", t = now, ap = true, d = { { n = "DM", k = "N", q = 0, i = {} } } }
+    PP.reports.sela = { name = "Sela", t = now, ap = true, d = { { n = "DM", k = "N", q = 2, i = {} } } }
+    PP.reports.tomas = { name = "Tomas", t = now, ap = true, d = { { n = "DM", k = "C", q = 0, i = {} } } }
+    PP:Evaluate()
+    if PP.strip then PP.strip:ClearAllPoints(); PP.strip:SetPoint("CENTER"); write("party-strip") end
+    -- and a full party
+    PP.reports.tomas.d[1].k = "N"
+    PP:Evaluate()
+    if PP.strip then write("party-strip-full"); PP.strip:Hide() end
+    alice.env.UnitName = realName
+    alice.env.IsInGroup = function() return false end
+    for k in pairs(PP.reports) do PP.reports[k] = nil end
+    PP.mineD = nil
+    for _, h in ipairs(huds) do h:Show() end
+    if mainFrame then mainFrame:Show() end
+end
 alice.ns.GuildUI.ToggleChatWindow(true); alice.ns.GuildUI.window:ClearAllPoints(); alice.ns.GuildUI.window:SetPoint("CENTER"); alice.ns.GuildUI.RefreshChat(); write("guild--chat-popout"); alice.ns.GuildUI.ToggleChatWindow(false)
 
 -- a Watch case picked (officers)
