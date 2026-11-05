@@ -294,6 +294,74 @@ do
     env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink = realClass, realStats, realTip, realLink
     env.GetItemInfoInstant = function() return 0, "Armor", "Plate", "INVTYPE_HEAD" end
     alice.mns.RUIN_Codex.ItemStats.Forget()
+
+    -- the ranged slot: wands, bows, guns and thrown count their damage per second
+    do
+        local items = {   -- id -> equip slot, stats from the item API, tooltip lines
+            [401] = { "INVTYPE_RANGEDRIGHT", { ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 14.5 } },                 -- wand, no stats
+            [402] = { "INVTYPE_RANGEDRIGHT", { ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 9.0 } },                  -- weaker wand
+            [403] = { "INVTYPE_RANGED", { ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 20.0, ITEM_MOD_AGILITY_SHORT = 3 } },  -- bow
+            [404] = { "INVTYPE_RANGED", { ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 15.0, ITEM_MOD_AGILITY_SHORT = 3 } },  -- older bow
+            [405] = { "INVTYPE_RANGEDRIGHT", {}, { "Lesser Magic Wand", "(11.3 damage per second)" } },    -- dps only on the tooltip
+            [406] = { "INVTYPE_THROWN", { ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 12.0 } },
+        }
+        local worn = {}   -- slot -> id
+        local function idOf(link) return tonumber(tostring(link):match("item:(%d+)")) end
+        local saved = { env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink, env.GetItemInfoInstant }
+        env.GetItemInfoInstant = function(link) local it = items[idOf(link) or 0]; return idOf(link), "Weapon", "", it and it[1] or "INVTYPE_HEAD" end
+        env.GetItemStats = function(link) local it = items[idOf(link) or 0]; return it and it[2] or {} end
+        env.C_TooltipInfo = { GetHyperlink = function(link)
+            local it = items[idOf(link) or 0]
+            local lines = {}
+            for _, l in ipairs(it and it[3] or { "Item" }) do lines[#lines + 1] = { leftText = l } end
+            return { lines = lines }
+        end }
+        env.GetInventoryItemLink = function(_, slot) return worn[slot] and ("|cffffffff|Hitem:" .. worn[slot] .. "::|h[x]|h|r") or nil end
+        local function as(class, spec) env.UnitClass = function() return class, class:upper() end; alice.env.RUIN_CodexDB.spec = spec; alice.mns.RUIN_Codex.ItemStats.Forget() end
+
+        as("Mage", "Frost")
+        check(cx:Compare(401) == "empty" and cx:IsUpgrade(401) == true, "a wand with no stats is an upgrade for a mage with nothing in the ranged slot")
+        worn[18] = 402
+        local pct = cx:Compare(401)
+        check(type(pct) == "number" and math.floor(pct + 0.5) == 61, "a 14.5 DPS wand is +61% over a 9 DPS wand for a mage (" .. tostring(pct) .. ")")
+        check(cx:IsUpgrade(402) == false, "the wand you wear is not an upgrade over itself")
+        pct = cx:Compare(405)
+        check(type(pct) == "number" and pct > 0, "a wand whose damage is only on its tooltip line is read too (" .. tostring(pct) .. ")")
+        as("Hunter", "Marksmanship")
+        worn[18] = 404
+        pct = cx:Compare(403)
+        check(type(pct) == "number" and pct > 25, "a hunter's better bow is a clear upgrade over the ranged slot (" .. tostring(pct) .. ")")
+        local W = alice.mns.RUIN_Codex.SpecWeights
+        check(W.HUNTER.Marksmanship.RDPS > W.HUNTER.Marksmanship.DPS * 3, "hunters weigh their ranged weapon's damage far above their melee weapon's")
+        as("Warrior", "Arms")
+        pct = cx:Compare(403)
+        check(type(pct) == "number" and pct > 0, "a warrior's better bow is still an upgrade for the ranged slot (" .. tostring(pct) .. ")")
+        worn[18] = nil
+        check(cx:Compare(406) == "empty", "thrown weapons go in the ranged slot")
+        local ws = W.WARRIOR.Arms
+        check(ws.RDPS and ws.RDPS < ws.DPS / 5, "warriors weigh a ranged weapon's damage low: it only pulls")
+        local missing = {}
+        for class, specs in pairs(W) do
+            for spec, w in pairs(specs) do
+                local wands = class == "MAGE" or class == "WARLOCK" or class == "PRIEST"
+                local guns = class == "HUNTER" or class == "WARRIOR" or class == "ROGUE"
+                if (wands or guns) and not w.RDPS then missing[#missing + 1] = class .. " " .. spec end
+            end
+        end
+        check(#missing == 0, "every spec that can use a ranged weapon has a ranged weight (" .. table.concat(missing, ", ") .. ")")
+        local S = cx.SLOTS
+        local all = true
+        for _, loc in ipairs({ "INVTYPE_HEAD", "INVTYPE_NECK", "INVTYPE_SHOULDER", "INVTYPE_CHEST", "INVTYPE_ROBE", "INVTYPE_WAIST",
+            "INVTYPE_LEGS", "INVTYPE_FEET", "INVTYPE_WRIST", "INVTYPE_HAND", "INVTYPE_FINGER", "INVTYPE_TRINKET", "INVTYPE_CLOAK",
+            "INVTYPE_WEAPON", "INVTYPE_2HWEAPON", "INVTYPE_WEAPONMAINHAND", "INVTYPE_WEAPONOFFHAND", "INVTYPE_SHIELD",
+            "INVTYPE_HOLDABLE", "INVTYPE_RANGED", "INVTYPE_RANGEDRIGHT", "INVTYPE_THROWN", "INVTYPE_RELIC" }) do
+            if not S[loc] then all = false; print("       no slot for " .. loc) end
+        end
+        check(all and S.INVTYPE_RANGED[1] == 18 and S.INVTYPE_RANGEDRIGHT[1] == 18 and S.INVTYPE_RELIC[1] == 18, "every gear slot is checked, the ranged slot included (18 on Forever)")
+        env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink, env.GetItemInfoInstant = saved[1], saved[2], saved[3], saved[4], saved[5]
+        alice.env.RUIN_CodexDB.spec = "Auto"
+        alice.mns.RUIN_Codex.ItemStats.Forget()
+    end
     -- boss loot in the Journal: the sample list, marked with what RUIN looted
     eve.instance = "The Deadmines"
     Server.fire(eve, "CHAT_MSG_LOOT", "You receive loot: |cff0070dd|Hitem:5191::::::::|h[Cruel Barb]|h|r.", "Eve Ember")
