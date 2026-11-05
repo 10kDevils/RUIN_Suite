@@ -498,11 +498,14 @@ do
     check(rep and #rep.d == 0 and rep.ap == false, "oversized and malformed entries are dropped (a long message over several parts is still read)")
 
     -- a flood: at most four reports per sender every 20 seconds
+    -- the game spreads the 20 sends over about 12 seconds, so they can touch two windows: at most 8 get through
     Server:Advance(25)
-    for i = 1, 20 do cara.ns.Comms:Send("PARTYPLAN", { v = 1, ap = 0, d = { (i <= 4 and "RFC" or "BFD") .. ":N:0:" } }, "PARTY") end
+    local accepted, realDecode = 0, PP.Decode
+    PP.Decode = function(...) accepted = accepted + 1; return realDecode(...) end
+    for i = 1, 20 do cara.ns.Comms:Send("PARTYPLAN", { v = 1, ap = 0, d = { "RFC:N:" .. i .. ":" } }, "PARTY") end
     Server:Advance(25)
-    rep = PP.reports[key]
-    check(rep and rep.d[1] and rep.d[1].n == "RFC", "a flood of reports: the extras are ignored (" .. tostring(rep and rep.d[1] and rep.d[1].n) .. ")")
+    PP.Decode = realDecode
+    check(accepted >= 1 and accepted <= 2 * PP.RECV_MAX, "a flood of 20 reports: at most four per 20 seconds get through (" .. accepted .. ")")
     Server:Advance(25)
     local a0 = kindsSent(alice, "PARTYPLAN")
     for _ = 1, 15 do cara.ns.Comms:Send("PARTYPLANQ", {}, "PARTY") end
