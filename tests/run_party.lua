@@ -3,6 +3,12 @@
 local alice, cara, eve, check, chatHas, errorsSoFar = T.alice, T.cara, T.eve, T.check, T.chatHas, T.errorsSoFar
 local Server = Server
 
+-- The test players have RUIN Codex, which would judge the fake planner items
+-- against the harness's dummy stats. These tests use the planner's estimate;
+-- the Codex section below turns Codex's verdict back on.
+local realVerdict = alice.ns.PartyPlan.CodexVerdict
+for _, c in ipairs({ alice, cara, eve }) do c.ns.PartyPlan.CodexVerdict = function() return nil end end
+
 print("Party dungeon signal: names and scoring")
 do
     local PP = alice.ns.PartyPlan
@@ -141,6 +147,25 @@ do
     local text = alice.ns.Serialize({ v = 1, ap = 1, d = PP.Encode(out) })
     check(#text < 180, "a full report fits one addon message with room to spare (" .. #text .. " bytes)")
 
+    -- with RUIN Codex: Codex's verdict (it reads "Equip:" spell damage and healing) wins over the planner's estimate
+    alice.ns.PartyPlan.CodexVerdict = realVerdict
+    local codexSays = {}
+    local fakeCodex = { IsUpgrade = function(_, id) return codexSays[id] end }
+    local realApi = alice.env.RUIN_API.GetModule
+    alice.env.RUIN_API.GetModule = function(self, name) if name == "Codex" then return fakeCodex end return realApi(self, name) end
+    P = fakePlanner(alice.env, { all = DUNGEONS, plan = { step(30, "Cookie, The Deadmines", 35), step(31, "Arugal, Shadowfang Keep", 35), step(32, "Mutanus the Devourer, Wailing Caverns", 35) },
+        est = { [30] = -4, [31] = 12 } })
+    codexSays[30] = true     -- the planner missed its +spell damage: Codex says upgrade
+    codexSays[31] = false    -- Codex: no better for your spec
+    out = PP.Collect(P)
+    by = {}
+    for _, e in ipairs(out) do by[e.n] = e end
+    check(by.DM and by.DM.k == "N", "a caster item the planner rated lower is an upgrade when Codex counts its spell damage")
+    check(not by.SFK, "an item Codex says is no better is left out")
+    check(by.WC and by.WC.k == "N", "when Codex can't tell (item not loaded), the planner's estimate decides")
+    alice.env.RUIN_API.GetModule = realApi
+    alice.ns.PartyPlan.CodexVerdict = function() return nil end
+
     -- solo profile: the planner adds 5 to group steps; in a party that 5 is taken back
     P = fakePlanner(alice.env, { all = DUNGEONS, mode = "solo", plan = { step(20, "Cookie, The Deadmines", 30, "prepare-"), step(21, "Arugal, Shadowfang Keep", 60, "prepare-") } })
     out = PP.Collect(P)
@@ -240,6 +265,7 @@ Server.guilds["Party Testers"] = {
 }
 local dan = Server:NewClient({ name = "Dan Dusk", guid = "Player-1-00000051", guild = "Party Testers", rank = 0, modules = {} })
 local fay = Server:NewClient({ name = "Fay Fern", guid = "Player-1-00000052", guild = "Party Testers", rank = 0, modules = {} })
+for _, c in ipairs({ dan, fay }) do c.ns.PartyPlan.CodexVerdict = function() return nil end end
 Server:Advance(5)
 local party = { alice, cara, eve, dan, fay }
 local function joinParty(list)
@@ -322,7 +348,16 @@ do
     local strip = PP.strip
     check(strip and strip.rows[1].row == row and strip.rows[1].key:GetText() == "DM" and strip.rows[1].pulse == true, "the strip shows DM and pulses at Loud")
     check(strip.rows[1].count:GetText() == "3/5", "with a 3/5 count")
-    check(strip.rows[2].row and strip.rows[2].row.short == "SFK" and not strip.rows[2].pulse, "and Shadowfang Keep below it, still")
+    check(not (strip.rows[2] and strip.rows[2].row), "only the top dungeon shows at first")
+    check(strip.more == 1 and strip.toggle:GetText() == "1 more dungeon", "with a button to show the rest (" .. tostring(strip.toggle:GetText()) .. ")")
+    strip.toggle._scripts.OnClick(strip.toggle)
+    check(alice.ns.db.settings.partyStripOpen == true and strip.rows[2] and strip.rows[2].row and strip.rows[2].row.short == "SFK"
+        and not strip.rows[2].pulse, "the button opens the list: Shadowfang Keep below, still")
+    check(strip.toggle:GetText() == "Show less", "and then reads Show less")
+    alice.ns.PartyPlan:Evaluate()
+    check(strip.rows[2].row and strip.rows[2].row.short == "SFK", "the list stays open as the party changes")
+    strip.toggle._scripts.OnClick(strip.toggle)
+    check(not alice.ns.db.settings.partyStripOpen and not strip.rows[2].row, "Show less goes back to the top dungeon")
 
     -- the tooltip names everyone, with item links and quests
     local lines = {}

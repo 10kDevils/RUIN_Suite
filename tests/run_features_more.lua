@@ -224,6 +224,76 @@ do
     IS.ParseLine("+7 Shadow Spell Damage", st2)
     IS.ParseLine("Equip: Improves your chance to get a critical strike with spells by 1%.", st2)
     check(st2.SP_SHADOW == 7 and st2.CRIT == 14, "school damage and crit percent lines too")
+    -- every wording of spell damage and healing bonuses
+    local cases = {
+        { "Equip: Increases healing done by spells and effects by up to 22.", 0, 22 },
+        { "Equip: Increases healing done by magical spells and effects by up to 33.", 0, 33 },
+        { "Equip: Increases healing done by up to 44 and damage done by up to 15 for all magical spells and effects.", 15, 44 },
+        { "Equip: Increases damage done by magical spells and effects by up to 9.", 9, 0 },
+        { "Equip: Increases spell damage by up to 11.", 11, 0 },
+        { "Equip: Increases spell power by 14.", 14, 14 },
+        { "+7 Damage and Healing Spells", 7, 7 },
+        { "+11 Healing Spells", 0, 11 },
+        { "+13 Spell Damage", 13, 0 },
+        { "Spell Damage and Healing +30", 30, 30 },
+        { "Enchanted: +30 Spell Damage and Healing", 30, 30 },
+        { "Healing Spells +55", 0, 55 },
+        { "|cff00ff00Equip: Increases damage and healing done by magical spells and effects by up to 1,024.|r", 1024, 1024 },
+        { "Equip: Increases damage and healing done by magical spells and effects of all party members within 30 yards by up to 33.", 33, 33 },
+        { "Equip: Increases the damage and healing of your spells by up to 9.", 9, 9 },
+        { "Equip: Increases the healing of your spells by up to 18.", 0, 18 },
+    }
+    local allRead = true
+    for _, c in ipairs(cases) do
+        local t = {}
+        local ok = IS.ParseLine(c[1], t)
+        if not (ok and (t.SP or 0) == c[2] and (t.HEAL or 0) == c[3]) then
+            allRead = false
+            print("       not read right: " .. c[1] .. " -> SP " .. tostring(t.SP) .. ", HEAL " .. tostring(t.HEAL))
+        end
+    end
+    check(allRead, "spell damage and healing bonuses are read in every wording (" .. #cases .. " cases)")
+    local t3 = {}
+    check(IS.ParseLine("Equip: Increases the damage done by Frost spells and effects by up to 12.", t3) and t3.SP_FROST == 12 and not t3.SP,
+        "a one-school bonus in other words is that school's damage")
+    local t4 = {}
+    check(not IS.ParseLine("Equip: Improves your chance to get a critical strike with spells by 1%.", t4) or not t4.SP, "crit lines are not spell damage")
+    check(not IS.ParseLine("Use: Increases damage and healing done by magical spells and effects by up to 175 for 20 sec.", {}),
+        "Use: effects are not counted as stats")
+    check(not IS.ParseLine("Equip: Increases the healing of your Lesser Healing Wave spell by 20.", {}), "one spell's modifier is not general healing")
+
+    -- end to end: a robe whose spell damage is only on its tooltip is an upgrade for a caster
+    local env = alice.env
+    local realClass, realStats, realTip, realLink = env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink
+    env.UnitClass = function() return "Mage", "MAGE" end
+    alice.env.RUIN_CodexDB.spec = "Fire"
+    env.GetItemInfoInstant = function() return 0, "Armor", "Cloth", "INVTYPE_ROBE" end
+    env.GetInventoryItemLink = function() return "|cff1eff00|Hitem:300::|h[Old Robe]|h|r" end
+    env.GetItemStats = function(link)
+        if tostring(link):find("item:301") then return { ITEM_MOD_INTELLECT_SHORT = 8 } end      -- the API misses its Equip: line
+        if tostring(link):find("item:302") then return { ITEM_MOD_INTELLECT_SHORT = 8, ITEM_MOD_SPELL_HEALING_DONE = 40 } end
+        return { ITEM_MOD_INTELLECT_SHORT = 12 }
+    end
+    env.C_TooltipInfo = { GetHyperlink = function(link)
+        if tostring(link):find("301") then
+            return { lines = { { leftText = "Robe of the Magi" }, { leftText = "+8 Intellect" },
+                { leftText = "Equip: Increases damage and healing done by magical spells and effects by up to 20." } } }
+        end
+        return { lines = { { leftText = "Robe" }, { leftText = "+12 Intellect" } } }
+    end }
+    alice.mns.RUIN_Codex.ItemStats.Forget()
+    local pct = cx:Compare("|cff1eff00|Hitem:301::|h[Robe of the Magi]|h|r")
+    check(type(pct) == "number" and pct > 50 and cx:IsUpgrade(301) == true, "a robe with +20 spell damage on its tooltip beats +12 Intellect for a Fire mage (" .. tostring(pct) .. ")")
+    check(cx:IsUpgrade(302) == false, "healing on a Fire mage's robe doesn't make it an upgrade")
+    alice.env.RUIN_CodexDB.spec = "Auto"
+    env.UnitClass = function() return "Priest", "PRIEST" end
+    alice.env.RUIN_CodexDB.spec = "Holy"
+    alice.mns.RUIN_Codex.ItemStats.Forget()
+    check(cx:IsUpgrade(302) == true and cx:IsUpgrade(301) == true, "for a Holy priest both the healing and the damage-and-healing robe are upgrades (the long API name counts too)")
+    alice.env.RUIN_CodexDB.spec = "Auto"
+    env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink = realClass, realStats, realTip, realLink
+    env.GetItemInfoInstant = function() return 0, "Armor", "Plate", "INVTYPE_HEAD" end
+    alice.mns.RUIN_Codex.ItemStats.Forget()
     -- boss loot in the Journal: the sample list, marked with what RUIN looted
     eve.instance = "The Deadmines"
     Server.fire(eve, "CHAT_MSG_LOOT", "You receive loot: |cff0070dd|Hitem:5191::::::::|h[Cruel Barb]|h|r.", "Eve Ember")

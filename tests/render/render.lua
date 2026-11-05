@@ -345,8 +345,14 @@ do
     PP.reports.brin = { name = "Brin", t = now, ap = true, d = { { n = "DM", k = "N", q = 0, i = {} } } }
     PP.reports.sela = { name = "Sela", t = now, ap = true, d = { { n = "DM", k = "N", q = 2, i = {} } } }
     PP.reports.tomas = { name = "Tomas", t = now, ap = true, d = { { n = "DM", k = "C", q = 0, i = {} } } }
+    PP.reports.kell = { name = "Kell", t = now, ap = true, d = { { n = "WC", k = "C", q = 1, i = {} }, { n = "RFC", k = "C", q = 0, i = {} } } }
+    alice.ns.db.settings.partyStripOpen = false
     PP:Evaluate()
     if PP.strip then PP.strip:ClearAllPoints(); PP.strip:SetPoint("CENTER"); write("party-strip") end
+    -- opened: the other dungeons below the top one
+    PP:ToggleStrip()
+    write("party-strip-open")
+    PP:ToggleStrip()
     -- and a full party
     PP.reports.tomas.d[1].k = "N"
     PP:Evaluate()
