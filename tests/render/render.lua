@@ -307,6 +307,11 @@ sub("Muster", "Sightings"); click("Alerts"); write("muster--sightings-alerts"); 
 if AS == "alice" then API:OpenTab("Muster"); sub("Muster", "Events"); click("New event"); alice.mns.RUIN_Muster.MusterUI.when.day:Open(); write("muster--events-new-day"); click("Close") end
 API:OpenTab("Codex"); sub("Codex", "Macros"); click("Commands"); write("codex--macros-commands"); click("Class macros")
 alice.env.SlashCmdList.RUINCODEX("deadmines"); write("codex--journal-deadmines")
+do  -- some tracked runs, for the boss and General numbers
+    local cdb = alice.env.RUIN_CodexDB
+    cdb.kills["Hall of Thanes"] = { ["Faldrim Anvilmar"] = 12, ["Magmatus"] = 11, ["Durgen Dirgehammer"] = 9 }
+    cdb.mobs["Hall of Thanes"] = { n = 214, items = { [5191] = 3, [100] = 7 } }
+end
 alice.env.SlashCmdList.RUINCODEX("hall of thanes"); write("codex--journal-hall-of-thanes")
 alice.env.SlashCmdList.RUINCODEX("city of dalaran"); write("codex--journal-dalaran")
 
