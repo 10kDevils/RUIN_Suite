@@ -401,6 +401,30 @@ if AS == "alice" then
     X.RefreshScanPrompt(true)
     write("exchange--add-recipes")
     alice.env.RUIN_ExchangeScan:Hide()
+    -- the recipe list: one crafter per recipe, the list of others on the name
+    local db = alice.env.RUIN_ExchangeDB
+    local savedCrafters, savedOnline = db.crafters, API.GetOnlineMembers
+    local t = alice.env.GetServerTime()
+    db.crafters = {
+        ["Player-1-00000201"] = { name = "Brin Stone", guild = "Briar Fang", t = t, profs = { Tailoring = { "Linen Bandage", "Brown Linen Robe", "Heavy Linen Gloves" } }, skill = { Tailoring = 72 } },
+        ["Player-1-00000202"] = { name = "Sela Moon", guild = "Ash Vale", t = t, profs = { Tailoring = { "Linen Bandage", "Brown Linen Robe" }, Alchemy = { "Minor Healing Potion" } }, skill = { Tailoring = 140, Alchemy = 60 } },
+        ["Player-1-00000203"] = { name = "Kell Dawn", guild = "Ash Vale", t = t, profs = { Tailoring = { "Linen Bandage", "Red Linen Bag" } }, skill = { Tailoring = 35 } },
+        ["Player-1-00000204"] = { name = "Tomas Reed", guild = "Briar Fang", t = t, profs = { Alchemy = { "Minor Healing Potion", "Elixir of Lion's Strength" } }, skill = { Alchemy = 25 } },
+    }
+    API.GetOnlineMembers = function() return { { guid = "Player-1-00000201" }, { guid = "Player-1-00000202" }, { guid = "Player-1-00000204" } } end
+    db.showOffline = false
+    API:OpenTab("Exchange"); sub("Exchange", "Search")
+    write("exchange--recipes")
+    for _, r in ipairs(X.UI.list.rows) do
+        if r.pick and r.pick.rec and r.pick.rec.recipe == "Linen Bandage" then X.OpenCrafterList(r.pick, r.pick.rec) end
+    end
+    write("exchange--recipes-list")
+    X.UI.crafterList:Hide()
+    db.showOffline = true
+    API:OpenTab("Exchange"); sub("Exchange", "Search")
+    write("exchange--recipes-offline")
+    db.showOffline = false
+    db.crafters, API.GetOnlineMembers = savedCrafters, savedOnline
 end
 
 -- the Choose new key dialog: its text box sits under the hint, however long
