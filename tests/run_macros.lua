@@ -36,7 +36,7 @@ local seed = mod.MacroSeed
 
 print("Class macros: the starter library")
 do
-    check(Mac ~= nil and #seed == 113, "113 starter macros (" .. #seed .. ")")
+    check(Mac ~= nil and #seed == 132, "132 starter macros (" .. #seed .. ")")
     local ids, perClass, bad = {}, {}, {}
     for _, rec in ipairs(seed) do
         if ids[rec.id] then bad[#bad + 1] = "duplicate id " .. rec.id end
@@ -53,9 +53,49 @@ do
     check(#bad == 0, "every macro: name <= 16, text <= 255 (also with items filled in), no blocked commands, a note")
     local ok = perClass.ALL == 5
     for _, c in ipairs({ "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }) do
-        if perClass[c] ~= 12 then ok = false end
+        if (perClass[c] or 0) < 12 then ok = false end
     end
-    check(ok, "12 per class and 5 shared")
+    check(ok, "at least 12 per class and 5 shared")
+
+    -- every heal and every damage-over-time spell has a mouseover macro
+    local WANT = {
+        PALADIN = { "Holy Light", "Flash of Light", "Holy Shock", "Lay on Hands" },
+        PRIEST  = { "Lesser Heal", "Heal", "Greater Heal", "Flash Heal", "Renew", "Power Word: Shield",
+                    "Shadow Word: Pain", "Holy Fire", "Devouring Plague", "Vampiric Embrace" },
+        SHAMAN  = { "Healing Wave", "Lesser Healing Wave", "Chain Heal", "Flame Shock" },
+        DRUID   = { "Healing Touch", "Regrowth", "Rejuvenation", "Swiftmend", "Moonfire", "Insect Swarm", "Rake", "Rip" },
+        WARLOCK = { "Corruption", "Immolate", "Siphon Life", "Curse of Agony", "Curse of Doom" },
+        HUNTER  = { "Serpent Sting", "Viper Sting", "Scorpid Sting", "Wyvern Sting" },
+        ROGUE   = { "Rupture", "Garrote" },
+        WARRIOR = { "Rend" },
+    }
+    local missingMo = {}
+    for class, spells in pairs(WANT) do
+        for _, spell in ipairs(spells) do
+            local found = false
+            for _, rec in ipairs(seed) do
+                if rec.c == class and rec.body:find("@mouseover", 1, true)
+                    and (rec.body:find("%] " .. spell:gsub("%p", "%%%0") .. "\n") or rec.body:find("%] " .. spell:gsub("%p", "%%%0") .. "$")) then
+                    found = true
+                end
+            end
+            if not found then missingMo[#missingMo + 1] = class .. " " .. spell end
+        end
+    end
+    check(#missingMo == 0, "every heal and damage-over-time spell has a mouseover macro (" .. table.concat(missingMo, ", ") .. ")")
+    local wrongTarget = {}
+    for _, rec in ipairs(seed) do
+        for _, spells in pairs(WANT) do
+            for _, spell in ipairs(spells) do
+                if rec.req and rec.req[1] == spell and rec.n:find("Mo$") then
+                    local heal = rec.body:find("help", 1, true) ~= nil
+                    local harm = rec.body:find("harm", 1, true) ~= nil
+                    if not (heal or harm or rec.body:find("exists", 1, true)) then wrongTarget[#wrongTarget + 1] = rec.id end
+                end
+            end
+        end
+    end
+    check(#wrongTarget == 0, "each mouseover macro targets friends (help) or enemies (harm) (" .. table.concat(wrongTarget, ", ") .. ")")
     local specOk = true
     for _, rec in ipairs(seed) do
         if rec.s then
@@ -105,7 +145,7 @@ do
     local war = Mac.For("WARRIOR")
     local classOnly, shared = 0, 0
     for _, r in ipairs(war) do if r.c == "WARRIOR" then classOnly = classOnly + 1 else shared = shared + 1 end end
-    check(classOnly == 12 and shared == 5 and war[#war].c == "ALL", "a class shows its 12 and the 5 shared ones, shared last")
+    check(classOnly == 13 and shared == 5 and war[#war].c == "ALL", "a class shows its own (13 for warriors) and the 5 shared ones, shared last")
     local prot = Mac.For("WARRIOR", "Protection")
     local hasSunder, hasOverpower = false, false
     for _, r in ipairs(prot) do
