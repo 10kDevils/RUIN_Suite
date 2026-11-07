@@ -44,7 +44,7 @@ do
     local c = find(Map.cornerPins, "3 RUIN members")
     check(c and not find(Map.worldPins, "3 RUIN members"), "on the zone's own map the mark is in the corner, not in the middle of the zone")
     local pt = c and points[c]
-    check(pt and pt[1] == "TOPLEFT" and pt[3] == "TOPLEFT" and pt[4] == 12 and pt[5] == -10, "top-left corner of the map")
+    check(pt and pt[1] == "BOTTOMRIGHT" and pt[3] == "BOTTOMRIGHT" and pt[4] == -14 and pt[5] == 12, "bottom-right corner of the map")
     check(c and c.label._shown and c.label:GetText() == "3 RUIN", "with the member count beside it")
     check(c and c.art._shown and not c.ring._shown and not c.icon._shown, "the winged R alone: no ring, no round frame")
 
