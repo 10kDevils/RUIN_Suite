@@ -23,6 +23,8 @@ do
         if frame._watched then return end
         frame._watched = true
         frame.SetPoint = function(self, ...) points[self] = { ... } end
+        frame.SetSize = function(self, w, h) self._w, self._h = w, h end
+        frame.GetWidth = function(self) return self._w or 0 end
     end
     local function draw(mapID)
         alice.worldMapID = mapID
@@ -52,6 +54,25 @@ do
     pt = w and points[w]
     check(pt and pt[1] == "CENTER" and math.abs(pt[4] - 550) < 1 and math.abs(pt[5] + 0.65 * 667) < 1, "at the zone's centre")
     check(w and w.art._shown and not w.ring._shown and not w.label._shown, "the same plain mark, no label")
+    check(w and w.zoomTo == 1411 and c and c.zoomTo == nil, "on the continent the mark knows its zone; in the corner it doesn't need to")
+    local cornerW, contW = c and c:GetWidth(), w and w:GetWidth()
+    check(cornerW and contW and contW < cornerW, "on the continent the mark is smaller, so it covers less of the zone (" .. tostring(contW) .. " vs " .. tostring(cornerW) .. ")")
+    local wmf = alice.env.WorldMapFrame
+    local went, up
+    wmf.SetMapID = function(_, id) went = id end
+    wmf.NavigateToParentMap = function() up = true end
+    w._scripts.OnMouseUp(w, "LeftButton")
+    check(went == 1411, "clicking it opens the zone's map")
+    w._scripts.OnMouseUp(w, "RightButton")
+    check(up, "right-clicking it zooms out, as anywhere on the map")
+    local tipLines = {}
+    local GT = alice.env.GameTooltip
+    local realAdd = GT.AddLine
+    GT.AddLine = function(_, l) tipLines[#tipLines + 1] = l end
+    w._scripts.OnEnter(w)
+    GT.AddLine = realAdd
+    check(table.concat(tipLines, "\n"):find("Click to open", 1, true), "its tooltip says it opens the zone")
+    wmf.SetMapID, wmf.NavigateToParentMap = nil, nil
 
     -- an ordinary pin is unchanged
     R.Map:SetPin("Test", "b", { map = 1411, x = 0.4, y = 0.4, title = "Pin B" })
