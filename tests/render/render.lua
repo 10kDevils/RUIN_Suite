@@ -312,7 +312,18 @@ do  -- some tracked runs, for the boss and General numbers
     cdb.kills["Hall of Thanes"] = { ["Faldrim Anvilmar"] = 12, ["Magmatus"] = 11, ["Durgen Dirgehammer"] = 9 }
     cdb.mobs["Hall of Thanes"] = { n = 214, items = { [5191] = 3, [100] = 7 } }
 end
+local undoQuests = dofile(here .. "/../fake_questiedb.lua")(alice, { [9003] = true })
 alice.env.SlashCmdList.RUINCODEX("hall of thanes"); write("codex--journal-hall-of-thanes")
+do  -- the quest section, scrolled into view
+    local CX = alice.env.RUIN_API:GetModule("Codex")
+    local lines = CX.JournalLines(CX:FindDungeon("Hall of Thanes"), false)
+    local from = 1
+    for i, l in ipairs(lines) do if l[1]:find("Quests for", 1, true) then from = i end end
+    CX.UI.detail:SetItems({ unpack(lines, from) })
+    write("codex--journal-quests")
+end
+API:OpenTab("Pathfinder"); sub("Pathfinder", "Routes"); write("pathfinder--routes-dungeons")
+undoQuests()
 alice.env.SlashCmdList.RUINCODEX("city of dalaran"); write("codex--journal-dalaran")
 
 API:OpenTab("Codex"); sub("Codex", "Journal"); click("Raids"); write("codex--journal-raids"); click("Dungeons")
