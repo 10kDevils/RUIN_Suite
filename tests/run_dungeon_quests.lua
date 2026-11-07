@@ -101,6 +101,28 @@ do
     local routes = PF.DungeonRoutes()
     check(#routes == 1 and routes[1].dungeon == "Hall of Thanes", "Pathfinder's library has a quest route for each dungeon with quests for you")
 
+    -- every dungeon and raid in the Journal has a quest list in Pathfinder, and the other way round
+    local CN = alice.mns.RUIN_Codex
+    local missing, extra = {}, {}
+    local inCodex = {}
+    for _, list in ipairs({ CN.Dungeons, CN.Raids }) do
+        for _, d in ipairs(list) do
+            inCodex[d.name] = true
+            if not PF:DungeonEntry(d.name) then missing[#missing + 1] = d.name end
+        end
+    end
+    for _, e in ipairs(alice.mns.RUIN_Pathfinder.DungeonQuestIndex) do
+        if not CX:FindDungeon(e.name) then extra[#extra + 1] = e.name end
+    end
+    check(#missing == 0 and #extra == 0, "the Journal and Pathfinder list the same dungeons (missing in Pathfinder: "
+        .. table.concat(missing, ", ") .. "; missing in Codex: " .. table.concat(extra, ", ") .. ")")
+    local st = CX:FindDungeon("The Stockade")
+    local stLines = {}
+    for _, l in ipairs(CX.JournalLines(st, false)) do stLines[#stLines + 1] = l[1] end
+    local stText = table.concat(stLines, "\n")
+    check(st and st.where:find("Stormwind", 1, true) and stText:find("Bazil Thredd", 1, true) and stText:find("Hamhock", 1, true),
+        "The Stockade has a Journal page: entrance and bosses")
+
     -- without Questie: the launch data's names, and why there's no more
     undo()
     alice.env.QuestieLoader = nil
