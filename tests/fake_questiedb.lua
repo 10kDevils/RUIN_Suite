@@ -26,11 +26,31 @@ return function(c, done)
         [803] = { name = "King of the Mountain", spawns = { [1537] = { { 39, 56 } } } },
         [804] = { name = "Dark Iron Lookout", spawns = { [1] = { { 70, 50 } } } },
         [805] = { name = "Ghostly Attendant", spawns = { [16919] = { { 50, 50 } } } },
+        -- Hall of Thanes loot: a journal boss, a rare, a trash mob, and a mob elsewhere
+        [811] = { name = "Durgen Dirgehammer", spawns = { [16919] = { { 60, 60 } } }, rank = 1, minLevel = 18 },
+        [812] = { name = "Old Rustjaw", spawns = { [16919] = { { 20, 20 } } }, rank = 4, minLevel = 17 },
+        [813] = { name = "Thane's Guard", spawns = { [16919] = { { 30, 30 } } }, rank = 1, minLevel = 16 },
+        [814] = { name = "Kobold Digger", spawns = { [1] = { { 40, 40 } } }, rank = 0, minLevel = 8 },
     }
-    local items = { [7001] = { name = "Torn Map", npcDrops = { 804 } } }
-    local function E(t) return { Exists = function(id) return t[id] ~= nil end, Get = function(id, f) local r = t[id]; return r and r[f] end } end
+    local items = { [7001] = { name = "Torn Map", npcDrops = { 804 } },
+        [8001] = { name = "Direhammer Leggings", npcDrops = { 811 }, class = 4, itemLevel = 20 },
+        [8002] = { name = "Durgen's Crescent Axe", npcDrops = { 811 }, class = 2, itemLevel = 21 },
+        [8003] = { name = "Durgen Dirgehammer's Head", npcDrops = { 811 }, class = 12, itemLevel = 1 },
+        [8004] = { name = "Rustjaw Fang", npcDrops = { 812 }, class = 2, itemLevel = 19 },
+        [8005] = { name = "Thane Guard Bracers", npcDrops = { 813 }, class = 4, itemLevel = 18 },
+        [8006] = { name = "Lesser Healing Potion", npcDrops = { 813, 814, 804 }, class = 0, itemLevel = 13 },   -- not gear: left out
+        [8007] = { name = "Kobold Mining Mallet", npcDrops = { 813, 814, 804 }, class = 2, itemLevel = 12 },    -- mostly outside: a world drop
+    }
+    local function E(t)
+        return { Exists = function(id) return t[id] ~= nil end, Get = function(id, f) local r = t[id]; return r and r[f] end,
+                 GetAllIds = function(map)
+                     local m, l = {}, {}
+                     for id in pairs(t) do m[id] = true; l[#l + 1] = id end
+                     table.sort(l)
+                     return map and m or l
+                 end }
+    end
     local Q = E(quests)
-    Q.GetAllIds = function() local m = {}; for id in pairs(quests) do m[id] = true end; return m end
     c.env.LibQuestieDB = { RequireContract = function(v) return v == 4 end, Quest = Q, Npc = E(npcs), Object = E({}), Item = E(items),
         Support = { Get = function(name) return name == "ZoneDB" and { private = { areaIdToUiMapId = { [1537] = 1455, [1] = 1426 },
                                                                                        uiMapIdToAreaId = { [1455] = 1537, [1426] = 1 } } } or nil end } }

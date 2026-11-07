@@ -313,7 +313,16 @@ do  -- some tracked runs, for the boss and General numbers
     cdb.mobs["Hall of Thanes"] = { n = 214, items = { [5191] = 3, [100] = 7 } }
 end
 local undoQuests = dofile(here .. "/../fake_questiedb.lua")(alice, { [9003] = true })
+do local CX = alice.env.RUIN_API:GetModule("Codex"); CX.QuestieLoot.state = "idle"; alice.env.RUIN_CodexDB.qloot = nil; CX.QuestieLoot.Start() end
 alice.env.SlashCmdList.RUINCODEX("hall of thanes"); write("codex--journal-hall-of-thanes")
+do  -- the loot lists, scrolled into view
+    local CX = alice.env.RUIN_API:GetModule("Codex")
+    local lines = CX.JournalLines(CX:FindDungeon("Hall of Thanes"), false)
+    local from = 1
+    for i, l in ipairs(lines) do if l[1]:find("Bosses and loot", 1, true) then from = i end end
+    CX.UI.detail:SetItems({ unpack(lines, from) })
+    write("codex--journal-loot")
+end
 do  -- the quest section, scrolled into view
     local CX = alice.env.RUIN_API:GetModule("Codex")
     local lines = CX.JournalLines(CX:FindDungeon("Hall of Thanes"), false)
