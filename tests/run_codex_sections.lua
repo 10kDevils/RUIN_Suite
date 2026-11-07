@@ -48,6 +48,35 @@ do
     check(CX.UI.questRoute.linkColor == THEMES.Pathfinder.color, "Quest route is Pathfinder's green")
     local line = find(raw, "Open the quest route in Pathfinder")
     check(line and line[1]:find(alice.ns.Widgets.AddonHex("Pathfinder"), 1, true), "the quest route line is Pathfinder green too")
+    -- hover areas: an item row reacts over its name only; plain rows don't take the mouse
+    local detail = CX.UI.detail
+    for _, row in ipairs(detail.rows) do
+        row.SetHitRectInsets = function(self, l, r, t, b2) self._hit = { l, r, t, b2 } end
+        row.EnableMouse = function(self, on) self._mouse = on end
+    end
+    local lines2 = CX.FoldLines(CX.JournalLines(hot, false))
+    detail:SetItems(lines2)
+    local itemRow, plainRow
+    for i, row in ipairs(detail.rows) do
+        local l = lines2[i]
+        if l and l.link and not itemRow then itemRow = row end
+        if l and not (l.header or l.link or l.name or l.quest or l.action or l.tip or l.always) and not plainRow then plainRow = row end
+    end
+    check(itemRow and itemRow._mouse == true and itemRow._hit and itemRow._hit[2] > 0, "an item row takes the mouse over its name only (inset " .. tostring(itemRow and itemRow._hit and itemRow._hit[2]) .. ")")
+    check(plainRow and plainRow._mouse == false, "a line with nothing to show doesn't take the mouse")
+
+    -- the wheel glides
+    local sf = detail.frame
+    local pos = 0
+    sf.GetVerticalScrollRange = function() return 400 end
+    sf.GetVerticalScroll = function() return pos end
+    sf.SetVerticalScroll = function(_, v) pos = v end
+    check(sf.smoothScroll and sf.weave and sf.fadeTop and sf.fadeBottom, "the detail panel scrolls smoothly, with a moving weave and edge fades")
+    sf._scripts.OnMouseWheel(sf, -1)
+    local glide = sf._scripts.OnUpdate
+    check(glide ~= nil and pos == 0, "a wheel turn starts a glide instead of jumping")
+    for _ = 1, 30 do if sf._scripts.OnUpdate then sf._scripts.OnUpdate(sf, 0.016) end end
+    check(math.abs(pos - 72) < 1 and sf._scripts.OnUpdate == nil, "and settles one step down (" .. pos .. ")")
     undo()
     errorsSoFar("codex sections")
 end
