@@ -122,7 +122,7 @@ do
 end
 
 T.here = here
-for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_features_043.lua", "/run_macros.lua", "/run_party.lua", "/run_forever_data.lua", "/run_exchange_recipes.lua", "/run_map_corner.lua", "/run_codex_journal.lua", "/run_dungeon_quests.lua", "/run_codex_loot.lua", "/run_codex_sections.lua" }) do
+for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_features_043.lua", "/run_macros.lua", "/run_party.lua", "/run_forever_data.lua", "/run_exchange_recipes.lua", "/run_map_corner.lua", "/run_codex_journal.lua", "/run_dungeon_quests.lua", "/run_codex_loot.lua", "/run_codex_sections.lua", "/run_hud_drag.lua" }) do
     local path = here .. extra
     local fh = io.open(path, "r")
     if fh then fh:close(); dofile(path) end
