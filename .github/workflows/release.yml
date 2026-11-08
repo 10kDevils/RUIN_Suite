@@ -115,3 +115,80 @@ jobs:
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: dist/*.zip
+
+  # Uploads each version's zip to CurseForge (project 1784493) once.
+  # Needs the repository secret CF_API_KEY (authors.curseforge.com > API Tokens).
+  # The changelog is curseforge/<version>.md when that file exists, otherwise
+  # the GitHub release notes. After a successful upload the job pushes the tag
+  # curseforge/v<version>, so each version is uploaded only once; delete that
+  # tag to upload a version again.
+  curseforge:
+    needs: build
+    if: github.ref_type != 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      CF_PROJECT: "1784493"
+      CF_GAME_VERSION: "1.60.1"
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Work out what to upload
+        id: v
+        run: |
+          # the newest release; the build job above has just published it if it was new
+          tag=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" -q .tag_name)
+          version=${tag#v}
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ -z "$CF_API_KEY" ]; then
+            echo "No CF_API_KEY secret; skipping CurseForge."; echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --tags origin "refs/tags/curseforge/$tag" | grep -q .; then
+            echo "$tag is already on CurseForge."; echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Uploading $tag to CurseForge."; echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to CurseForge
+        if: steps.v.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p cf
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" -q '[.assets[] | select(.name | endswith(".zip"))][0].id')
+          gh api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$id" > cf/addon.zip
+          name=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" -q '[.assets[] | select(.name | endswith(".zip"))][0].name')
+          if [ -f "curseforge/$VERSION.md" ]; then cp "curseforge/$VERSION.md" cf/changelog.md
+          else gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" -q .body > cf/changelog.md; fi
+          curl -fsS -H "X-Api-Token: $CF_API_KEY" https://wow.curseforge.com/api/game/versions > cf/versions.json
+          python3 - <<'PY'
+          import json, os
+          versions = json.load(open("cf/versions.json"))
+          want = os.environ["CF_GAME_VERSION"]
+          ids = [v["id"] for v in versions if v.get("name") == want]
+          if not ids:
+              raise SystemExit("CurseForge has no WoW game version named %s" % want)
+          meta = {
+              "changelog": open("cf/changelog.md", encoding="utf-8").read(),
+              "changelogType": "markdown",
+              "displayName": "RUIN Companion App " + os.environ["VERSION"],
+              "gameVersions": ids[:1],
+              "releaseType": "release",
+          }
+          json.dump(meta, open("cf/metadata.json", "w"))
+          print("game version", want, "->", ids[0])
+          PY
+          curl -fsS -H "X-Api-Token: $CF_API_KEY" \
+            -F "metadata=<cf/metadata.json" \
+            -F "file=@cf/addon.zip;filename=$name;type=application/zip" \
+            "https://wow.curseforge.com/api/projects/$CF_PROJECT/upload-file"
+          echo
+          git tag "curseforge/$TAG" "$GITHUB_SHA"
+          git push origin "curseforge/$TAG"
