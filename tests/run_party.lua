@@ -386,6 +386,16 @@ do
     strip._scripts.OnUpdate(strip, 0.1)
     check(alpha == 1, "and comes back after")
 
+    -- inside a dungeon the strip gets out of the way
+    local realII = alice.env.IsInInstance
+    alice.env.IsInInstance = function() return true, "party" end
+    Server.fire(alice, "PLAYER_ENTERING_WORLD")
+    check(not strip:IsShown(), "entering an instance hides the strip")
+    alice.env.IsInInstance = function() return false, "none" end
+    Server.fire(alice, "PLAYER_ENTERING_WORLD")
+    check(strip:IsShown(), "leaving brings it back")
+    alice.env.IsInInstance = realII
+
     -- a fifth Need makes it a full party
     fakePlanner(dan.env, { all = DUNGEONS, plan = { step(4, "Edwin VanCleef, The Deadmines", 35) } })
     dan.ns.PartyPlan:Update()
