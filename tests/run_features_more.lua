@@ -158,6 +158,13 @@ do
     alice.pos = { map = 1429, x = 0.5, y = 0.5 }
     tr.nav._scripts.OnUpdate(tr.nav, 0.1)
     check(not tr.arrow:IsShown() and tr.dist:GetText():find("Durotar"), "outside the zone the tracker names it")
+    -- the tracker's Open button opens Pathfinder
+    local opened
+    local realOpen = pf.OpenTab
+    pf.OpenTab = function(...) opened = true; return realOpen(...) end
+    tr.open._scripts.OnClick(tr.open)
+    pf.OpenTab = realOpen
+    check(opened, "the tracker's Open button opens Pathfinder")
     alice.pos = { map = 1411, x = 0.40, y = 0.68 }
     -- recorder: accept, complete, turn in, plus a note
     pf:SetRecording(true)
