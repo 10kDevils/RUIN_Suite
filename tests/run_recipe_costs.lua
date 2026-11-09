@@ -16,7 +16,7 @@ do
     check(strip(X.PointText(0, { { 2589, 2 } })) == "6s/pt", "orange: one craft per point (" .. strip(X.PointText(0, { { 2589, 2 } })) .. ")")
     check(strip(X.PointText(1, { { 2589, 1 } })) == "~4s/pt", "yellow with no color levels known: a 3 in 4 guess, marked ~")
     check(strip(X.PointText(2, { { 2589, 1 } })) == "~12s/pt", "green: a 1 in 4 guess")
-    check(strip(X.PointText(3, { { 2589, 1 } })) == "grey", "grey recipes say grey")
+    check(X.PointText(3, { { 2589, 1 } }) == nil, "grey recipes show nothing")
     check(strip(X.PointText(0, { { 999999, 1 } })) == "?/pt", "an unpriced reagent shows ?/pt")
     check(strip(X.CraftText({ { 2589, 2 } })) == "6s/craft", "Price per Craft: one craft's reagents")
 
