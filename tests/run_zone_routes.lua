@@ -65,6 +65,29 @@ do
     for _, x in ipairs(lib[2].routes) do if x.id == "duskwood_20_28" then dm = x end end
     check(dm and dm.lo == 20 and dm.hi == 28, "levels come from the title when a route has none")
 
+    -- sections fold: click a header and its routes go; click again and they're back
+    local ui = PF.UI
+    ui.tabs:Select(3)
+    local function rowsOf()
+        local heads, routes, zoneHead = 0, 0, nil
+        for _, row in ipairs(ui.library.rows) do
+            if row:IsShown() and row.e then
+                if row.e.key then heads = heads + 1; if row.e.key == "Zones" then zoneHead = row end end
+                if row.e.route then routes = routes + 1 end
+            end
+        end
+        return heads, routes, zoneHead
+    end
+    local h1, r1, zh = rowsOf()
+    check(h1 == 3 and zh and zh.band:IsShown(), "three section headers, drawn as bands")
+    zh:GetScript("OnMouseUp")(zh, "LeftButton")
+    local h2, r2 = rowsOf()
+    check(h2 == 3 and r2 == r1 - #lib[2].routes, "clicking Zones folds its routes away (" .. r1 .. " -> " .. r2 .. ")")
+    local _, _, zh2 = rowsOf()
+    zh2:GetScript("OnMouseUp")(zh2, "LeftButton")
+    local _, r3 = rowsOf()
+    check(r3 == r1, "and clicking again brings them back")
+
     -- hiding one
     PF:SetRouteHidden(elwynn.id, true)
     local still = false
