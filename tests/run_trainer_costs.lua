@@ -87,5 +87,9 @@ do
     lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
     check(lines and strip(lines[2] or "") == "Price per Point at your skill: 3s/pt", "at the skill it needs it's orange: Price per Point (" .. strip(lines and lines[2] or "") .. ")")
     check(X.RecipeLines("Lion Meat", { "Lion Meat" }) == nil, "items that aren't recipes get nothing")
+    env.GetProfessionInfo = function() return "Cooking", 1, 170, 225 end
+    lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
+    check(lines and strip(lines[2] or "") == "Price per Point: 3s orange, ~4s yellow, ~13s green",
+          "above its orange start with no colors known: the price for each color (" .. strip(lines and lines[2] or "") .. ")")
     errorsSoFar("recipe tooltips")
 end
