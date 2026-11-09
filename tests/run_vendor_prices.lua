@@ -41,7 +41,7 @@ do
 
     -- recipe costs use the cheaper one
     local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
-    check(strip(X.PointText(0, { { 2678, 2 } })) == "20c/pt", "recipe costs use the vendor price when it's cheaper (" .. strip(X.PointText(0, { { 2678, 2 } })) .. ")")
+    check(strip(X.CraftText({ { 2678, 2 } })) == "20c/craft", "Price per Craft uses the vendor price when it's cheaper (" .. strip(X.CraftText({ { 2678, 2 } })) .. ")")
 
     -- shared with RUIN when the window closes
     env.UnitName = realUnitName
