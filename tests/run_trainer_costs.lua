@@ -87,6 +87,14 @@ do
     lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
     check(lines and strip(lines[2] or "") == "Price per Point at your skill: 3s/pt", "at the skill it needs it's orange: Price per Point (" .. strip(lines and lines[2] or "") .. ")")
     check(X.RecipeLines("Lion Meat", { "Lion Meat" }) == nil, "items that aren't recipes get nothing")
+    local realGII, realGI = env.GetItemInfoInstant, env.GetItemInfo
+    env.GetItemInfoInstant = function(x) if type(x) == "string" then return nil end return realGII and realGII(x) end
+    env.GetItemInfo = function(x, ...) if type(x) == "string" and not x:find("item:") then return nil end return realGI(x, ...) end
+    local miss = X.RecipeLines("Recipe: Mystery Stew", { "Recipe: Mystery Stew", "Mystery Meat (3)", "|cffffffffRequires Cooking (175)|r" })
+    env.GetItemInfoInstant, env.GetItemInfo = realGII, realGI
+    check(miss and strip(miss[1]):find("doesn't know Mystery Meat", 1, true), "a reagent RUIN can't place is named instead of showing nothing")
+    local colored = X.RecipeLines("Recipe: Tasty Lion Steak", { "Recipe: Tasty Lion Steak", "|cffffffffLion Meat (2), Soothing Spices|r", "|cffff2020Requires Cooking (150)|r" })
+    check(colored and strip(colored[1]) == "Price per Craft: 3s 40c", "color codes in the tooltip lines don't get in the way")
     env.GetProfessionInfo = function() return "Cooking", 1, 170, 225 end
     lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
     check(lines and strip(lines[2] or "") == "Price per Point: 3s orange, ~4s yellow, ~13s green",
