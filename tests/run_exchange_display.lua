@@ -31,7 +31,7 @@ do
     T.openAllSubTabs(alice, "Exchange")
     local ui = X.UI
     local txt = ui.levelInfo:GetText() or ""
-    check(txt:find("current RUIN prices", 1, true), "the page says the costs are current")
+    check(txt:find("Cooking 29/75", 1, true) and not txt:find("prices", 1, true), "the header is just the profession and skill (" .. txt .. ")")
 
     -- thousands of prices: the newest show, not a random 200
     db.prices = {}
