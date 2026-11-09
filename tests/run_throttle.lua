@@ -83,10 +83,10 @@ do
     local realGI, CI = env.GetItemInfo, env.C_Item
     local realCIGI, realCached = CI.GetItemInfo, CI.IsItemDataCachedByID
     env.GetItemInfo = nil
-    CI.GetItemInfo = function(id) if id == 777001 then return "Lion Meat", "|cffffffff|Hitem:777001::|h[Lion Meat]|h|r", 1 end end
+    CI.GetItemInfo = function(id) if id == 777001 then return "Shim Meat", "|cffffffff|Hitem:777001::|h[Shim Meat]|h|r", 1 end end
     CI.IsItemDataCachedByID = function() return true end
     local name = ns.Items.Info(777001)
-    check(name == "Lion Meat", "item names come from C_Item.GetItemInfo when the global is gone (" .. tostring(name) .. ")")
+    check(name == "Shim Meat", "item names come from C_Item.GetItemInfo when the global is gone (" .. tostring(name) .. ")")
     env.GetItemInfo, CI.GetItemInfo, CI.IsItemDataCachedByID = realGI, realCIGI, realCached
     errorsSoFar("item api")
 end
