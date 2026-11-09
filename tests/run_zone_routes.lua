@@ -94,6 +94,16 @@ do
     local _, r3 = rowsOf()
     check(r3 == r1, "and clicking again brings them back")
 
+    -- the Cozy Sleeping Bag: your faction's version, under Zones
+    local bagA, bagH = false, false
+    for _, sec in ipairs(lib) do for _, x in ipairs(sec.routes) do
+        if x.id == "cozy_sleeping_bag_alliance" then bagA = sec.header end
+        if x.id == "cozy_sleeping_bag_horde" then bagH = true end
+    end end
+    check(bagA == "Zones" and not bagH, "an Alliance character gets the Alliance Cozy Sleeping Bag route, not the Horde one")
+    local bag = PF:GetRoute("cozy_sleeping_bag_alliance")
+    check(bag and bag.steps[#bag.steps].qid == 79976 and bag.steps[#bag.steps].act == "turnin", "it ends handing in This Must Be The Place for the bag")
+
     -- hiding one
     PF:SetRouteHidden(elwynn.id, true)
     local still = false
