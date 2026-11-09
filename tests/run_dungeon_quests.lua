@@ -99,7 +99,10 @@ do
     R:OpenTab("Pathfinder")
     T.openAllSubTabs(alice, "Pathfinder")
     local routes = PF.DungeonRoutes()
-    check(#routes == 1 and routes[1].dungeon == "Hall of Thanes", "Pathfinder's library has a quest route for each dungeon with quests for you")
+    local names = {}
+    for _, rt in ipairs(routes) do names[#names + 1] = rt.dungeon end
+    check(#routes == 2 and routes[1].dungeon == "Hall of Thanes" and routes[2].dungeon == "City of Dalaran",
+          "Pathfinder's library has a quest route for each dungeon with quests for you (" .. table.concat(names, ", ") .. ")")
 
     -- every dungeon and raid in the Journal has a quest list in Pathfinder, and the other way round
     local CN = alice.mns.RUIN_Codex

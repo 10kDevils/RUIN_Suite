@@ -18,6 +18,19 @@ return function(c, done)
         [9007] = { name = "Mage Business", questLevel = 15, requiredClasses = 2 ^ (8 - 1), zoneOrSort = 16919,
                    startedBy = { { 801 } }, finishedBy = { { 801 } } },
         [96395] = { name = "An Old Grudge", questLevel = 15, objectivesText = { "Put the spirit to rest." } },   -- listed outside the zone, no giver
+        -- City of Dalaran (zone 16544), with stand-in names: the attunement and
+        -- follow-up quests sit outside, and the database records no order between them
+        [92432] = { name = "Alliance Attunement", questLevel = 33, requiredRaces = 2 ^ (HUMAN - 1), zoneOrSort = 36,
+                    startedBy = { { 820 } }, finishedBy = { { 821 } }, objectivesText = { "Speak with the Image." } },
+        [92457] = { name = "Dalaran Streets", questLevel = 33, requiredRaces = 2 ^ (HUMAN - 1), zoneOrSort = 16544,
+                    startedBy = { { 821 } }, finishedBy = { { 821 } }, objectives = { { { 5002 } } }, objectivesText = { "Kill 8 remnants." } },
+        [92458] = { name = "Dalaran Heart", questLevel = 33, requiredRaces = 2 ^ (HUMAN - 1), zoneOrSort = 16544,
+                    startedBy = { { 821 } }, finishedBy = { { 821 } }, objectives = { [3] = { { 6003 } } }, objectivesText = { "Collect the mote." } },
+        [92459] = { name = "Dalaran Follow-up", questLevel = 33, requiredRaces = 2 ^ (HUMAN - 1), zoneOrSort = 36,
+                    startedBy = { { 821 } }, finishedBy = { { 822 } }, objectivesText = { "Deliver the mote." } },
+        [96987] = { name = "Dalaran Tome", questLevel = 33, zoneOrSort = 16544, objectives = { [3] = { { 6004 } } }, objectivesText = { "Find the tome." } },
+        [96984] = { name = "Horde Heart", questLevel = 33, requiredRaces = 2 ^ (ORC - 1), zoneOrSort = 16544,
+                    startedBy = { { 821 } }, finishedBy = { { 821 } } },
         [9100] = { name = "Somewhere Else", questLevel = 12, zoneOrSort = 12, startedBy = { { 801 } }, finishedBy = { { 801 } } },
     }
     local npcs = {
@@ -25,6 +38,9 @@ return function(c, done)
         [802] = { name = "Earthseer Holm", spawns = { [1] = { { 30, 40 } } } },
         [803] = { name = "King of the Mountain", spawns = { [1537] = { { 39, 56 } } } },
         [804] = { name = "Dark Iron Lookout", spawns = { [1] = { { 70, 50 } } } },
+        [820] = { name = "Emissary", spawns = { [267] = { { 48, 60 } } } },
+        [821] = { name = "Image of the Archmage", spawns = { [36] = { { 68, 45 } } } },
+        [822] = { name = "Citadel Archmage", spawns = { [36] = { { 14, 60 } } } },
         [805] = { name = "Ghostly Attendant", spawns = { [16919] = { { 50, 50 } } } },
         -- Hall of Thanes loot: a journal boss, a rare, a trash mob, and a mob elsewhere
         [811] = { name = "Durgen Dirgehammer", spawns = { [16919] = { { 60, 60 } } }, rank = 1, minLevel = 18 },
