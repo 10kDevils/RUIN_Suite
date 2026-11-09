@@ -31,6 +31,14 @@ return function(c, done)
         [96987] = { name = "Dalaran Tome", questLevel = 33, zoneOrSort = 16544, objectives = { [3] = { { 6004 } } }, objectivesText = { "Find the tome." } },
         [96984] = { name = "Horde Heart", questLevel = 33, requiredRaces = 2 ^ (ORC - 1), zoneOrSort = 16544,
                     startedBy = { { 821 } }, finishedBy = { { 821 } } },
+        -- a zone (12) with a small chain, for zone routes
+        [9101] = { name = "Farm Chores", questLevel = 5, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } },
+                   objectives = { { { 5003 } } }, objectivesText = { "Shoo 6 crows." } },
+        [9102] = { name = "More Farm Chores", questLevel = 6, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } },
+                   preQuestSingle = { 9101 }, objectives = { { { 5004 } } }, objectivesText = { "Shoo 8 more crows." } },
+        [9103] = { name = "Map to the Farm", questLevel = 7, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } },
+                   preQuestSingle = { 9003 } },
+        [9104] = { name = "Daily Milk", questLevel = 5, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } }, specialFlags = 1 },
         [9100] = { name = "Somewhere Else", questLevel = 12, zoneOrSort = 12, startedBy = { { 801 } }, finishedBy = { { 801 } } },
     }
     local npcs = {
@@ -41,6 +49,7 @@ return function(c, done)
         [820] = { name = "Emissary", spawns = { [267] = { { 48, 60 } } } },
         [821] = { name = "Image of the Archmage", spawns = { [36] = { { 68, 45 } } } },
         [822] = { name = "Citadel Archmage", spawns = { [36] = { { 14, 60 } } } },
+        [806] = { name = "Farmer Dale", spawns = { [12] = { { 40, 60 } } } },
         [805] = { name = "Ghostly Attendant", spawns = { [16919] = { { 50, 50 } } } },
         -- Hall of Thanes loot: a journal boss, a rare, a trash mob, and a mob elsewhere
         [811] = { name = "Durgen Dirgehammer", spawns = { [16919] = { { 60, 60 } } }, rank = 1, minLevel = 18 },

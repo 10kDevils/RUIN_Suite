@@ -98,8 +98,9 @@ do
     local function hasQid(r, qid, act) for _, s in ipairs(r.steps) do if s.qid == qid and s.act == act then return true end end return false end
     local function noteHas(r, text) for _, s in ipairs(r.steps) do if s.act == "note" and s.text:find(text, 1, true) then return true end end return false end
     local el, ze = routeOf("elwynn_1_10"), routeOf("zephras_1_12")
-    check(hasQid(el, 7962, "accept") and hasQid(el, 7962, "turnin") and hasQid(el, 7961, "complete"), "Elwynn: the new wabbit quests, accepted, done and turned in")
-    check(hasQid(ze, 92454, "accept") and not hasQid(ze, 5805, "accept"), "Zephras Isle uses its own Welcome! quest (92454)")
+    -- QuestieDB 1.0.12 (Forever) has no quests 7961, 7962 or 92454: they're out of the routes
+    check(not hasQid(el, 7962, "accept") and not hasQid(el, 7961, "accept"), "Elwynn: no quests the Forever database doesn't have")
+    check(not hasQid(ze, 92454, "accept") and hasQid(ze, 92460, "accept"), "Zephras Isle opens with Coming of Age (92460)")
     check(hasQid(ze, 92460, "accept") and hasQid(ze, 92460, "turnin"), "Zephras Isle: Coming of Age")
     check(noteHas(routeOf("teldrassil_1_12"), "The Goddess Provides") and noteHas(el, "A Scribbled Letter"), "class and race starter quests as notes")
     check(noteHas(routeOf("wetlands_20_30"), "City of Dalaran") and noteHas(routeOf("duskwood_20_28"), "Emissary Jacques")
