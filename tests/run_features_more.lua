@@ -165,6 +165,13 @@ do
     tr.open._scripts.OnClick(tr.open)
     pf.OpenTab = realOpen
     check(opened, "the tracker's Open button opens Pathfinder")
+    -- the tracker's Clear button leaves the route without starting another
+    tr.clear._scripts.OnClick(tr.clear)
+    check(alice.env.RUIN_PathfinderCharDB.route == nil and not tr:IsShown()
+          and alice.env.RUIN_API.Map:GetPins("Pathfinder").step == nil, "Clear leaves the route, hides the tracker and drops the pin")
+    alice.env.SlashCmdList.RUINPATH("clear")
+    pf:StartRoute("vot")
+    tr = alice.env.RUIN_PathfinderTracker
     alice.pos = { map = 1411, x = 0.40, y = 0.68 }
     -- recorder: accept, complete, turn in, plus a note
     pf:SetRecording(true)
