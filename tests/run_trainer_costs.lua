@@ -64,3 +64,28 @@ do
     env.ClassTrainerFrame = nil
     errorsSoFar("trainer costs")
 end
+
+print("Exchange: recipe item tooltips")
+do
+    local env = alice.env
+    local X = env.RUIN_API:GetModule("Exchange")
+    local db = env.RUIN_ExchangeDB
+    local now = env.GetServerTime()
+    local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    alice.ns.db.items[3731] = { n = "Lion Meat", q = 1 }
+    alice.ns.db.items[3713] = { n = "Soothing Spices", q = 1 }
+    db.prices[3731] = { p = 150, t = now }      -- lion meat 1s 50c
+    db.prices[3713] = { p = 40, t = now }       -- spices 40c
+    local texts = { "Recipe: Tasty Lion Steak", "Tasty Lion Steak", "Use: Restores 841 health", "Requires Level 25",
+                    "Use: Teaches you how to cook a Tasty Lion Steak.", "Lion Meat (2), Soothing Spices", "Requires Cooking (150)" }
+    env.GetProfessionInfo = function() return "Cooking", 1, 95, 150 end
+    local lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
+    check(lines and strip(lines[1]) == "Price per Craft: 3s 40c", "a recipe's tooltip gets its Price per Craft (" .. strip(lines and lines[1]) .. ")")
+    check(lines and strip(lines[2] or ""):find("need 150 Cooking", 1, true), "and says the skill it needs when you're below it")
+    check(db.recipeBook.Cooking["Tasty Lion Steak"] and db.recipeBook.Cooking["Tasty Lion Steak"][1][2] == 2, "the reagents read from the tooltip are remembered")
+    env.GetProfessionInfo = function() return "Cooking", 1, 150, 225 end
+    lines = X.RecipeLines("Recipe: Tasty Lion Steak", texts)
+    check(lines and strip(lines[2] or "") == "Price per Point at your skill: 3s/pt", "at the skill it needs it's orange: Price per Point (" .. strip(lines and lines[2] or "") .. ")")
+    check(X.RecipeLines("Lion Meat", { "Lion Meat" }) == nil, "items that aren't recipes get nothing")
+    errorsSoFar("recipe tooltips")
+end
