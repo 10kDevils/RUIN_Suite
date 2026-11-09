@@ -45,6 +45,26 @@ do
     end
     check(hasZone and hasDungeon, "including zone and dungeon routes")
 
+    -- sections: Dungeons, Zones, Completed / out-leveled, each by level (a level 15 character)
+    local heads = {}
+    for _, sec in ipairs(lib) do heads[#heads + 1] = sec.header end
+    check(table.concat(heads, " | ") == "Dungeons | Zones | Completed / out-leveled", "sections in order (" .. table.concat(heads, " | ") .. ")")
+    local function sorted(list)
+        for i = 2, #list do if (list[i].lo or 999) < (list[i - 1].lo or 999) then return false end end
+        return true
+    end
+    check(sorted(lib[1].routes) and sorted(lib[2].routes) and sorted(lib[3].routes), "each section is sorted by level")
+    check(lib[1].routes[1] and lib[1].routes[1].dungeon == "Hall of Thanes", "dungeons first, lowest level on top")
+    local pastIds = {}
+    for _, x in ipairs(lib[3].routes) do pastIds[x.id] = true end
+    check(pastIds.elwynn_1_10 and pastIds[elwynn.id], "routes 3 or more levels below you move to Completed / out-leveled")
+    local inZones = false
+    for _, x in ipairs(lib[2].routes) do if x.id == "wetlands_20_30" then inZones = true end end
+    check(inZones, "routes at or above your level stay under Zones")
+    local dm
+    for _, x in ipairs(lib[2].routes) do if x.id == "duskwood_20_28" then dm = x end end
+    check(dm and dm.lo == 20 and dm.hi == 28, "levels come from the title when a route has none")
+
     -- hiding one
     PF:SetRouteHidden(elwynn.id, true)
     local still = false
