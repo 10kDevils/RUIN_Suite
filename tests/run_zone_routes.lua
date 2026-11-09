@@ -20,6 +20,12 @@ do
     for _, r in ipairs(zones) do if r.zoneName == "Elwynn Forest" then elwynn = r end end
     check(elwynn and elwynn.title == "Elwynn Forest 5-12" and elwynn.quests == 4, "a zone with quests gets a route, titled by its levels (" .. tostring(elwynn and elwynn.title) .. ")")
     for _, r in ipairs(zones) do check(r.zoneName ~= "Zone 16919", "dungeon zones are left to the dungeon routes") end
+    local city, bg = false, false
+    for _, r in ipairs(zones) do
+        if r.zoneArea == 1519 then city = true end
+        if r.zoneArea == 3277 then bg = true end
+    end
+    check(not city and not bg, "cities and battlegrounds get no zone route")
 
     -- the steps: the quest from elsewhere first, then rounds
     local full = PF:GetRoute(elwynn.id)

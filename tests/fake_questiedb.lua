@@ -39,6 +39,13 @@ return function(c, done)
         [9103] = { name = "Map to the Farm", questLevel = 7, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } },
                    preQuestSingle = { 9003 } },
         [9104] = { name = "Daily Milk", questLevel = 5, zoneOrSort = 12, startedBy = { { 806 } }, finishedBy = { { 806 } }, specialFlags = 1 },
+        -- Stormwind (1519) and Warsong Gulch (3277): no zone routes for cities or battlegrounds
+        [9201] = { name = "City Errand One", questLevel = 10, zoneOrSort = 1519, startedBy = { { 806 } }, finishedBy = { { 806 } } },
+        [9202] = { name = "City Errand Two", questLevel = 11, zoneOrSort = 1519, startedBy = { { 806 } }, finishedBy = { { 806 } } },
+        [9203] = { name = "City Errand Three", questLevel = 12, zoneOrSort = 1519, startedBy = { { 806 } }, finishedBy = { { 806 } } },
+        [9211] = { name = "Gulch Marks One", questLevel = 20, zoneOrSort = 3277, startedBy = { { 806 } }, finishedBy = { { 806 } } },
+        [9212] = { name = "Gulch Marks Two", questLevel = 21, zoneOrSort = 3277, startedBy = { { 806 } }, finishedBy = { { 806 } } },
+        [9213] = { name = "Gulch Marks Three", questLevel = 22, zoneOrSort = 3277, startedBy = { { 806 } }, finishedBy = { { 806 } } },
         [9100] = { name = "Somewhere Else", questLevel = 12, zoneOrSort = 12, startedBy = { { 801 } }, finishedBy = { { 801 } } },
     }
     local npcs = {
