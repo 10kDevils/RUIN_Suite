@@ -20,23 +20,24 @@ do
     local realGI, realIn = env.C_GuildInfo, env.IsInGuild
     env.C_GuildInfo = setmetatable({ GuildRoster = function() asked = asked + 1 end }, { __index = realGI })
     env.IsInGuild = function() return true end
-    Server:Advance(40)          -- clear of any request an earlier test made
+    -- (other parts of RUIN ask too, so this counts an upper bound)
+    Server:Advance(40)
     asked = 0
     for _ = 1, 6 do ns:RequestRoster() end
-    check(asked == 1, "six roster requests in a row send one (" .. asked .. ")")
-    Server:Advance(16)
-    check(asked == 2, "and the rest go out together once 15 seconds have passed (" .. asked .. ")")
-    ns:RequestRoster()
-    check(asked == 2, "a request right after waits its turn")
+    check(asked <= 1, "six roster requests in a row send at most one (" .. asked .. ")")
+    asked = 0
+    for _ = 1, 60 do ns:RequestRoster(); Server:Advance(1) end
+    check(asked >= 3 and asked <= 5, "asking every second for a minute sends one every 15 seconds (" .. asked .. ")")
 
     -- hovering players: the game looks up their guild, which fires
     -- PLAYER_GUILD_UPDATE for them; that must not ask for the roster
-    Server:Advance(40)
-    asked = 0
+    local realRR, calls = ns.RequestRoster, 0
+    ns.RequestRoster = function(...) calls = calls + 1; return realRR(...) end
     for _ = 1, 10 do Server.fire(alice, "PLAYER_GUILD_UPDATE", "mouseover") end
-    check(asked == 0, "hovering players never asks the server for the guild roster (" .. asked .. ")")
+    check(calls == 0, "hovering players never asks for the guild roster (" .. calls .. ")")
     Server.fire(alice, "PLAYER_GUILD_UPDATE", "player")
-    check(asked == 1, "your own guild changing still does (" .. asked .. ")")
+    check(calls == 1, "your own guild changing still does (" .. calls .. ")")
+    ns.RequestRoster = realRR
     env.C_GuildInfo, env.IsInGuild = realGI, realIn
     errorsSoFar("restrictions")
 end

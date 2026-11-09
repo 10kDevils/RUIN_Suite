@@ -95,7 +95,7 @@ Server:Slash(alice, "key addguild Briar Fang, 1, Briar")
 check(key(alice).rev == 2 and key(alice).guilds["Briar Fang"].tag == "Briar", "guild added, rev 2")
 alice.target = "Cara Cole"
 alice.ns.UI:SendKeyToTarget()
-Server:Advance(3)
+Server:Advance(10)   -- a key offer is several parts; Core sends at most 6 at once
 local confirmBox = cara.env.RUIN_ConfirmDialog
 check(confirmBox and confirmBox:IsShown() and confirmBox.onAccept ~= nil, "Cara got RUIN's own accept prompt")
 check(#cara.popups == 0, "no Blizzard StaticPopup used")

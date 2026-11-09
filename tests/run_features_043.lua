@@ -308,7 +308,7 @@ do
     local eWR = eve.mns.RUIN_Muster.WarRoom
     check(not eWR.AddSquad(eev, "Mine"), "a member can't change the plan")
     WR.SetReport(aev, "We held the bridge for 20 minutes.")
-    Server:Advance(3)
+    Server:Advance(10)
     check(cara.env.RUIN_MusterDB.events[ev.id].aar and cara.env.RUIN_MusterDB.events[ev.id].aar.text:find("bridge"), "the after-action report reaches the org")
 
     -- Loot notes

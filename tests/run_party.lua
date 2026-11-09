@@ -410,6 +410,7 @@ do
     local PP = alice.ns.PartyPlan
     PP:Command("off")
     check(alice.ns.db.settings.partySignal == false and not PP:Enabled() and (PP.rows and #PP.rows == 0), "/ruin party off: no strip, nothing shared")
+    Server:Advance(30)          -- let earlier messages go out first
     local sent = Server.sent
     PP:Update(); PP:Send(true); Server:Advance(2)
     check(Server.sent == sent, "and nothing is sent while off")

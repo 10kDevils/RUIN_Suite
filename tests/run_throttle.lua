@@ -46,3 +46,25 @@ do
     ns.Print = realPrint
     errorsSoFar("too fast")
 end
+
+print("Too fast: RUIN backs off and makes room")
+do
+    local ns = alice.ns
+    local Comms = ns.Comms
+    Server:Advance(30)
+    ns.Throttle.OnError("You're doing that too fast")
+    local pace = Comms:Pace()
+    check(pace.paused and pace.slow, "after \"too fast\" RUIN pauses its own messages, then sends at half speed")
+    Server:Advance(7)
+    pace = Comms:Pace()
+    check(not pace.paused and pace.slow, "the pause is short; the slower pace lasts a while")
+    Server:Advance(90)
+    check(not Comms:Pace().slow, "and then it's back to normal")
+    -- another addon sending a lot: RUIN waits for a gap
+    local sentBefore = Server.sent or 0
+    for _ = 1, 6 do
+        ns.Throttle.Note("C_ChatInfo.SendAddonMessage")   -- recorded as another addon (the test's own stack)
+    end
+    check(ns.Throttle.OthersSending(3) >= 6, "other addons' messages are counted, so RUIN can wait for a gap")
+    errorsSoFar("too fast backoff")
+end
