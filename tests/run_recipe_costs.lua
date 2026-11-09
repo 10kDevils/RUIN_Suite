@@ -11,9 +11,9 @@ do
     db.prices = { [2589] = { p = 300, t = env.GetServerTime() } }   -- linen cloth 3s
 
     local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
-    check(strip(X.PointText(0, { { 2589, 2 } })) == "6s 00c/pt", "orange: one craft's cost per point (" .. strip(X.PointText(0, { { 2589, 2 } })) .. ")")
-    check(strip(X.PointText(1, { { 2589, 1 } })) == "4s 00c/pt", "yellow: divided by a 3 in 4 chance")
-    check(strip(X.PointText(2, { { 2589, 1 } })) == "12s 00c/pt", "green: 1 in 4")
+    check(strip(X.PointText(0, { { 2589, 2 } })) == "6s/pt", "orange: one craft's cost per point (" .. strip(X.PointText(0, { { 2589, 2 } })) .. ")")
+    check(strip(X.PointText(1, { { 2589, 1 } })) == "4s/pt", "yellow: divided by a 3 in 4 chance")
+    check(strip(X.PointText(2, { { 2589, 1 } })) == "12s/pt", "green: 1 in 4")
     check(X.PointText(3, { { 2589, 1 } }) == nil, "grey recipes show nothing")
     check(strip(X.PointText(0, { { 999999, 1 } })) == "?/pt", "an unpriced reagent shows ?")
 
@@ -33,13 +33,15 @@ do
         ForEachFrame = function(_, fn) for _, f in ipairs(rows) do fn(f) end end,
     } } } }
     X.HookRecipeCosts()
-    check(rows[1].ruinCost and strip(rows[1].ruinCost:GetText()) == "6s 00c/pt", "Flask of the Titans (orange, 2 linen) reads 6s 00c/pt")
-    check(rows[2].ruinCost and strip(rows[2].ruinCost:GetText()) == "4s 00c/pt", "Minor Healing Potion (yellow) reads 4s 00c/pt")
+    check(rows[1].ruinCost and strip(rows[1].ruinCost:GetText()) == "6s/pt", "Flask of the Titans (orange, 2 linen) reads 6s/pt")
+    check(rows[2].ruinCost and strip(rows[2].ruinCost:GetText()) == "4s/pt", "Minor Healing Potion (yellow) reads 4s/pt")
     check(not rows[3].ruinCost, "category headers get nothing")
+    check(X.ShortMoney(1836) == "18s" and X.ShortMoney(36) == "36c" and X.ShortMoney(12050) == "1g 20s" and X.ShortMoney(250000) == "25g",
+          "short money: copper drops once there's silver")
 
     db.prices[2589].p = 100
     X:OnPrices({ t = env.GetServerTime() + 1, l = { 2589, 100 } }, "Cara")
-    check(strip(rows[1].ruinCost:GetText()) == "2s 00c/pt", "new prices repaint the open window")
+    check(strip(rows[1].ruinCost:GetText()) == "2s/pt", "new prices repaint the open window")
 
     env.SlashCmdList.RUINEXCHANGE("costs")
     check(db.pointCosts == false and not rows[1].ruinCost:IsShown(), "/ex costs hides them")

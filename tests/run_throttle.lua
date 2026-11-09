@@ -14,17 +14,25 @@ do
     local sent = 0
     local CI = env.C_Item
     local realReq, realCached = CI.RequestLoadItemDataByID, CI.IsItemDataCachedByID
-    CI.RequestLoadItemDataByID = function(id) if id >= 500000 and id <= 500099 then sent = sent + 1 end end
+    CI.RequestLoadItemDataByID = function(id) if id >= 500000 and id <= 500399 then sent = sent + 1 end end
     CI.IsItemDataCachedByID = function() return false end
     for id = 500000, 500099 do ns.Items.Info(id) end
-    check(sent <= 8, "a hundred unknown items: only a few asked for at once (" .. sent .. ")")
+    check(sent <= 2, "a hundred unknown items: only one or two asked for at once (" .. sent .. ")")
     Server:Advance(3)
-    check(sent > 8 and sent < 100, "the rest follow a few at a time (" .. sent .. " after 3 s)")
-    Server:Advance(10)
+    check(sent >= 10 and sent <= 14, "the rest follow at 4 a second (" .. sent .. " after 3 s)")
+    Server:Advance(30)
     check(sent == 100, "and all of them go out in the end (" .. sent .. ")")
     ns.Items.Info(500000)
     Server:Advance(1)
     check(sent == 101, "asking again later asks again")
+    -- after "too fast" the lookups slow to one a second
+    Server:Advance(2)
+    ns.Items.Backoff()
+    sent = 0
+    for id = 500200, 500219 do ns.Items.Info(id) end
+    Server:Advance(5)
+    check(sent >= 4 and sent <= 7, "after \"too fast\" item lookups go one a second (" .. sent .. " in 5 s)")
+    check(ns.Items.Info(500300, true) == nil and ns.Items.Pending() <= 15, "a quiet lookup doesn't ask the game")
     CI.RequestLoadItemDataByID, CI.IsItemDataCachedByID = realReq, realCached
 
     -- the watcher
