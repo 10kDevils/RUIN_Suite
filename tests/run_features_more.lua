@@ -182,6 +182,36 @@ do
     check(alice.waypoint == mine, "clearing the route leaves your own waypoint alone")
     pf:StartRoute("vot")
     tr = alice.env.RUIN_PathfinderTracker
+    -- a quest step whose quest is in your log is tracked the game's way (super-tracked)
+    alice.logIds = { [4641] = true }
+    alice.questTitles[4641] = "Your Place In The World"
+    alice.questObjectives = { [4641] = { { text = "Talk to Gornek", finished = false } } }
+    pf:Advance(1)
+    check(alice.trackedQuest == 4641 and alice.waypoint == nil, "a quest in your log is super-tracked, and Pathfinder's map waypoint is lifted")
+    -- the RUIN pin rides the game's navigation frame and names the tracked quest
+    local navFrame = alice.env.CreateFrame("Frame")
+    navFrame.GetCenter = function() return 400, 300 end
+    navFrame.GetEffectiveScale = function() return 1 end
+    alice.navFrame = navFrame
+    Server.fire(alice, "NAVIGATION_FRAME_CREATED")
+    local pinFrame = pf.Pin.Frame()
+    check(pinFrame and pinFrame._scripts.OnUpdate ~= nil, "the RUIN pin attaches to the game's navigation")
+    pinFrame._scripts.OnUpdate(pinFrame, 0.1)
+    check(pinFrame:IsShown() and pinFrame.title._text == "Your Place In The World" and pinFrame.dist._text:find("140 yd")
+          and pinFrame.obj._text:find("Talk to Gornek"), "it shows the quest, the distance and its objectives")
+    alice.navClamped = true
+    pinFrame._scripts.OnUpdate(pinFrame, 0.1)
+    check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
+    alice.navClamped = false
+    -- a quest the game can't place falls back to Pathfinder's waypoint
+    alice.navFrame = nil
+    Server.fire(alice, "NAVIGATION_FRAME_DESTROYED")
+    check(not pinFrame:IsShown(), "the pin goes away with the game's navigation")
+    Server:Advance(4)
+    tr.nav._scripts.OnUpdate(tr.nav, 3.5)
+    check(alice.trackedQuest == nil and alice.waypoint and alice.waypoint.uiMapID == 1411, "no navigation for the quest: back to a waypoint on the spot")
+    pf:Advance(-1)
+    alice.logIds = nil
     -- the tracker's Clear button leaves the route without starting another
     tr.clear._scripts.OnClick(tr.clear)
     check(alice.env.RUIN_PathfinderCharDB.route == nil and not tr:IsShown()

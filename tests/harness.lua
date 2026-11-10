@@ -287,7 +287,17 @@ function Server:NewClient(opts)
     c.pos = opts.pos or { map = 1411, x = 0.5, y = 0.5 }
     env.CreateVector2D = function(x, y) return { x = x, y = y, GetXY = function(self) return self.x, self.y end } end
     env.UiMapPoint = { CreateFromCoordinates = function(map, x, y) return { uiMapID = map, position = env.CreateVector2D(x, y) } end }
-    env.C_SuperTrack = { SetSuperTrackedUserWaypoint = function(on) c.superTracked = on end }
+    env.C_SuperTrack = { SetSuperTrackedUserWaypoint = function(on) c.superTracked = on; c.trackedQuest = nil end,
+        IsSuperTrackingUserWaypoint = function() return c.superTracked == true and c.trackedQuest == nil end,
+        SetSuperTrackedQuestID = function(q) c.trackedQuest = (q ~= 0) and q or nil end,
+        GetSuperTrackedQuestID = function() return c.trackedQuest or 0 end,
+        GetHighestPrioritySuperTrackingType = function()
+            if c.trackedQuest then return 0 elseif c.superTracked and c.waypoint then return 3 end
+        end }
+    env.C_Navigation = { GetFrame = function() return c.navFrame end,
+        HasValidScreenPosition = function() return c.navFrame ~= nil end,
+        GetDistance = function() return c.navDistance or 140 end,
+        WasClampedToScreen = function() return c.navClamped == true end }
     env.C_Map = {
         GetBestMapForUnit = function() return c.pos.map end,
         GetPlayerMapPosition = function()
@@ -354,9 +364,12 @@ function Server:NewClient(opts)
     c.tooltipHooks = {}
     env.TooltipDataProcessor = { AddTooltipPostCall = function(_, fn) table.insert(c.tooltipHooks, fn) end }
     env.Enum.TooltipDataType = { Item = 0 }
+    env.Enum.SuperTrackingType = { Quest = 0, UserWaypoint = 3 }
     c.questTitles = {}
     c.questLog = {}
     env.C_QuestLog = { GetTitleForQuestID = function(id) return c.questTitles[id] end,
+        GetLogIndexForQuestID = function(id) return c.logIds and c.logIds[id] and 1 or nil end,
+        GetQuestObjectives = function(id) return c.questObjectives and c.questObjectives[id] or {} end,
                        GetNumQuestLogEntries = function() return #c.questLog end,
                        GetInfo = function(i)
                            local q = c.questLog[i]
