@@ -223,12 +223,21 @@ do
     check(alice.env.RUIN_API:IsOfficerName("Cara Cole") and not alice.env.RUIN_API:IsOfficerName("Nobody Here"), "Core tells officers apart")
     check(#alice.mns.RUIN_Pathfinder.Routes >= 14, "the new Alliance routes are built in (" .. #alice.mns.RUIN_Pathfinder.Routes .. ")")
 
-    local r = pa:PublishRoute("elwynn_1_10")
+    -- only routes made by officers can be published (not built-in ones, not members')
+    check(pa:PublishRoute("elwynn_1_10") == nil, "a built-in route can't be published")
+    alice.env.RUIN_PathfinderDB.custom.cmember = { id = "cmember", title = "Member's", author = "Eve Ember", steps = { { act = "note", text = "x" } } }
+    check(pa:PublishRoute("cmember") == nil, "nor one a member made")
+    alice.env.RUIN_PathfinderDB.custom.cmember = nil
+    check(pa.OfficerMade({ id = "cx", author = "Cara Cole" }) and not pa.OfficerMade({ id = "cy", author = "Eve Ember" }),
+          "Publish shows only on routes an officer made")
+    alice.env.RUIN_PathfinderDB.custom.cmine = { id = "cmine", title = "Alice's Elwynn", author = "Alice Ash",
+        steps = { { act = "note", text = "go" }, { act = "go", text = "there" } } }
+    local r = pa:PublishRoute("cmine")
     Server:Advance(40)
-    check(r and r.official and not r.official.approved, "an officer publishes a route")
+    check(r and r.official and not r.official.approved, "an officer publishes a route an officer made")
 
     local got = eve.env.RUIN_PathfinderDB.official[r.id]
-    check(got and got.official and got.official.by == "Alice Ash" and #got.steps == #r.steps and got.builtin == "elwynn_1_10", "it reaches a member with the officer mark")
+    check(got and got.official and got.official.by == "Alice Ash" and #got.steps == #r.steps, "it reaches a member with the officer mark")
     -- a member can't publish, and a member's message is ignored
     check(pe:PublishRoute("westfall_10_15") == nil, "members can't publish")
     eve.env.RUIN_API:GetModule("Pathfinder"):Send("OFFICIAL", { id = "ofake", title = "Fake", steps = { { act = "note", text = "x" } }, ot = os.time() }, "ORG")
