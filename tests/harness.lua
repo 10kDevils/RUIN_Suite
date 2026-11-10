@@ -285,12 +285,24 @@ function Server:NewClient(opts)
 
     -- Extra APIs used by the modules
     c.pos = opts.pos or { map = 1411, x = 0.5, y = 0.5 }
+    env.CreateVector2D = function(x, y) return { x = x, y = y, GetXY = function(self) return self.x, self.y end } end
+    env.UiMapPoint = { CreateFromCoordinates = function(map, x, y) return { uiMapID = map, position = env.CreateVector2D(x, y) } end }
+    env.C_SuperTrack = { SetSuperTrackedUserWaypoint = function(on) c.superTracked = on end }
     env.C_Map = {
         GetBestMapForUnit = function() return c.pos.map end,
         GetPlayerMapPosition = function()
             return { GetXY = function() return c.pos.x, c.pos.y end }
         end,
-        GetMapWorldSize = function() return 4000, 2700 end,
+        -- world yards: north falls as y grows, west falls as x grows (4000 x 2700 per zone)
+        GetWorldPosFromMapPos = function(map, v)
+            local cont = ({ [1411] = 1, [1414] = 1, [1429] = 0, [1415] = 0 })[map]
+            if not cont then return nil end
+            return cont, { x = -v.x * 0 - v.y * 2700, y = -v.x * 4000 }
+        end,
+        CanSetUserWaypointOnMap = function(map) return map == 1411 or map == 1429 end,
+        SetUserWaypoint = function(p) c.waypoint = p end,
+        GetUserWaypoint = function() return c.waypoint end,
+        ClearUserWaypoint = function() c.waypoint = nil end,
         GetMapInfo = function(map)
             local names = { [1411] = "Durotar", [1414] = "Kalimdor", [1429] = "Elwynn Forest", [1415] = "Eastern Kingdoms" }
             local parents = { [1411] = 1414, [1429] = 1415 }

@@ -165,10 +165,22 @@ do
     tr.open._scripts.OnClick(tr.open)
     pf.OpenTab = realOpen
     check(opened, "the tracker's Open button opens Pathfinder")
+    alice.pos = { map = 1411, x = 0.40, y = 0.68 }
+    -- the game's waypoint (3D pin in the world) sits on the step
+    check(alice.waypoint and alice.waypoint.uiMapID == 1411 and math.abs(alice.waypoint.position.x - 0.433) < 0.001
+          and alice.superTracked == true, "the step gets the game's waypoint, super-tracked so its 3D pin shows")
+    -- a waypoint you place yourself isn't cleared by Pathfinder
+    local mine = alice.env.UiMapPoint.CreateFromCoordinates(1411, 0.1, 0.1)
+    alice.waypoint = mine
+    pf:ClearRoute()
+    check(alice.waypoint == mine, "clearing the route leaves your own waypoint alone")
+    pf:StartRoute("vot")
+    tr = alice.env.RUIN_PathfinderTracker
     -- the tracker's Clear button leaves the route without starting another
     tr.clear._scripts.OnClick(tr.clear)
     check(alice.env.RUIN_PathfinderCharDB.route == nil and not tr:IsShown()
           and alice.env.RUIN_API.Map:GetPins("Pathfinder").step == nil, "Clear leaves the route, hides the tracker and drops the pin")
+    check(alice.waypoint == nil, "and clears the waypoint Pathfinder placed")
     alice.env.SlashCmdList.RUINPATH("clear")
     pf:StartRoute("vot")
     tr = alice.env.RUIN_PathfinderTracker
