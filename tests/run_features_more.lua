@@ -195,18 +195,26 @@ do
     alice.navFrame = navFrame
     Server.fire(alice, "NAVIGATION_FRAME_CREATED")
     local pinFrame = pf.Pin.Frame()
-    check(pinFrame and pinFrame._scripts.OnUpdate ~= nil, "the RUIN pin attaches to the game's navigation")
-    pinFrame._scripts.OnUpdate(pinFrame, 0.1)
+    local drive = pf.Pin.Driver
+    check(pinFrame ~= nil, "the RUIN pin attaches to the game's navigation")
+    drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame:IsShown() and pinFrame.title._text == "Your Place In The World" and pinFrame.dist._text:find("140 yd")
           and pinFrame.obj._text:find("Talk to Gornek"), "it shows the quest, the distance and its objectives")
     alice.navClamped = true
-    pinFrame._scripts.OnUpdate(pinFrame, 0.1)
+    drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
     alice.navClamped = false
     -- a quest the game can't place falls back to Pathfinder's waypoint
     alice.navFrame = nil
     Server.fire(alice, "NAVIGATION_FRAME_DESTROYED")
     check(not pinFrame:IsShown(), "the pin goes away with the game's navigation")
+    -- it finds the navigation frame by itself too, without the event (and comes back after hiding)
+    alice.navFrame = navFrame
+    drive._scripts.OnUpdate(drive, 0.6)
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame:IsShown(), "it picks the navigation frame up on its own and shows again")
+    alice.navFrame = nil
+    drive._scripts.OnUpdate(drive, 0.6)
     Server:Advance(4)
     tr.nav._scripts.OnUpdate(tr.nav, 3.5)
     check(alice.trackedQuest == nil and alice.waypoint and alice.waypoint.uiMapID == 1411, "no navigation for the quest: back to a waypoint on the spot")
