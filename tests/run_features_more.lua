@@ -169,6 +169,12 @@ do
     -- the game's waypoint (3D pin in the world) sits on the step
     check(alice.waypoint and alice.waypoint.uiMapID == 1411 and math.abs(alice.waypoint.position.x - 0.433) < 0.001
           and alice.superTracked == true, "the step gets the game's waypoint, super-tracked so its 3D pin shows")
+    local printed = {}
+    local realPrint = pf.Print
+    pf.Print = function(_, m) printed[#printed + 1] = m end
+    alice.env.SlashCmdList.RUINPATH("nav")
+    pf.Print = realPrint
+    check(#printed >= 8 and table.concat(printed, "\n"):find("offset:"), "/path nav reports each link from the step to the arrow and the pin")
     -- a waypoint you place yourself isn't cleared by Pathfinder
     local mine = alice.env.UiMapPoint.CreateFromCoordinates(1411, 0.1, 0.1)
     alice.waypoint = mine
