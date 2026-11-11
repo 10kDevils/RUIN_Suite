@@ -297,7 +297,7 @@ do
         pf.UpdateTracker()
     end
     -- the key bindings reach Pathfinder
-    check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
+    check(alice.env.BINDING_NAME_RUIN_PATHFINDER_NEXT and alice.env.BINDING_NAME_RUIN_PATH_CLEAR and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named, the old ones kept")
     -- the tracker's tabs: Route works as before, Tracked shows the tracked quest
     check(tr.tabs and #tr.tabs == 2 and tr.tabs[1].text._text == "Route" and tr.tabs[2].text._text == "Tracked", "the tracker has Route and Tracked tabs")
     -- the quest Pathfinder tracks for a step isn't "yours": Tracked has nothing and can't be picked
