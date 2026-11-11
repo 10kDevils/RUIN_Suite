@@ -11,7 +11,7 @@ do
     local saved = db.prices
     db.prices = { [2589] = { p = 300, t = env.GetServerTime() } }   -- linen cloth 3s
 
-    local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
     db.rskill = {}
     check(strip(X.PointText(0, { { 2589, 2 } })) == "6s/pt", "orange: one craft per point (" .. strip(X.PointText(0, { { 2589, 2 } })) .. ")")
     check(strip(X.PointText(1, { { 2589, 1 } })) == "~4s/pt", "yellow with no color levels known: a 3 in 4 guess, marked ~")
@@ -63,7 +63,9 @@ do
     check(strip(rows[2].ruinCost:GetText()) == "6s/pt", "with its levels known the chance is worked out: 50%, so 6s/pt (" .. strip(rows[2].ruinCost:GetText()) .. ")")
     check(strip(rows[3].ruinCost:GetText()) == "6s/pt", "and the unlearned copy now has a Price per Point too")
     db.rskill.Alchemy = nil
-    check(X.ShortMoney(1836) == "18s" and X.ShortMoney(36) == "36c" and X.ShortMoney(12050) == "1g 20s" and X.ShortMoney(250000) == "25g",
+    local P = alice.env.RUIN_API.Widgets.PlainMoney
+    check(P(X.ShortMoney(1836)) == "18s" and P(X.ShortMoney(36)) == "36c" and P(X.ShortMoney(12050)) == "1g 20s" and P(X.ShortMoney(250000)) == "25g"
+          and X.ShortMoney(36):find("UI%-CopperIcon"),
           "short money: copper drops once there's silver")
 
     db.prices[2589].p = 100

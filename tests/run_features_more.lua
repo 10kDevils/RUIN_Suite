@@ -205,16 +205,36 @@ do
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
     alice.navClamped = false
     -- inside the quest's area (the game says in range), or nearer than the set distance, it steps aside
+    drive._scripts.OnUpdate(drive, 0.6)
     alice.navState = 2
-    drive._scripts.OnUpdate(drive, 0.1)
-    check(not pinFrame:IsShown(), "inside the quest's area the pin hides")
+    drive._scripts.OnUpdate(drive, 0.2)
+    check(pinFrame:IsShown() and pinFrame.fade > 0.5 and pinFrame.fade < 0.7, "entering the quest's area the pin starts to fade")
+    drive._scripts.OnUpdate(drive, 0.4)
+    check(not pinFrame:IsShown(), "and is gone after half a second")
     alice.navState = 0
+    -- in the quest's objective area (near its mobs' spawn points) it always hides, whatever the options
+    local QB = pf.QB
+    local realHas, realSpots = QB.Has, QB.Spots
+    QB.Has = function() return true end
+    QB.Spots = function(q, which) return which == "objective" and q == 4641 and { { map = 1411, x = 0.41, y = 0.68 } } or {} end
+    alice.env.RUIN_PathfinderCharDB.pinHideInArea = false
+    drive._scripts.OnUpdate(drive, 0.6)
+    drive._scripts.OnUpdate(drive, 0.6)
+    check(not pinFrame:IsShown(), "inside the quest's objective area the pin always hides")
+    alice.pos = { map = 1411, x = 0.60, y = 0.40 }
+    Server:Advance(1)
+    drive._scripts.OnUpdate(drive, 0.6)
+    check(pinFrame:IsShown(), "and comes back when you leave it")
+    QB.Has, QB.Spots = realHas, realSpots
+    alice.env.RUIN_PathfinderCharDB.pinHideInArea = true
+    alice.pos = { map = 1411, x = 0.40, y = 0.68 }
+    Server:Advance(1)
     alice.navDistance = 10
-    drive._scripts.OnUpdate(drive, 0.1)
-    check(not pinFrame:IsShown(), "and within the hide distance")
+    drive._scripts.OnUpdate(drive, 0.6)
+    check(not pinFrame:IsShown(), "it also stays hidden within the hide distance")
     local pdb = alice.env.RUIN_PathfinderCharDB
     pdb.pinHideInArea = false
-    drive._scripts.OnUpdate(drive, 0.1)
+    drive._scripts.OnUpdate(drive, 0.6)
     check(pinFrame:IsShown(), "unless that option is off")
     pdb.pinHideInArea = true
     alice.navDistance = nil
@@ -231,6 +251,24 @@ do
     pdb.arrow = true
     -- the key bindings reach Pathfinder
     check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
+    -- the tracker's tabs: Route works as before, Tracked shows the tracked quest
+    check(tr.tabs and #tr.tabs == 2 and tr.tabs[1].text._text == "Route" and tr.tabs[2].text._text == "Tracked", "the tracker has Route and Tracked tabs")
+    tr.tabs[2]._scripts.OnClick(tr.tabs[2])
+    check(tr.title._text:find("Tracked") and tr.title._text:find("Your Place In The World") and tr.step._text:find("Talk to Gornek"),
+          "Tracked shows the tracked quest and its objectives")
+    alice.questLog = { { title = "Your Place In The World", id = 4641 }, { title = "Cutting Teeth", id = 788 } }
+    tr.next._scripts.OnClick(tr.next)
+    check(alice.trackedQuest == 788, "> on Tracked tracks the next quest in your log")
+    tr.prev._scripts.OnClick(tr.prev)
+    check(alice.trackedQuest == 4641, "< goes back")
+    tr.open._scripts.OnClick(tr.open)
+    check(alice.env.RUIN_PathfinderCharDB.trackerTab == "tracked", "Open on Tracked opens the Quests tab")
+    tr.clear._scripts.OnClick(tr.clear)
+    check(alice.trackedQuest == nil, "Clear on Tracked stops tracking the quest")
+    tr.tabs[1]._scripts.OnClick(tr.tabs[1])
+    check(tr.title._text:find("Valley of Trials"), "Route shows the route again")
+    alice.questLog = {}
+    alice.trackedQuest = 4641
     -- a quest the game can't place falls back to Pathfinder's waypoint
     alice.navFrame = nil
     Server.fire(alice, "NAVIGATION_FRAME_DESTROYED")

@@ -24,6 +24,10 @@ do
     env.GetMerchantItemID = function(i) return stock[i] and stock[i][1] end
     env.GetMerchantItemInfo = function(i) local s = stock[i]; return "x", 1, s[2], s[3], s[4], true, true, s[5] end
     env.UnitName = function(u) if u == "npc" then return "Tharynn Bouden" end return realUnitName(u) end
+    local realTI = env.C_TooltipInfo
+    env.C_TooltipInfo = setmetatable({ GetUnit = function(u)
+        if u == "npc" then return { lines = { { leftText = "Tharynn Bouden" }, { leftText = "Trade Goods" }, { leftText = "Level 40" } } } end
+    end }, { __index = realTI })
 
     Server.fire(alice, "MERCHANT_SHOW")
     Server:Advance(1)
@@ -39,8 +43,15 @@ do
     check(p == 20 and src == "vendor", "no auction house price: the vendor price is used")
     check(X.PriceOf(2678) == 40, "the auction house price itself is untouched")
 
+    check(db.vendor[2678].kind == "Trade Goods", "the merchant's title is kept too")
+    local lines = X.PriceLines("item:2678") or {}
+    local P = alice.env.RUIN_API.Widgets.PlainMoney
+    local vline = P((lines[1] or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    check(vline == "Vendor: 10c from Trade Goods NPC (40c AH)", "the tooltip says which kind of NPC and both prices (" .. vline .. ")")
+    check((lines[1] or ""):find("UI%-CopperIcon"), "with the game's coin icons")
+
     -- recipe costs use the cheaper one
-    local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
     check(strip(X.CraftText({ { 2678, 2 } })) == "20c/craft", "Price per Craft uses the vendor price when it's cheaper (" .. strip(X.CraftText({ { 2678, 2 } })) .. ")")
 
     -- shared with RUIN when the window closes
@@ -49,6 +60,8 @@ do
     Server:Advance(20)
     local cv = cara.env.RUIN_ExchangeDB.vendor
     check(cv and cv[2678] and cv[2678].p == 10 and cv[2678].by == "Tharynn Bouden", "closing the merchant shares its prices with RUIN")
+    check(cv[2678].kind == "Trade Goods", "with the merchant's title")
+    env.C_TooltipInfo = realTI
 
     errorsSoFar("vendor prices")
 end

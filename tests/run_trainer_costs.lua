@@ -10,7 +10,7 @@ do
     local X = env.RUIN_API:GetModule("Exchange")
     local db = env.RUIN_ExchangeDB
     local now = env.GetServerTime()
-    local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
     db.prices[2677] = { p = 100, t = now }      -- boar ribs 1s
     db.prices[2678] = { p = 20, t = now }       -- mild spices 20c
     db.prices[2589] = { p = 300, t = now }      -- linen 3s
@@ -71,7 +71,7 @@ do
     local X = env.RUIN_API:GetModule("Exchange")
     local db = env.RUIN_ExchangeDB
     local now = env.GetServerTime()
-    local function strip(t) return (t or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
     alice.ns.db.items[3731] = { n = "Lion Meat", q = 1 }
     alice.ns.db.items[3713] = { n = "Soothing Spices", q = 1 }
     db.prices[3731] = { p = 150, t = now }      -- lion meat 1s 50c
