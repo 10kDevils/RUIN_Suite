@@ -245,13 +245,33 @@ do
     pdb.pinObjectives, pdb.pinWalk = false, false
     pf.RefreshPin()
     drive._scripts.OnUpdate(drive, 0.1)
-    check(pinFrame.obj._text == "" and not pinFrame.dist._text:find("sec"), "objectives and walking time follow their options")
+    check(not pinFrame.obj:IsShown() and not pinFrame.dist._text:find("sec"), "objectives and walking time follow their options")
     pdb.pinObjectives, pdb.pinWalk = true, true
     -- the waypoint no longer depends on the tracker's arrow option
     pdb.arrow = false
     pf.RefreshPin()
     check(alice.trackedQuest == 4641, "turning off the tracker arrow leaves the waypoint alone")
     pdb.arrow = true
+    -- the Waypoint Editor: what the pin shows, with a live preview
+    alice.env.SlashCmdList.RUINPATH("editor")
+    local ed = pf.WaypointEditor()
+    check(ed and ed:IsShown() and ed.preview:IsShown() and ed.preview.card:IsShown(), "/path editor opens the Waypoint Editor with a preview of the pin")
+    local cardCheck
+    for _, c in ipairs(ed.checks) do if c.label and c.label._text == "Card above the marker" then cardCheck = c end end
+    cardCheck:SetChecked(false)
+    cardCheck._scripts.OnClick(cardCheck)
+    check(pdb.pinShowCard == false and not ed.preview.card:IsShown(), "turning the card off hides it in the preview")
+    drive._scripts.OnUpdate(drive, 0.6)
+    check(pinFrame:IsShown() and not pinFrame.card:IsShown(), "and on the live pin")
+    pdb.pinMarkerStyle = "dot"
+    pf.RefreshPin()
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame.markerStyle == "dot", "the marker can be a plain dot")
+    for k in pairs({ pinShowCard = 1, pinMarkerStyle = 1 }) do pdb[k] = nil end
+    pf.RefreshPin()
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame.card:IsShown() and pinFrame.markerStyle == "emblem", "Reset brings the look back")
+    ed:Hide()
     -- the key bindings reach Pathfinder
     check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
     -- the tracker's tabs: Route works as before, Tracked shows the tracked quest
