@@ -204,6 +204,33 @@ do
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
     alice.navClamped = false
+    -- inside the quest's area (the game says in range), or nearer than the set distance, it steps aside
+    alice.navState = 2
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(not pinFrame:IsShown(), "inside the quest's area the pin hides")
+    alice.navState = 0
+    alice.navDistance = 10
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(not pinFrame:IsShown(), "and within the hide distance")
+    local pdb = alice.env.RUIN_PathfinderCharDB
+    pdb.pinHideInArea = false
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame:IsShown(), "unless that option is off")
+    pdb.pinHideInArea = true
+    alice.navDistance = nil
+    -- settings: objectives and walking time can be left off the pin
+    pdb.pinObjectives, pdb.pinWalk = false, false
+    pf.RefreshPin()
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame.obj._text == "" and not pinFrame.dist._text:find("sec"), "objectives and walking time follow their options")
+    pdb.pinObjectives, pdb.pinWalk = true, true
+    -- the waypoint no longer depends on the tracker's arrow option
+    pdb.arrow = false
+    pf.RefreshPin()
+    check(alice.trackedQuest == 4641, "turning off the tracker arrow leaves the waypoint alone")
+    pdb.arrow = true
+    -- the key bindings reach Pathfinder
+    check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
     -- a quest the game can't place falls back to Pathfinder's waypoint
     alice.navFrame = nil
     Server.fire(alice, "NAVIGATION_FRAME_DESTROYED")

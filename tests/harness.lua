@@ -297,6 +297,7 @@ function Server:NewClient(opts)
     env.C_Navigation = { GetFrame = function() return c.navFrame end,
         HasValidScreenPosition = function() return c.navFrame ~= nil end,
         GetDistance = function() return c.navDistance or 140 end,
+        GetTargetState = function() return c.navState or 0 end,
         WasClampedToScreen = function() return c.navClamped == true end }
     env.C_Map = {
         GetBestMapForUnit = function() return c.pos.map end,
@@ -365,6 +366,7 @@ function Server:NewClient(opts)
     env.TooltipDataProcessor = { AddTooltipPostCall = function(_, fn) table.insert(c.tooltipHooks, fn) end }
     env.Enum.TooltipDataType = { Item = 0 }
     env.Enum.SuperTrackingType = { Quest = 0, UserWaypoint = 3 }
+    env.Enum.NavigationState = { Invalid = 0, Occluded = 1, InRange = 2, Disabled = 3 }
     c.questTitles = {}
     c.questLog = {}
     env.C_QuestLog = { GetTitleForQuestID = function(id) return c.questTitles[id] end,
