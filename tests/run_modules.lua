@@ -80,7 +80,7 @@ cara.env.RUIN_API:GetModule("Pathfinder"):StartRoute("vot")
 Server:Advance(2)
 cara.env.RUIN_API:GetModule("Pathfinder"):Advance(2)
 Server:Advance(15)
-check(alice.env.RUIN_PathfinderTracker and alice.env.RUIN_PathfinderTracker.peers:GetText():find("1 RUIN member"), "tracker shows Cara on the same step")
+check(alice.env.RUIN_PathfinderTracker and alice.env.RUIN_PathfinderTracker.title:GetText():find("1 RUIN here"), "tracker shows Cara on the same step")
 alice.env.RUIN_API:OpenTab("Pathfinder")
 errorsSoFar("pathfinder")
 

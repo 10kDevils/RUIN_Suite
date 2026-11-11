@@ -158,13 +158,16 @@ do
     alice.pos = { map = 1429, x = 0.5, y = 0.5 }
     tr.nav._scripts.OnUpdate(tr.nav, 0.1)
     check(not tr.arrow:IsShown() and tr.dist:GetText():find("Durotar"), "outside the zone the tracker names it")
-    -- the tracker's Open button opens Pathfinder
+    -- double-clicking the tracker opens Pathfinder (one click doesn't)
     local opened
     local realOpen = pf.OpenTab
     pf.OpenTab = function(...) opened = true; return realOpen(...) end
-    tr.open._scripts.OnClick(tr.open)
+    tr._scripts.OnMouseUp(tr, "LeftButton")
+    check(not opened, "one click on the tracker doesn't open Pathfinder")
+    tr._scripts.OnMouseUp(tr, "LeftButton")
     pf.OpenTab = realOpen
-    check(opened, "the tracker's Open button opens Pathfinder")
+    check(opened, "a double-click opens Pathfinder")
+    check(tr.open == nil and tr.clear and tr.clear.icon, "no Open button; a little x instead of Clear")
     alice.pos = { map = 1411, x = 0.40, y = 0.68 }
     -- the game's waypoint (3D pin in the world) sits on the step
     check(alice.waypoint and alice.waypoint.uiMapID == 1411 and math.abs(alice.waypoint.position.x - 0.433) < 0.001
@@ -253,22 +256,34 @@ do
     check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
     -- the tracker's tabs: Route works as before, Tracked shows the tracked quest
     check(tr.tabs and #tr.tabs == 2 and tr.tabs[1].text._text == "Route" and tr.tabs[2].text._text == "Tracked", "the tracker has Route and Tracked tabs")
+    -- the quest Pathfinder tracks for a step isn't "yours": Tracked has nothing and can't be picked
+    check(tr.tabs[1].ok and not tr.tabs[2].ok, "with no quest of yours tracked the Tracked tab is greyed out")
     tr.tabs[2]._scripts.OnClick(tr.tabs[2])
-    check(tr.title._text:find("Tracked") and tr.title._text:find("Your Place In The World") and tr.step._text:find("Talk to Gornek"),
-          "Tracked shows the tracked quest and its objectives")
+    check(tr.title._text:find("Valley of Trials"), "and clicking it does nothing")
+    -- you pick a quest in the objective tracker: it's yours, and the Tracked tab opens
+    alice.logIds[788] = true
+    alice.questTitles[788] = "Cutting Teeth"
+    alice.questObjectives[788] = { { text = "Mottled Boar slain: 3/10", finished = false } }
+    alice.env.C_SuperTrack.SetSuperTrackedQuestID(788)
+    Server.fire(alice, "SUPER_TRACKING_CHANGED")
+    Server:Advance(1)
+    check(tr.tabs[2].ok and tr.title._text:find("Tracked") and tr.title._text:find("Cutting Teeth") and tr.step._text:find("Mottled Boar"),
+          "picking a quest makes it your tracked quest and shows it on Tracked")
+    check(alice.trackedQuest == 788 and alice.waypoint == nil, "the world pin follows your quest while Tracked is selected")
+    tr.tabs[1]._scripts.OnClick(tr.tabs[1])
+    check(alice.trackedQuest == 4641 and tr.title._text:find("Valley of Trials"), "Route: the world pin follows the route's step again")
+    tr.tabs[2]._scripts.OnClick(tr.tabs[2])
+    check(alice.trackedQuest == 788, "Tracked: back to your quest")
     alice.questLog = { { title = "Your Place In The World", id = 4641 }, { title = "Cutting Teeth", id = 788 } }
     tr.next._scripts.OnClick(tr.next)
-    check(alice.trackedQuest == 788, "> on Tracked tracks the next quest in your log")
+    check(alice.trackedQuest == 4641 and tr.title._text:find("Your Place"), "> on Tracked tracks the next quest in your log")
     tr.prev._scripts.OnClick(tr.prev)
-    check(alice.trackedQuest == 4641, "< goes back")
-    tr.open._scripts.OnClick(tr.open)
-    check(alice.env.RUIN_PathfinderCharDB.trackerTab == "tracked", "Open on Tracked opens the Quests tab")
+    check(alice.trackedQuest == 788, "< goes back")
     tr.clear._scripts.OnClick(tr.clear)
-    check(alice.trackedQuest == nil, "Clear on Tracked stops tracking the quest")
-    tr.tabs[1]._scripts.OnClick(tr.tabs[1])
-    check(tr.title._text:find("Valley of Trials"), "Route shows the route again")
+    check(alice.env.RUIN_PathfinderCharDB.userQuest == nil and not tr.tabs[2].ok and tr.title._text:find("Valley of Trials"),
+          "the x on Tracked stops tracking your quest and goes back to the route")
+    check(alice.trackedQuest == 4641, "and the world pin is the route's again")
     alice.questLog = {}
-    alice.trackedQuest = 4641
     -- a quest the game can't place falls back to Pathfinder's waypoint
     alice.navFrame = nil
     Server.fire(alice, "NAVIGATION_FRAME_DESTROYED")
@@ -329,7 +344,7 @@ do
     pf:Advance(2)
     Server:Advance(3)
     check(eve.env.RUIN_PathfinderCharDB.route == cid and eve.env.RUIN_PathfinderCharDB.step == 3, "Eve's tracker follows Alice to step 3")
-    check(eve.env.RUIN_PathfinderTracker.peers:GetText():find("Following Alice"), "tracker says who she follows")
+    check(eve.env.RUIN_PathfinderTracker.title:GetText():find("following Alice"), "tracker says who she follows")
     T.openAllSubTabs(alice, "Pathfinder")
     T.openAllSubTabs(eve, "Pathfinder")
     errorsSoFar("pathfinder")
