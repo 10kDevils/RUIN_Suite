@@ -7,7 +7,7 @@ do
     local pf = alice.env.RUIN_API:GetModule("Pathfinder")
     local QB = pf.QB
     local real = { Spots = QB.Spots, Spot = QB.Spot, Prereqs = QB.Prereqs, DoText = QB.DoText, Quest = QB.Quest,
-                   AcceptText = QB.AcceptText, TurninText = QB.TurninText, Field = QB.Field }
+                   AcceptText = QB.AcceptText, TurninText = QB.TurninText, Field = QB.Field, Targets = QB.Targets }
     local function stub(world)
         QB.Spots = function(q, which) local w = world[q]; return w and w[which] and { w[which] } or {} end
         QB.Spot = function(q, which) local w = world[q]; return w and w[which] end
@@ -17,6 +17,11 @@ do
         QB.AcceptText = function() return "" end
         QB.TurninText = function() return "" end
         QB.Field = function() return 1 end
+        QB.Targets = function(q)
+            local out = {}
+            for _, k in ipairs(world[q] and world[q].targets or {}) do out[k] = true end
+            return out
+        end
     end
     local M_ = 1429
     local function at(x, y) return { map = M_, x = x, y = y } end
@@ -41,6 +46,39 @@ do
     check(pos.a4 > pos.t1, "a quest is picked up only after the one that opens it is handed in (" .. s .. ")")
     check(math.abs(pos.c3 - pos.c4) == 1 or pos.a4 > pos.c3, "the far objectives are done on one trip (" .. s .. ")")
     check(length <= before + 0.01, "the second pass never makes the walk longer (" .. math.floor(before) .. " -> " .. math.floor(length) .. " yd)")
+
+    -- quests that share a target are one "do" stop
+    local shared = {
+        [11] = { start = hub, objective = at(0.20, 0.20), finish = hub, targets = { "n500" } },
+        [12] = { start = hub, objective = at(0.22, 0.20), finish = hub, targets = { "n501", "n500" } },
+        [13] = { start = hub, objective = at(0.80, 0.80), finish = hub, targets = { "o77" } },
+        [14] = { start = hub, objective = at(0.21, 0.21), finish = hub, targets = { "n500" }, pre = { 11 } },   -- follows 11: not together
+    }
+    stub(shared)
+    local sp = QB.Plan({ 11, 12, 13, 14 }, hub)
+    local merged, kinds = nil, {}
+    for _, t in ipairs(sp) do
+        kinds[t.kind] = (kinds[t.kind] or 0) + 1
+        if t.qids then merged = t end
+    end
+    check(merged and #merged.qids == 2 and kinds.complete == 3, "quests killing the same NPC share one objectives stop (" .. (merged and table.concat(merged.qids, "+") or "none") .. ")")
+    local mq = {}
+    for _, q in ipairs(merged and merged.qids or {}) do mq[q] = true end
+    check(mq[11] and mq[12] and not mq[14], "a quest that follows another isn't folded into its stop")
+    local p2 = {}
+    for i, t in ipairs(sp) do for _, q in ipairs(t.qids or { t.qid }) do p2[t.kind .. q] = p2[t.kind .. q] or i end end
+    check(p2.complete11 > p2.accept11 and p2.complete11 > p2.accept12 and p2.turnin12 > p2.complete12, "both are picked up before the shared stop and handed in after it")
+    local zr = QB.ZoneRoute({ 11, 12, 13 })
+    local zstep
+    for _, st in ipairs(zr or {}) do if st.qids then zstep = st end end
+    check(zstep and zstep.quest == "Q11 + Q12" and zstep.act == "complete", "the route shows one step for both (" .. tostring(zstep and zstep.quest) .. ")")
+    local inLog = QB.InLog
+    QB.InLog = function(q) return true, q == 11 end
+    check(not pf:StepDone(zstep), "a shared step isn't done while one of its quests still needs work")
+    check(pf:WorkQid(zstep) == 12, "and the waypoint points at the quest that still needs work")
+    QB.InLog = function() return true, true end
+    check(pf:StepDone(zstep), "and is done once all of them are ready to hand in")
+    QB.InLog = inLog
 
     -- a big set stays quick
     local big, ids = {}, {}

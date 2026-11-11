@@ -7,7 +7,9 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | Folder | What it is |
 | --- | --- |
 | `RUIN_Core` … `RUIN_Exchange` | The six addons, linked as git submodules (each points at a tagged commit in its own repo) |
-| `build.sh` | Packs all six into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
+| `RUIN_QuestData` | Pathfinder's quest database (GPLv3, built from QuestieDB's Forever data; see its NOTICE.md), kept in this repository |
+| `tools/questdb` | Rebuilds RUIN_QuestData from an installed QuestieDB (`extract.lua` per faction, then `assemble.py`) |
+| `build.sh` | Packs all seven into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
 | `tests/` | Lua 5.1 test harness that simulates several game clients (`tests/run.sh`) |
 | `tests/render/` | Draws every page and sub-page outside the game as PNG screenshots, for checking layout and colors (see its README) |
 | `site/` | The player website: plain HTML pages, plus the design-canvas sources in `site/design-canvas` |

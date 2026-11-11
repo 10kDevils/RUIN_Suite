@@ -83,13 +83,13 @@ jobs:
           if prev:
               changed = set(subprocess.run(["git", "diff", "--name-only", prev, "HEAD"], capture_output=True, text=True).stdout.split())
               print("changes since", prev, ":", sorted(c for c in changed if c.startswith("RUIN_")))
-          for addon in ["RUIN_Core", "RUIN_Finder", "RUIN_Muster", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange"]:
+          for addon in ["RUIN_Core", "RUIN_Finder", "RUIN_Muster", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_QuestData"]:
               toc = open(f"{addon}/{addon}.toc", encoding="utf-8").read()
               ver = re.search(r"^## Version:\s*(\S+)", toc, re.M).group(1)
               rows.append(f"| {addon.replace('_', ' ')} | {ver} |")
               log = open(f"{addon}/CHANGELOG.md", encoding="utf-8").read()
               m = re.search(r"^## " + re.escape(ver) + r"\b.*?\n(.*?)(?=^## |\Z)", log, re.M | re.S)
-              if m and m.group(1).strip() and (changed is None or addon in changed):
+              if m and m.group(1).strip() and (changed is None or addon in changed or any(c.startswith(addon + "/") for c in changed)):
                   out.append(f"**{addon.replace('_', ' ')} {ver}**\n\n" + m.group(1).strip() + "\n")
           if len(out) == 1:
               out.append("No addon changed since %s.\n" % prev)

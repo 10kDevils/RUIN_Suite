@@ -133,7 +133,7 @@ do
     text = {}
     for _, l in ipairs(lines) do text[#text + 1] = l[1] end
     t = table.concat(text, "\n")
-    check(t:find("The Restless Dead", 1, true) and t:find("Questie isn't installed", 1, true), "without Questie, the launch data's quest names and how to get more")
+    check(t:find("The Restless Dead", 1, true) and t:find("No quest database is loaded", 1, true), "without Questie, the launch data's quest names and how to get more")
     alice.env.RUIN_PathfinderCharDB.route = nil
     errorsSoFar("dungeon quests")
 end
