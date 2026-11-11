@@ -315,8 +315,24 @@ do
           "picking a quest makes it your tracked quest and shows it on Tracked")
     check(tr.step._text:find("3/10|r\n") and tr.wantLines == 2, "each objective on its own line")
     check(alice.trackedQuest == 788 and alice.waypoint == nil, "the world pin follows your quest while Tracked is selected")
+    -- you stop tracking it in the game: Pathfinder lets it go and never re-tracks it behind your back
+    Server:Advance(1)
+    alice.env.C_SuperTrack.SetSuperTrackedQuestID(0)
+    Server.fire(alice, "SUPER_TRACKING_CHANGED")
+    Server:Advance(4)
+    tr.nav._scripts.OnUpdate(tr.nav, 3.5)
+    check(alice.env.RUIN_PathfinderCharDB.userQuest == nil and alice.trackedQuest ~= 788, "untracking in the game is respected")
+    Server:Advance(1)
+    alice.env.C_SuperTrack.SetSuperTrackedQuestID(788)
+    Server.fire(alice, "SUPER_TRACKING_CHANGED")
+    Server:Advance(1)
+    -- nothing changes the game's tracking in combat; it catches up afterwards
+    alice.env.InCombatLockdown = function() return true end
     tr.tabs[1]._scripts.OnClick(tr.tabs[1])
-    check(alice.trackedQuest == 4641 and tr.title._text:find("Valley of Trials"), "Route: the world pin follows the route's step again")
+    check(alice.trackedQuest == 788, "in combat Pathfinder leaves the game's tracking alone")
+    alice.env.InCombatLockdown = function() return false end
+    Server.fire(alice, "PLAYER_REGEN_ENABLED")
+    check(alice.trackedQuest == 4641 and tr.title._text:find("Valley of Trials"), "Route: after combat the world pin follows the route's step again")
     tr.tabs[2]._scripts.OnClick(tr.tabs[2])
     check(alice.trackedQuest == 788, "Tracked: back to your quest")
     alice.questLog = { { title = "Your Place In The World", id = 4641 }, { title = "Cutting Teeth", id = 788 } }
