@@ -80,7 +80,27 @@ do
     alice.items[302] = { name = "Bright Helm", link = "|cff0070dd|Hitem:302::|h[Bright Helm]|h|r", q = 3, ilvl = 24, loc = "INVTYPE_HEAD", sell = 300, classID = 4 }
     db.prices[302] = { p = 99999, t = env.GetServerTime() }
     L = plainLines(X.PriceLines("item:302"))
-    check(L[#L]:find("^Disenchant:") and L[#L]:find("Small Glimmering Shard"), "a blue always says Disenchant: its mat is a blue shard (" .. L[#L] .. ")")
+    check(L[#L]:find("^Sell on AH"), "disenchanting is only about the mats' value: a pricey blue sells (" .. L[#L] .. ")")
+    db.prices[302].p = 500
+    db.prices[10978].p = 1500
+    L = plainLines(X.PriceLines("item:302"))
+    check(L[#L]:find("^Disenchant: ~15s") and L[#L]:find("Small Glimmering Shard"), "and a cheap one is disenchanted (" .. L[#L] .. ")")
+
+    -- craft: a reagent that makes something worth more than the reagents
+    alice.items[6888] = { name = "Herb Baked Egg", link = "|cffffffff|Hitem:6888::|h[Herb Baked Egg]|h|r", q = 1, sell = 6 }
+    alice.items[6889] = { name = "Small Egg", link = "|cffffffff|Hitem:6889::|h[Small Egg]|h|r", q = 1, sell = 4 }
+    local guid = alice.env.RUIN_API:GetPlayerGUID()
+    db.crafters[guid] = { name = "Alice Ash", profs = { Cooking = { "Herb Baked Egg" } }, made = { Cooking = { i = { 6888 }, q = { 1 } } } }
+    db.recipeBook.Cooking = db.recipeBook.Cooking or {}
+    db.recipeBook.Cooking["Herb Baked Egg"] = { { 6889, 1 }, { 2678, 1 } }
+    db.prices[6888] = { p = 5000, t = env.GetServerTime() }
+    db.prices[6889] = { p = 100, t = env.GetServerTime() }
+    L = plainLines(X.PriceLines("item:6889"))
+    check(L[#L]:find("^Craft: Herb Baked Egg"), "a reagent says Craft when what it makes sells for more (" .. L[#L] .. ")")
+    db.prices[6888].p = 120
+    L = plainLines(X.PriceLines("item:6889"))
+    check(not L[#L]:find("^Craft"), "and doesn't when it doesn't (" .. L[#L] .. ")")
+    db.crafters[guid] = nil
     check(X.DisenchantYield(2678) == nil, "things that aren't gear can't be disenchanted")
 
     -- the section is boxed: a faint gold border round its lines
