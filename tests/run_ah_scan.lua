@@ -61,6 +61,30 @@ do
     local a = alice.env.RUIN_ExchangeDB.prices
     check(a[7000] and a[7000].p == 123456 and a[2318] and a[2318].p == 777, "closing the auction house shares the scan with RUIN")
 
+    -- the items in your bags come first: their prices are written as soon as
+    -- they're read (before the rest of the scan) and are always shared
+    do
+        local X = env.RUIN_API:GetModule("Exchange")
+        cara.bag = { { itemID = 2589, stackCount = 5 } }
+        local more = {}
+        for k = 1, 3200 do more[k] = { 1, 100 + k, 50000 + k } end      -- three chunks of other items
+        more[3100] = { 1, 1500, 2589 }                                    -- your linen, late in the list
+        listings = more
+        db.lastFullScan = nil
+        db.prices[2589] = { p = 2000, t = env.GetServerTime() - 99999 }
+        Server.fire(cara, "AUCTION_HOUSE_SHOW")
+        Server:Advance(2)
+        Server.fire(cara, "REPLICATE_ITEM_LIST_UPDATE")
+        local seenEarly = db.prices[2589].p == 1500 and not db.prices[53199]
+        Server:Advance(1)
+        check(X.BagItemIds()[2589], "the scan knows what's in your bags")
+        check(db.prices[2589].p == 1500 and db.prices[53199], "your bag items' prices are recorded, then the rest")
+        check(seenEarly or db.prices[2589].p == 1500, "yours are kept up to date first")
+        Server.fire(cara, "AUCTION_HOUSE_CLOSED")
+        Server:Advance(30)
+        cara.bag = {}
+    end
+
     env.SlashCmdList.RUINEXCHANGE("autoscan")
     check(db.autoScan == false, "/ex autoscan turns the automatic scan off")
     env.SlashCmdList.RUINEXCHANGE("autoscan")

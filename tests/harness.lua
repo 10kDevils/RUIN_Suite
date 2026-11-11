@@ -343,7 +343,7 @@ function Server:NewClient(opts)
         local it = n and c.items[n]
         if not it then return nil end
         return it.name, it.link, it.q or 3, it.ilvl or 20, it.minLevel or 1, it.cls or "Armor", "Plate", 20,
-               it.loc or "", 134400, it.sell or 100
+               it.loc or "", 134400, it.sell or 100, it.classID or ((it.loc or "") ~= "" and 4 or 7)
     end
     env.IsEquippableItem = function(link)
         local n = tonumber(tostring(link):match("item:(%d+)"))

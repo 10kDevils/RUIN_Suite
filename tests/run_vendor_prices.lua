@@ -58,6 +58,31 @@ do
     lines = plainLines(X.PriceLines("item:2678", 6))
     local last = lines[#lines]
     check(last:find("^Sell on AH: 2s 40c") or last:find("^Sell to Vendor:"), "the last line says where to sell, for the whole stack (" .. last .. ")")
+    -- disenchant: recommended when the mats are worth more, or the likely mat is blue or better
+    alice.items[301] = { name = "Ridge Cleaver", link = "|cff1eff00|Hitem:301::|h[Ridge Cleaver]|h|r", q = 2, ilvl = 22, loc = "INVTYPE_2HWEAPON", sell = 300, classID = 2 }
+    alice.items[10998] = { name = "Lesser Astral Essence", link = "|cff1eff00|Hitem:10998::|h[Lesser Astral Essence]|h|r", q = 2, sell = 0 }
+    alice.items[10940] = { name = "Strange Dust", link = "|cffffffff|Hitem:10940::|h[Strange Dust]|h|r", q = 1, sell = 0 }
+    alice.items[10978] = { name = "Small Glimmering Shard", link = "|cff0070dd|Hitem:10978::|h[Small Glimmering Shard]|h|r", q = 3, sell = 0 }
+    local Y = X.DisenchantYield(301)
+    check(Y and Y[1][1] == 10940 and math.abs(Y[2][2] - 0.75) < 0.001 and Y[2][1] == 10998, "a green weapon breaks mostly into essence (" .. tostring(Y and #Y) .. ")")
+    db.prices[301] = { p = 400, t = env.GetServerTime() }
+    db.prices[10998] = { p = 2000, t = env.GetServerTime() }
+    db.prices[10940] = { p = 300, t = env.GetServerTime() }
+    db.prices[10978] = { p = 1500, t = env.GetServerTime() }
+    local L = plainLines(X.PriceLines("item:301"))
+    check(L[#L]:find("^Disenchant: ~") and L[#L]:find("Lesser Astral Essence"), "Disenchant when the mats beat the AH and the vendor (" .. L[#L] .. ")")
+    db.prices[10998].p, db.prices[10940].p, db.prices[10978].p = 10, 10, 10
+    L = plainLines(X.PriceLines("item:301"))
+    check(L[#L]:find("^Sell to Vendor: 3s"), "otherwise sell it: 4s on the AH nets less than the vendor's 3s after the deposit and cut (" .. L[#L] .. ")")
+    db.prices[301].p = 1000
+    L = plainLines(X.PriceLines("item:301"))
+    check(L[#L] == "Sell on AH: 10s  (nets 8s 50c)", "the AH when it's worth it after the 1 silver deposit and 5% cut (" .. L[#L] .. ")")
+    alice.items[302] = { name = "Bright Helm", link = "|cff0070dd|Hitem:302::|h[Bright Helm]|h|r", q = 3, ilvl = 24, loc = "INVTYPE_HEAD", sell = 300, classID = 4 }
+    db.prices[302] = { p = 99999, t = env.GetServerTime() }
+    L = plainLines(X.PriceLines("item:302"))
+    check(L[#L]:find("^Disenchant:") and L[#L]:find("Small Glimmering Shard"), "a blue always says Disenchant: its mat is a blue shard (" .. L[#L] .. ")")
+    check(X.DisenchantYield(2678) == nil, "things that aren't gear can't be disenchanted")
+
     -- the section is boxed: a faint gold border round its lines
     local tip = env.CreateFrame("GameTooltip", "RuinBoxTestTip")
     tip.GetName = function() return "RuinBoxTestTip" end
