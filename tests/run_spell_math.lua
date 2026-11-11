@@ -36,8 +36,8 @@ do
     }, { __index = realSpell })
     env.GetSpellCritChance = function(school) return 10 end
     local m = X.SpellMath(133)
-    -- 38 * (1 + 0.1 * 0.5) + 2 = 41.9; 2.5 sec cast
-    check(m and math.abs(m.expected - 41.9) < 0.01 and math.abs(m.perSecond - 41.9 / 2.5) < 0.01 and math.abs(m.perPoint - 65 / 41.9) < 0.001,
+    -- (38 + 2) * (1 + 0.1 * 0.5) = 42; 2.5 sec cast
+    check(m and math.abs(m.expected - 42) < 0.01 and math.abs(m.perSecond - 42 / 2.5) < 0.01 and math.abs(m.perPoint - 65 / 42) < 0.001,
           "Fireball: crits counted, per second of the cast, mana per point (" .. tostring(m and m.expected) .. ")")
     local tip = env.CreateFrame("GameTooltip", "SpellTestTip")
     tip.GetName = function() return "SpellTestTip" end
@@ -47,7 +47,7 @@ do
     m = X.SpellMath(5143, tip)
     check(m and math.abs(m.perSecond - 78 * 1.05 / 3) < 0.01, "Arcane Missiles: channeled, per second of the channel")
     m = X.SpellMath(172)
-    check(m and math.abs(m.perSecond - 40 / 12) < 0.01 and math.abs(m.expected - 40) < 0.01, "Corruption: periodic damage doesn't crit, per second of its duration")
+    check(m and math.abs(m.expected - 42) < 0.01 and math.abs(m.perSecond - 42 / 12) < 0.01, "Corruption: damage over time crits too on WoW Forever, per second of its duration")
     local added
     tip.AddDoubleLine = function(_, l, r) added = { l, r } end
     env.SpellTestTipTextLeft2:SetText("2.5 sec cast")
