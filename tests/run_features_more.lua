@@ -272,6 +272,30 @@ do
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.card:IsShown() and pinFrame.markerStyle == "emblem", "Reset brings the look back")
     ed:Hide()
+    -- long text: the tracker widens first, then grows taller, so all of it shows
+    do
+        local st = tr.step
+        local realW, realH, realSize, realGW, realGH = st.SetWidth, st.GetStringHeight, tr.SetSize, tr.GetWidth, tr.GetHeight
+        st.SetWidth = function(self, w) self._w = w end
+        st.GetStringHeight = function(self) return math.ceil(#(self._text or "") * 6 / (self._w or 200)) * 14 end
+        tr.SetSize = function(self, w, h) self._sw, self._sh = w, h end
+        tr.GetWidth = function(self) return self._sw or 320 end
+        tr.GetHeight = function(self) return self._sh or 66 end
+        local r = pf:GetRoute("vot")
+        local saved = r.steps[1].text
+        r.steps[1].text = string.rep("A long step description. ", 2)
+        local curStep = alice.env.RUIN_PathfinderCharDB.step
+        alice.env.RUIN_PathfinderCharDB.step = 1
+        pf.UpdateTracker()
+        check(tr._sw and tr._sw > 320 and tr._sh == 66, "a longer step widens the tracker (" .. tostring(tr._sw) .. " x " .. tostring(tr._sh) .. ")")
+        r.steps[1].text = string.rep("A very long step description. ", 30)
+        pf.UpdateTracker()
+        check(tr._sw == 640 and tr._sh > 66, "past the widest it grows taller, so nothing is cut off (" .. tostring(tr._sw) .. " x " .. tostring(tr._sh) .. ")")
+        r.steps[1].text = saved
+        alice.env.RUIN_PathfinderCharDB.step = curStep
+        st.SetWidth, st.GetStringHeight, tr.SetSize, tr.GetWidth, tr.GetHeight = realW, realH, realSize, realGW, realGH
+        pf.UpdateTracker()
+    end
     -- the key bindings reach Pathfinder
     check(alice.env.BINDING_NAME_RUIN_PATH_NEXT == "Next step" and type(alice.env.RUIN_PathfinderBinding) == "function", "key bindings are named")
     -- the tracker's tabs: Route works as before, Tracked shows the tracked quest
