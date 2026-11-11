@@ -96,10 +96,10 @@ do
     db.prices[6888] = { p = 5000, t = env.GetServerTime() }
     db.prices[6889] = { p = 100, t = env.GetServerTime() }
     L = plainLines(X.PriceLines("item:6889"))
-    check(L[#L]:find("^Craft: Herb Baked Egg"), "a reagent says Craft when what it makes sells for more (" .. L[#L] .. ")")
+    check(L[#L - 1] == "Craft: Herb Baked Egg" and L[#L]:find("^%(sells ~"), "a reagent says Craft when what it makes sells for more, the sums on the line below (" .. L[#L - 1] .. " / " .. L[#L] .. ")")
     db.prices[6888].p = 120
     L = plainLines(X.PriceLines("item:6889"))
-    check(not L[#L]:find("^Craft"), "and doesn't when it doesn't (" .. L[#L] .. ")")
+    check(not L[#L]:find("^Craft") and not L[#L]:find("^%(sells"), "and doesn't when it doesn't (" .. L[#L] .. ")")
     db.crafters[guid] = nil
     check(X.DisenchantYield(2678) == nil, "things that aren't gear can't be disenchanted")
 
