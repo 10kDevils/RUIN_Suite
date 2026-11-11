@@ -71,7 +71,7 @@ end)
 try("pathfinder", function()
     alice.env.RUIN_API:GetModule("Pathfinder"):PublishRoute("westfall_10_15")
     Server:Advance(20)
-    -- quest logs shared across RUIN, and a stand-in Questie for the Quests page
+    -- quest logs shared across RUIN, and a stand-in quest database for the Quests page
     local function log(c, list) c.questLog = list; for _, q in ipairs(list) do c.questTitles[q.id] = q.title end end
     log(alice, { { title = "Westfall Stew", id = 38, complete = false }, { title = "The Killing Fields", id = 9, complete = true },
                  { title = "Goretusk Liver Pie", id = 22, complete = false } })
@@ -86,18 +86,8 @@ try("pathfinder", function()
     local npcs = { [235] = { name = "Salma Saldean", spawns = { [40] = { { 56.4, 30.5 } } } },
                    [233] = { name = "Farmer Saldean", spawns = { [40] = { { 56.0, 31.2 } } } },
                    [480] = { name = "Rusty Harvest Golem", spawns = { [40] = { { 50.0, 30.0 } } } } }
-    local DB = { QuestPointers = {} }
-    function DB.GetQuest(id) local q = quests[id]; if not q then return nil end
-        return { name = q.name, level = q.level, requiredLevel = q.req, Starts = { NPC = q.starts }, Finisher = { NPC = q.ends }, ObjectiveData = q.obj or {} } end
-    function DB:GetNPC(id) return npcs[id] end
-    function DB:GetObject() return nil end
-    function DB:GetItem() return nil end
-    local Zone = {}
-    function Zone:GetUiMapIdByAreaId(a) return a == 40 and 1436 or nil end
-    function Zone:GetAreaIdByUiMapId(m) return m == 1436 and 40 or nil end
     for _, c in ipairs({ alice, eve }) do
-        c.env.QuestieLoader = { ImportModule = function(_, n) return n == "QuestieDB" and DB or Zone end }
-        c.mns.RUIN_Pathfinder.QB.Forget()
+        dofile(here .. "/../fake_quests.lua")(c, { quests = quests, npcs = npcs, area = { [40] = 1436 } })
     end
     for _, c in ipairs({ alice, eve, cara }) do c.env.RUIN_API:GetModule("Pathfinder"):ShareQuests(true) end
     Server:Advance(10)
@@ -312,8 +302,8 @@ do  -- some tracked runs, for the boss and General numbers
     cdb.kills["Hall of Thanes"] = { ["Faldrim Anvilmar"] = 12, ["Magmatus"] = 11, ["Durgen Dirgehammer"] = 9 }
     cdb.mobs["Hall of Thanes"] = { n = 214, items = { [5191] = 3, [100] = 7 } }
 end
-local undoQuests = dofile(here .. "/../fake_questiedb.lua")(alice, { [9003] = true })
-do local CX = alice.env.RUIN_API:GetModule("Codex"); CX.QuestieLoot.state = "idle"; alice.env.RUIN_CodexDB.qloot = nil; CX.QuestieLoot.Start() end
+local undoQuests = dofile(here .. "/../fake_questdb.lua")(alice, { [9003] = true })
+do local CX = alice.env.RUIN_API:GetModule("Codex"); CX.DungeonLoot.state = "idle"; alice.env.RUIN_CodexDB.qloot = nil; CX.DungeonLoot.Start() end
 alice.env.SlashCmdList.RUINCODEX("hall of thanes"); write("codex--journal-hall-of-thanes")
 do  -- the loot lists, scrolled into view
     local CX = alice.env.RUIN_API:GetModule("Codex")

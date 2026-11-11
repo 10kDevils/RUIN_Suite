@@ -7,8 +7,8 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | Folder | What it is |
 | --- | --- |
 | `RUIN_Core` … `RUIN_Exchange` | The six addons, linked as git submodules (each points at a tagged commit in its own repo) |
-| `RUIN_QuestData` | Pathfinder's quest database (GPLv3, built from QuestieDB's Forever data; see its NOTICE.md), kept in this repository |
-| `tools/questdb` | Rebuilds RUIN_QuestData from an installed QuestieDB (`extract.lua` per faction, then `assemble.py`) |
+| `RUIN_QuestData` | Pathfinder's quest database (GPLv3; see its NOTICE.md for the data's sources), kept in this repository |
+| `tools/questdb` | Rebuilds RUIN_QuestData from its source database (`extract.lua` per faction, then `assemble.py`) |
 | `build.sh` | Packs all seven into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
 | `tests/` | Lua 5.1 test harness that simulates several game clients (`tests/run.sh`) |
 | `tests/render/` | Draws every page and sub-page outside the game as PNG screenshots, for checking layout and colors (see its README) |
@@ -24,7 +24,7 @@ In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchan
 | --- | --- | --- | --- |
 | RUIN Core | 0.4.6 | [RUIN_Core](https://github.com/10kDevils/RUIN_Core) | The RUIN window, Guild page (census of every guild with search and history, every guild's roster with moderation, people and appointed offices, guild and org chat with search, pins and block words, the Watch for reports and sanctions, guild bank snapshots, a join screen for newcomers) and community links, what's new after updates and RUIN lines in the right-click menu, a Planner page for Ruinous Forever Planner when it's installed, Settings with the org admin's guild list, org key or key phrase, and feedback, org-wide guild and officer chat, presence, module API. Required by every module. |
 | RUIN Codex | 0.4.2 | [RUIN_Codex](https://github.com/10kDevils/RUIN_Codex) | Class macros you can add in one click, a macro command reference, dungeon and raid journal with boss loot lists and learned drops, run planning, an upgrade line on item tooltips |
-| RUIN Pathfinder | 0.4.2 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, Alliance routes 1-30 checked against the Forever quest database, Questie or QuestieDB integration, quests shared across RUIN, class track, recorder, officer routes, follow a partner |
+| RUIN Pathfinder | 0.4.2 | [RUIN_Pathfinder](https://github.com/10kDevils/RUIN_Pathfinder) | Leveling checklist with waypoint arrow, Alliance routes 1-30 checked against the Forever quest database, RUIN Quest Data, quests shared across RUIN, class track, recorder, officer routes, follow a partner |
 | RUIN Finder | 0.4.2 | [RUIN_Finder](https://github.com/10kDevils/RUIN_Finder) | Org-wide LFG board: players and groups, matching, badge, Muster open slots, "Find group" from a sighting; where members are, layer detection and layer hops, member marks on nameplates, world boss and buff timers |
 | RUIN Muster | 0.4.3 | [RUIN_Muster](https://github.com/10kDevils/RUIN_Muster) | Events, role sign-ups and limits, weekly repeats, roster, soft reserves, a Plan tab with raid groups and the War Room's squads and after-action reports, loot notes, rally points, bounties, an automatic Most Wanted list, world sightings with map pins and under-attack calls |
 | RUIN Exchange | 0.4.4 | [RUIN_Exchange](https://github.com/10kDevils/RUIN_Exchange) | Pooled auction prices and trends, crafters by profession with item quality, craft requests, leveling plan, bag sweep, the guild treasury book, a confirmed crafting history |

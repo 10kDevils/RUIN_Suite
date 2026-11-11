@@ -1,17 +1,17 @@
--- Codex 0.5.3: every dungeon's loot, read from Questie or QuestieDB while you
--- play (a made-up QuestieDB here; none of Questie's data is used). Bosses and
+-- Codex 0.5.3: every dungeon's loot, read from a quest database while you
+-- play (a made-up one here). Bosses and
 -- rares get their own lists, the rest is Trash, and the launch data's names
 -- fill in what the database lacks. Runs after the other run_features_*.lua files.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 local Server = Server
 local here = T.here or "."
-local fakeQuestieDB = dofile(here .. "/fake_questiedb.lua")
+local fakeQuestDB = dofile(here .. "/fake_questdb.lua")
 
-print("Codex: dungeon loot from QuestieDB")
+print("Codex: dungeon loot from a quest database")
 do
     local R = alice.env.RUIN_API
     local CX = R:GetModule("Codex")
-    local QL = CX.QuestieLoot
+    local QL = CX.DungeonLoot
     local dbC = alice.env.RUIN_CodexDB
     local hot = CX:FindDungeon("Hall of Thanes")
     local function text(lines) local t = {}; for _, l in ipairs(lines) do t[#t + 1] = l[1] end; return table.concat(t, "\n") end
@@ -19,9 +19,9 @@ do
     -- without the database: the launch list, and a hint
     QL.state, dbC.qloot = "idle", nil
     local t = text(CX.JournalLines(CX:FindDungeon("The Stockade"), false))
-    check(t:find("Install QuestieDB (or Questie) for this dungeon's full loot list", 1, true), "without QuestieDB, the Journal says how to get the full loot list")
+    check(t:find("Install a quest database addon for this dungeon's full loot list", 1, true), "without a database addon, the Journal says how to get the full loot list")
 
-    local undo = fakeQuestieDB(alice, {})
+    local undo = fakeQuestDB(alice, {})
     QL.state, dbC.qloot = "idle", nil
     QL.state = "building"     -- what the page shows while the real (much larger) database is read
     t = text(CX.JournalLines(hot, false))
@@ -32,7 +32,7 @@ do
     check(QL.state == "ready" and dbC.qloot and dbC.qloot.d["Hall of Thanes"], "a moment later every dungeon's list is ready and saved")
 
     local loot = alice.mns.RUIN_Codex.Loot.For(hot)
-    check(loot and loot.source == "questie", "the Journal's loot now comes from QuestieDB")
+    check(loot and loot.source == "database", "the Journal's loot now comes from the database")
     local by = {}
     for _, b in ipairs(loot.bosses) do by[b.name] = b end
     local durgen = by["Durgen Dirgehammer"]
@@ -53,7 +53,7 @@ do
 
     local lines = CX.JournalLines(hot, false)
     t = text(lines)
-    check(t:find("Loot read from QuestieDB", 1, true) and t:find("Trash|r", 1, true), "the page says where the loot comes from, with a Trash list")
+    check(t:find("Loot read from quest database", 1, true) and t:find("Trash|r", 1, true), "the page says where the loot comes from, with a Trash list")
     local axe
     for _, l in ipairs(lines) do if l[1]:find("Crescent Axe", 1, true) then axe = l end end
     check(axe and axe.link == "item:8002", "every listed item opens its full tooltip")

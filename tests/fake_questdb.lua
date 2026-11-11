@@ -1,6 +1,7 @@
--- A made-up QuestieDB (contract 4) for tests and screenshots: a few invented
--- quests in Hall of Thanes (zone 16919). None of Questie's data is used.
--- Returns install(client, doneTable) -> undo().
+-- A made-up quest database for tests and screenshots: a few invented quests
+-- in Hall of Thanes (zone 16919), installed as RUIN Quest Data (what Pathfinder
+-- reads) and, for Codex's dungeon loot, as a database addon's tables. None of
+-- the real data is used. Returns install(client, doneTable) -> undo().
 local HUMAN, ORC = 1, 2
 return function(c, done)
     local quests = {
@@ -83,6 +84,29 @@ return function(c, done)
                  end }
     end
     local Q = E(quests)
+    local FIELDS = {
+        Q = { "name", "startedBy", "finishedBy", "requiredLevel", "questLevel", "requiredRaces", "requiredClasses", "objectivesText", "triggerEnd",
+              "objectives", "sourceItemId", "preQuestGroup", "preQuestSingle", "childQuests", "inGroupWith", "exclusiveTo", "zoneOrSort",
+              "requiredSkill", "requiredMinRep", "requiredMaxRep", "requiredSourceItems", "nextQuestInChain", "questFlags", "specialFlags",
+              "parentQuest", "reputationReward", "breadcrumbForQuestId", "breadcrumbs", "extraObjectives", "requiredSpell",
+              "requiredSpecialization", "requiredMaxLevel", "availableUntilCompleted", "availableStartingWith", "requiredRanks", "disabledByQuest" },
+        N = { "name", "minLevel", "maxLevel", "spawns", "zoneID", "questStarts", "questEnds", "friendlyToFaction", "subName" },
+        O = { "name", "spawns", "zoneID", "questStarts", "questEnds" },
+        I = { "name", "npcDrops", "objectDrops", "itemDrops", "startQuest", "vendors" },
+    }
+    local function rows(t, names)
+        local out = {}
+        for id, rec in pairs(t) do
+            local r = {}
+            for i, f in ipairs(names) do r[i] = rec[f] end
+            if rec.minLevel then r[2] = rec.minLevel end
+            out[id] = r
+        end
+        return out
+    end
+    local savedData = c.env.RUIN_QuestData
+    c.env.RUIN_QuestData = { fields = FIELDS, q = rows(quests, FIELDS.Q), n = rows(npcs, FIELDS.N), o = {}, i = rows(items, FIELDS.I),
+                             z = { areaToMap = { [1537] = 1455, [1] = 1426 }, mapToArea = { [1455] = 1537, [1426] = 1 } } }
     c.env.LibQuestieDB = { RequireContract = function(v) return v == 4 end, Quest = Q, Npc = E(npcs), Object = E({}), Item = E(items),
         Support = { Get = function(name) return name == "ZoneDB" and { private = { areaIdToUiMapId = { [1537] = 1455, [1] = 1426 },
                                                                                        uiMapIdToAreaId = { [1455] = 1537, [1426] = 1 } } } or nil end } }
@@ -96,6 +120,7 @@ return function(c, done)
     PF:ForgetDungeonQuests()
     return function()
         c.env.LibQuestieDB = nil
+        c.env.RUIN_QuestData = savedData
         c.env.C_QuestLog = real
         c.mns.RUIN_Pathfinder.QB.Forget()
         PF:ForgetDungeonQuests()

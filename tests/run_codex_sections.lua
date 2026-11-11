@@ -3,14 +3,14 @@
 -- run_features_*.lua files and shares T.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 local here = T.here or "."
-local fakeQuestieDB = dofile(here .. "/fake_questiedb.lua")
+local fakeQuestDB = dofile(here .. "/fake_questdb.lua")
 
 print("Codex: Journal sections and addon-colored buttons")
 do
     local R = alice.env.RUIN_API
     local CX = R:GetModule("Codex")
     local dbC = alice.env.RUIN_CodexDB
-    local undo = fakeQuestieDB(alice, {})
+    local undo = fakeQuestDB(alice, {})
     dbC.collapsed = {}
     local hot = CX:FindDungeon("Hall of Thanes")
     local raw = CX.JournalLines(hot, false)

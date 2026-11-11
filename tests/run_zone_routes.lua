@@ -1,14 +1,14 @@
--- Pathfinder 0.5.2: a route for every zone Questie has quests in (split by
+-- Pathfinder 0.5.2: a route for every zone the database has quests in (split by
 -- level), one list of routes for the Guide's picker and the Routes page,
 -- and a Routes page checkbox that hides a route from the picker.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 local here = T.here or "."
-local fakeQuestieDB = dofile(here .. "/fake_questiedb.lua")
+local fakeQuestDB = dofile(here .. "/fake_questdb.lua")
 
 print("Pathfinder: zone routes and one route list")
 do
     local done = {}
-    local undo = fakeQuestieDB(alice, done)
+    local undo = fakeQuestDB(alice, done)
     local env = alice.env
     local realArea = env.C_Map.GetAreaInfo
     env.C_Map.GetAreaInfo = function(a) return ({ [12] = "Elwynn Forest", [36] = "Alterac Mountains" })[a] end

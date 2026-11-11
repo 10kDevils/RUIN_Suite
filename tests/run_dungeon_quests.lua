@@ -1,17 +1,17 @@
 -- Dungeon quests (Pathfinder 0.5.2, Codex 0.5.3): every quest a dungeon has
 -- for your race and class, the quests that unlock them, a Pathfinder route
 -- through them all, and Codex's Journal section with a button for it.
--- A made-up QuestieDB (contract 4) stands in for the real one; none of
--- Questie's data is used here. Runs after the other run_features_*.lua files.
+-- A made-up quest database stands in for the real one; none of the real
+-- data is used here. Runs after the other run_features_*.lua files.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 
 local here = T.here or "."
-local fakeQuestieDB = dofile(here .. "/fake_questiedb.lua")
+local fakeQuestDB = dofile(here .. "/fake_questdb.lua")
 
 print("Pathfinder and Codex: dungeon quests")
 do
     local done = {}
-    local undo = fakeQuestieDB(alice, done)
+    local undo = fakeQuestDB(alice, done)
     local R = alice.env.RUIN_API
     local PF = R:GetModule("Pathfinder")
     local CX = R:GetModule("Codex")
@@ -26,7 +26,7 @@ do
     check(by[96395] and by[96395].name == "An Old Grudge", "a quest filed elsewhere that belongs to the dungeon is included")
     check(by[9002] and by[9002].pre[1] == 9003 and by[9002].state == "locked", "a quest that needs another first lists it, and says it's locked")
     check(by[9005] and by[9005].inside and by[9005].endsInside and not by[9001].inside, "it knows which quests are picked up and handed in inside")
-    check(by[9001].starts[1] == "Afadra Lightfoot" and by[9001].state == "available", "givers come from Questie; an open quest is available")
+    check(by[9001].starts[1] == "Afadra Lightfoot" and by[9001].state == "available", "givers come from the database; an open quest is available")
 
     -- the route
     local r = PF:DungeonRoute("Hall of Thanes")
@@ -126,14 +126,14 @@ do
     check(st and st.where:find("Stormwind", 1, true) and stText:find("Bazil Thredd", 1, true) and stText:find("Hamhock", 1, true),
         "The Stockade has a Journal page: entrance and bosses")
 
-    -- without Questie: the launch data's names, and why there's no more
+    -- without the database: the launch data's names, and why there's no more
     undo()
-    alice.env.QuestieLoader = nil
+    alice.env.RUIN_QuestData = nil
     lines = CX.JournalLines(dg, false)
     text = {}
     for _, l in ipairs(lines) do text[#text + 1] = l[1] end
     t = table.concat(text, "\n")
-    check(t:find("The Restless Dead", 1, true) and t:find("No quest database is loaded", 1, true), "without Questie, the launch data's quest names and how to get more")
+    check(t:find("The Restless Dead", 1, true) and t:find("No quest database is loaded", 1, true), "without the database, the launch data's quest names and how to get more")
     alice.env.RUIN_PathfinderCharDB.route = nil
     errorsSoFar("dungeon quests")
 end

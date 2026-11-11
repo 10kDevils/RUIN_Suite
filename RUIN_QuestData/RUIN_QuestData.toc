@@ -1,7 +1,7 @@
 ## Interface: 16001, 120105
 ## Title: RUIN Quest Data
-## Notes: WoW Forever's quests, NPCs, objects and items for RUIN Pathfinder. GPLv3, built from QuestieDB's Forever database (see NOTICE.md).
-## Author: RUIN (data: QuestieDB contributors)
+## Notes: WoW Forever's quests, NPCs, objects and items for RUIN Pathfinder. GPLv3; see NOTICE.md for the data's sources.
+## Author: RUIN (data credits in NOTICE.md)
 ## Version: 0.6.1
 ## Category: Quests
 ## X-License: GPL-3.0

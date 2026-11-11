@@ -80,6 +80,46 @@ do
     check(pf:StepDone(zstep), "and is done once all of them are ready to hand in")
     QB.InLog = inLog
 
+    -- quests on neighbouring maps are as far apart as the world says
+    local Map = alice.env.RUIN_API.Map
+    local realWorld = Map.WorldPos
+    Map.WorldPos = function(_, map, x, y)
+        if map == 1429 then return 0, 3000 - y * 2700, -4000 - x * 4000 end     -- Elwynn
+        if map == 1436 then return 0, 3000 - y * 2700 + 2700, -4000 - x * 4000 end -- Westfall, just north
+        return nil
+    end
+    local edgeA = { map = 1429, x = 0.5, y = 0.01 }         -- Elwynn's northern edge
+    local edgeB = { map = 1436, x = 0.5, y = 0.99 }         -- Westfall's southern edge: next door
+    local far = { map = 1436, x = 0.5, y = 0.01 }
+    stub({ [31] = { start = edgeA, finish = edgeA }, [32] = { start = edgeB, finish = edgeB }, [33] = { start = far, finish = far } })
+    local _, near = QB.Plan({ 31, 32 }, edgeA)
+    local _, wide = QB.Plan({ 31, 33 }, edgeA)
+    check(near < 400 and wide > near + 2000, ("a neighbouring map is a short walk, a far corner of it a long one (%.0f / %.0f yd)"):format(near, wide))
+    Map.WorldPos = realWorld
+
+    -- the search over the whole order beats the first two passes on a tangled set
+    local tangle, ids = {}, {}
+    local seed = 99
+    local function rnd() seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648 end
+    for q = 101, 124 do
+        local hubX, hubY = 0.1 + rnd() * 0.8, 0.1 + rnd() * 0.8
+        tangle[q] = { start = at(hubX, hubY), objective = at(rnd(), rnd()), finish = at(hubX, hubY), pre = (q > 104 and q % 4 == 1) and { q - 4 } or nil }
+        ids[#ids + 1] = q
+    end
+    stub(tangle)
+    local P = QB.Planner
+    local tasks = P.build(ids, at(0.5, 0.5))
+    local first = P.greedy(tasks, at(0.5, 0.5))
+    local second, secondLength = P.improve(tasks, first, at(0.5, 0.5), 40)
+    local planned, plannedLength = QB.Plan(ids, at(0.5, 0.5))
+    local pos = {}
+    for i, t in ipairs(planned) do pos[t.kind .. t.qid] = i end
+    local rulesHold = true
+    for q = 105, 124, 4 do if not (pos["turnin" .. (q - 4)] < pos["accept" .. q]) then rulesHold = false end end
+    check(plannedLength <= secondLength and rulesHold, ("the full search never walks more than the quick passes, and keeps the quest order (%.0f vs %.0f yd)"):format(plannedLength, secondLength))
+    local again, againLength = QB.Plan(ids, at(0.5, 0.5))
+    check(againLength == plannedLength, "the same quests always give the same route")
+
     -- a big set stays quick
     local big, ids = {}, {}
     math.randomseed(7)
@@ -112,7 +152,7 @@ do
     check(note("s", 9001, 1429, 0.40, 0.60, true), "a pick-up is noted where it happened")
     check(note("s", 9001, 1429, 0.4005, 0.6005, true), "a second one close by refines it")
     local spots = QB.Spots(9001, "start")
-    check(#spots == 1 and spots[1].seen == 2 and math.abs(spots[1].x - 0.40025) < 0.0001, "seen twice, the atlas is where the quest starts, even without Questie")
+    check(#spots == 1 and spots[1].seen == 2 and math.abs(spots[1].x - 0.40025) < 0.0001, "seen twice, the atlas is where the quest starts, even without the database")
     note("s", 9001, 1429, 0.90, 0.10, true)
     spots = QB.Spots(9001, "start")
     check(math.abs(spots[1].x - 0.40025) < 0.0001, "one odd sighting doesn't move a place seen before")

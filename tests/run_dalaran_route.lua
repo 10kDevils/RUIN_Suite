@@ -5,12 +5,12 @@
 -- Quests without a giver in the database get one from the hint table.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 local here = T.here or "."
-local fakeQuestieDB = dofile(here .. "/fake_questiedb.lua")
+local fakeQuestDB = dofile(here .. "/fake_questdb.lua")
 
 print("Pathfinder: City of Dalaran route")
 do
     local done = {}
-    local undo = fakeQuestieDB(alice, done)
+    local undo = fakeQuestDB(alice, done)
     local PF = alice.env.RUIN_API:GetModule("Pathfinder")
 
     local list = PF:DungeonQuests("City of Dalaran")
@@ -37,7 +37,7 @@ do
     for _, s in ipairs(r and r.steps or {}) do if s.act == "accept" and s.quest == "Dalaran Tome" then tome = s end end
     check(tome and tome.text:find("Rexxie Copperclutch", 1, true), "the tome's giver comes from the hint table")
     for _, s in ipairs(r and r.steps or {}) do
-        check(not (s.text or ""):find("doesn't say", 1, true), "no step says Questie doesn't know (" .. s.act .. " " .. (s.quest or "") .. ")")
+        check(not (s.text or ""):find("doesn't say", 1, true), "no step says the database doesn't know (" .. s.act .. " " .. (s.quest or "") .. ")")
     end
 
     undo()

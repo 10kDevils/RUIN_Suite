@@ -134,20 +134,20 @@ do
         { act = "class", quest = "Class test quest" }, { act = "trainer", text = "Train at level 4" } } })
     local r = cara.env.RUIN_API:GetModule("Pathfinder"):ImportRoute(s)
     check(r and #r.steps == 2 and r.steps[1].act == "class" and r.steps[2].act == "trainer", "class quest and trainer steps import")
-    -- quest IDs are recorded, and Questie (when installed) places accept and turn-in steps
+    -- quest IDs are recorded, and the quest database places accept and turn-in steps
     alice.questTitles[176] = "Wanted: Hogger"
     Server.fire(alice, "QUEST_ACCEPTED", 176)
     last = steps[#steps]
     check(last and last.act == "accept" and last.qid == 176, "accepting a quest records its ID")
-    T.fakeQuestie(alice, { quests = { [176] = { name = "Wanted: Hogger", level = 11, starts = { 68 }, ends = { 69 } } },
+    T.fakeQuests(alice, { quests = { [176] = { name = "Wanted: Hogger", level = 11, starts = { 68 }, ends = { 69 } } },
         npcs = { [68] = { name = "Wanted poster", spawns = { [12] = { { 42.1, 65.5 } } } },
                  [69] = { name = "Marshal Dughan", spawns = { [12] = { { 45.0, 65.5 } } } } }, area = { [12] = 1429 } })
     local QB = alice.mns.RUIN_Pathfinder.QB
     local spot = QB.Spot(176, "start")
-    check(spot and spot.map == 1429 and math.abs(spot.x - 0.421) < 0.001, "Questie gives the quest giver's spot")
+    check(spot and spot.map == 1429 and math.abs(spot.x - 0.421) < 0.001, "the quest database gives the quest giver's spot")
     local fin = QB.Spot(176, "finish")
     check(fin and math.abs(fin.x - 0.45) < 0.001, "and where it's handed in")
-    alice.env.QuestieLoader, alice.env.Questie = nil, nil
+    alice.env.RUIN_QuestData = nil
     QB.Forget()
     local shared = alice.env.RUIN_API.Util.Decode("ROUTE", alice.env.RUIN_API.Util.Encode("ROUTE", { title = "t", steps = { last } }))
     local back = cara.env.RUIN_API:GetModule("Pathfinder"):ImportRoute(alice.env.RUIN_API.Util.Encode("ROUTE", shared))
@@ -267,7 +267,7 @@ do
     errorsSoFar("officer routes")
 end
 
-print("Pathfinder: quest IDs, Questie and shared quests (Pathfinder 0.3.13)")
+print("Pathfinder: quest IDs, the quest database and shared quests (Pathfinder 0.3.13)")
 do
     local P = alice.mns.RUIN_Pathfinder
     local pa, pe = alice.env.RUIN_API:GetModule("Pathfinder"), eve.env.RUIN_API:GetModule("Pathfinder")
@@ -309,8 +309,8 @@ do
     check(#have == 1 and have[1] == "Eve Ember" and #ready == 1, "Alice sees Eve has Kobold Camp Cleanup, ready to hand in")
     local h2 = pe:WhoHas(7)
     check(#h2 == 1 and h2[1] == "Alice Ash", "and Eve sees Alice has it")
-    -- Questie: a step without a place gets one, and a draft route for the zone
-    T.fakeQuestie(alice, {
+    -- Quest database: a step without a place gets one, and a draft route for the zone
+    T.fakeQuests(alice, {
         quests = { [7] = { name = "Kobold Camp Cleanup", level = 2, starts = { 197 }, ends = { 197 }, zone = 12,
                            obj = { { Type = "monster", Id = 6, Text = "Kobold Vermin slain" } } },
                    [33] = { name = "Wolves Across the Border", level = 2, starts = { 196 }, ends = { 196 }, zone = 12,
@@ -321,22 +321,22 @@ do
                  [299] = { name = "Young Wolf", spawns = { [12] = { { 46.4, 38.7 } } } } },
         area = { [12] = 1429 } })
     local QB = P.QB
-    check(QB.Has() and QB.Quest(7).starts[1] == "Marshal McBride" and QB.Quest(7).objectives[1] == "Kobold Vermin slain", "Questie's quest details are read")
+    check(QB.Has() and QB.Quest(7).starts[1] == "Marshal McBride" and QB.Quest(7).objectives[1] == "Kobold Vermin slain", "the database's quest details are read")
     alice.pos = { map = 1429, x = 0.48, y = 0.40 }
     local o = QB.Spot(7, "objective", 1429, 0.48, 0.40)
     check(o and math.abs(o.y - 0.361) < 0.01, "the nearest target spawn is found")
     alice.env.UnitLevel = function() return 2 end
-    local draft = pa:DraftFromQuestie()
+    local draft = pa:DraftFromData()
     check(draft and #draft.steps >= 5 and draft.steps[1].act == "accept" and draft.steps[#draft.steps].act == "turnin"
-          and draft.steps[1].qid and alice.env.RUIN_PathfinderDB.custom[draft.id], "a route is drafted from Questie for the zone")
+          and draft.steps[1].qid and alice.env.RUIN_PathfinderDB.custom[draft.id], "a route is drafted from the database for the zone")
     -- the Quests page and tooltips
     alice.env.RUIN_API:OpenTab("Pathfinder")
     T.openAllSubTabs(alice, "Pathfinder")
     local tipLines = {}
     local tip = { AddLine = function(_, l) tipLines[#tipLines + 1] = l end }
     alice.mns.RUIN_Pathfinder.QB.Forget()
-    errorsSoFar("pathfinder questie")
-    alice.env.QuestieLoader, alice.env.Questie = nil, nil
+    errorsSoFar("pathfinder quest database")
+    alice.env.RUIN_QuestData = nil
     QB.Forget()
     alice.env.C_QuestLog.IsQuestFlaggedCompleted = nil
     alice.questLog = {}
