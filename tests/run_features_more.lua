@@ -307,12 +307,13 @@ do
     -- you pick a quest in the objective tracker: it's yours, and the Tracked tab opens
     alice.logIds[788] = true
     alice.questTitles[788] = "Cutting Teeth"
-    alice.questObjectives[788] = { { text = "Mottled Boar slain: 3/10", finished = false } }
+    alice.questObjectives[788] = { { text = "Mottled Boar slain: 3/10", finished = false }, { text = "Boar Tusk: 1/4", finished = false } }
     alice.env.C_SuperTrack.SetSuperTrackedQuestID(788)
     Server.fire(alice, "SUPER_TRACKING_CHANGED")
     Server:Advance(1)
     check(tr.tabs[2].ok and tr.title._text:find("Tracked") and tr.title._text:find("Cutting Teeth") and tr.step._text:find("Mottled Boar"),
           "picking a quest makes it your tracked quest and shows it on Tracked")
+    check(tr.step._text:find("3/10|r\n") and tr.wantLines == 2, "each objective on its own line")
     check(alice.trackedQuest == 788 and alice.waypoint == nil, "the world pin follows your quest while Tracked is selected")
     tr.tabs[1]._scripts.OnClick(tr.tabs[1])
     check(alice.trackedQuest == 4641 and tr.title._text:find("Valley of Trials"), "Route: the world pin follows the route's step again")

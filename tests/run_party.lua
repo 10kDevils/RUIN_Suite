@@ -411,9 +411,13 @@ do
     PP:Command("off")
     check(alice.ns.db.settings.partySignal == false and not PP:Enabled() and (PP.rows and #PP.rows == 0), "/ruin party off: no strip, nothing shared")
     Server:Advance(30)          -- let earlier messages go out first
-    local sent = Server.sent
+    -- count only the party signal's own messages (other modules may talk meanwhile)
+    local comms, partySent = alice.ns.Comms, 0
+    local realSend = comms.Send
+    comms.Send = function(self, kind, ...) if kind == "PARTYPLAN" then partySent = partySent + 1 end return realSend(self, kind, ...) end
     PP:Update(); PP:Send(true); Server:Advance(2)
-    check(Server.sent == sent, "and nothing is sent while off")
+    comms.Send = realSend
+    check(partySent == 0, "and nothing is sent while off")
     PP:Command("on")
     check(PP:Enabled(), "/ruin party on turns it back on")
     PP:Command("post off")
