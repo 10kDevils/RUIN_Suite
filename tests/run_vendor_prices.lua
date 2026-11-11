@@ -44,11 +44,26 @@ do
     check(X.PriceOf(2678) == 40, "the auction house price itself is untouched")
 
     check(db.vendor[2678].kind == "Trade Goods", "the merchant's title is kept too")
-    local lines = X.PriceLines("item:2678") or {}
     local P = alice.env.RUIN_API.Widgets.PlainMoney
-    local vline = P((lines[1] or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    check(vline == "Vendor: 10c from Trade Goods NPC (40c AH)", "the tooltip says which kind of NPC and both prices (" .. vline .. ")")
-    check((lines[1] or ""):find("UI%-CopperIcon"), "with the game's coin icons")
+    local function plainLines(t) local o = {} for i, l in ipairs(t or {}) do o[i] = (P(l):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end return o end
+    local lines = plainLines(X.PriceLines("item:2678"))
+    check(lines[1] == "RUIN: Exchange" and lines[2]:find("^AH price: 40c") and lines[3] == "Vendor: 10c from Trade Goods NPC",
+          "the tooltip's RUIN: Exchange section: the AH price, then the cheaper merchant by kind (" .. tostring(lines[2]) .. " / " .. tostring(lines[3]) .. ")")
+    check((X.PriceLines("item:2678")[2] or ""):find("UI%-CopperIcon"), "with the game's coin icons")
+    -- a stack of 6: the AH price for the stack, with the price each
+    lines = plainLines(X.PriceLines("item:2678", 6))
+    check(lines[2]:find("^AH price: 2s 40c %(40c each%)"), "a stack is priced as the stack (" .. tostring(lines[2]) .. ")")
+    -- where to sell: the AH when it beats the vendor's buying price by enough, else the vendor
+    db.prices[2678].p = 40
+    lines = plainLines(X.PriceLines("item:2678", 6))
+    local last = lines[#lines]
+    check(last:find("^Sell on AH: 2s 40c") or last:find("^Sell to Vendor:"), "the last line says where to sell, for the whole stack (" .. last .. ")")
+    -- the section is boxed: a faint gold border round its lines
+    local tip = env.CreateFrame("GameTooltip", "RuinBoxTestTip")
+    tip.GetName = function() return "RuinBoxTestTip" end
+    for i = 1, 3 do env["RuinBoxTestTipTextLeft" .. i] = tip:CreateFontString() end
+    X.BoxLines(tip, 1, 3)
+    check(tip.ruinBox and tip.ruinBox.fill and tip.ruinBox.top and tip.ruinBox.left, "the Exchange section gets its box")
 
     -- recipe costs use the cheaper one
     local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end

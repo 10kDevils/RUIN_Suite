@@ -556,7 +556,7 @@ do
     local lines = {}
     local tip = { GetItem = function() return "x", "|cffffffff|Hitem:2589::|h[Linen Cloth]|h|r" end, AddLine = function(_, l) lines[#lines + 1] = l end }
     for _, hook in ipairs(alice.tooltipHooks) do hook(tip) end
-    check(table.concat(lines, "\n"):find("RUIN 7%-day: avg"), "tooltip shows the 7-day trend")
+    check(table.concat(lines, "\n"):find("AH 7%-day avg:"), "tooltip shows the 7-day trend")
     -- profession leveling plan from known recipes and RUIN prices
     Server.fire(alice, "TRADE_SKILL_SHOW")
     Server:Advance(4)
