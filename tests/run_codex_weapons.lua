@@ -96,3 +96,25 @@ do
     alice.mns.RUIN_Codex.ItemStats.Forget()
     errorsSoFar("codex weapons")
 end
+
+print("Ruinous Forever Planner: one stat estimate per tooltip")
+do
+    local env = alice.env
+    local saved = env.RuinousForeverPlanner
+    local calls = 0
+    local lines = {}
+    local tip = { GetName = function() return "PlanTestTip" end, NumLines = function() return #lines end,
+                  AddLine = function(_, t) lines[#lines + 1] = t; env["PlanTestTipTextLeft" .. #lines] = { GetText = function() return t end } end }
+    local P = { AppendItemRating = function(t) calls = calls + 1; t:AddLine(" "); t:AddLine("Ruinous Forever Planner - stat estimate") end }
+    env.RuinousForeverPlanner = P
+    alice.ns.Planner:GuardTooltips()
+    P.AppendItemRating(tip)
+    tip:AddLine("RUIN: Exchange")                 -- another addon adds lines after it
+    P.AppendItemRating(tip)                        -- the planner's later hook
+    check(calls == 1, "the planner's block is added once, even after other addons add lines")
+    lines = {}
+    P.AppendItemRating(tip)
+    check(calls == 2, "and again for the next item")
+    env.RuinousForeverPlanner = saved
+    errorsSoFar("planner tooltip")
+end
