@@ -51,6 +51,22 @@ do
     check(#cl == 2 and cl[2].url == "https://ruin.example", "links reached Cara with the key")
     local el = eve.ns.Org:GetLinks()
     check(#el == 2, "and Eve, a member of another guild")
+    -- the Guild page's links card shows them, and follows a change
+    for _, c in ipairs({ alice, eve }) do
+        c.env.RUIN_API:OpenTab("Guild")
+        c.ns.UI:SelectGuildTab("Overview")
+        local g = c.ns.UI.Widgets_()
+        check(g.linkRows[1]:IsShown() and g.linkRows[1].label:GetText() == "Discord" and g.linkRows[2].url:GetText() == "https://ruin.example",
+            c.name .. "'s links card lists the links (" .. tostring(g.linkRows[1].label:GetText()) .. ")")
+    end
+    Org:SetLinks({ { label = "Stream", url = "https://twitch.tv/ruin" } })
+    Server:Advance(20)
+    for _, c in ipairs({ alice, eve }) do
+        local g = c.ns.UI.Widgets_()
+        check(g.linkRows[1].label:GetText() == "Stream" and not g.linkRows[2]:IsShown(), c.name .. "'s card updates when the admin changes them (" .. tostring(g.linkRows[1].label:GetText()) .. ")")
+    end
+    Org:SetLinks(list)
+    Server:Advance(20)
     local ok2, err = cara.ns.Org:SetLinks({ { label = "Spam", url = "x" } })
     check(not ok2 and err, "only the org admin sets links")
     check(alice.ns.Escape("a|cffff0000b") == "a||cffff0000b", "player text is escaped before display")
