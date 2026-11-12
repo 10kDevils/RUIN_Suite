@@ -8,11 +8,16 @@ do
     local env = alice.env
     local pf = env.RUIN_API:GetModule("Pathfinder")
     local QB = pf.QB
+    -- the data ships inside Pathfinder, loaded by its TOC before the code that reads it
+    local toc = io.open(here .. "/../RUIN_Pathfinder/RUIN_Pathfinder.toc"):read("*a")
+    local d, h, qdb = toc:find("QuestData\\Data.lua", 1, true), toc:find("QuestData\\Horde.lua", 1, true), toc:find("QuestDB.lua", 1, true)
+    check(d and h and qdb and d < h and h < qdb and not toc:find("OptionalDeps: RUIN_QuestData", 1, true), "Pathfinder's TOC loads its own quest data, before QuestDB.lua")
+    check(io.open(here .. "/../RUIN_Pathfinder/QuestData/LICENSE.md") and io.open(here .. "/../RUIN_Pathfinder/QuestData/NOTICE.md"), "with the data's license and notice beside it")
     local saved = { RUIN_QuestData = env.RUIN_QuestData }
     env.RUIN_QuestData = nil
     local t0 = os.clock()
     for _, f in ipairs({ "Data.lua", "Horde.lua" }) do
-        local chunk = assert(loadfile(here .. "/../RUIN_QuestData/" .. f))
+        local chunk = assert(loadfile(here .. "/../RUIN_Pathfinder/QuestData/" .. f))
         setfenv(chunk, env)
         chunk()
     end

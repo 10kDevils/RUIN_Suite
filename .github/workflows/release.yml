@@ -83,7 +83,7 @@ jobs:
           if prev:
               changed = set(subprocess.run(["git", "diff", "--name-only", prev, "HEAD"], capture_output=True, text=True).stdout.split())
               print("changes since", prev, ":", sorted(c for c in changed if c.startswith("RUIN_")))
-          for addon in ["RUIN_Core", "RUIN_Finder", "RUIN_Muster", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_QuestData"]:
+          for addon in ["RUIN_Core", "RUIN_Finder", "RUIN_Muster", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange"]:
               toc = open(f"{addon}/{addon}.toc", encoding="utf-8").read()
               ver = re.search(r"^## Version:\s*(\S+)", toc, re.M).group(1)
               rows.append(f"| {addon.replace('_', ' ')} | {ver} |")

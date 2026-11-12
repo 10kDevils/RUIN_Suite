@@ -424,8 +424,11 @@ function Server:NewClient(opts)
         local dir = ADDON_DIR .. "/../" .. folder
         local mns = {}
         for line in io.lines(dir .. "/" .. folder .. ".toc") do
-            if line:match("%.lua%s*$") then
-                local chunk = assert(loadfile(dir .. "/" .. line:match("^%s*(.-)%s*$")))
+            local file = line:match("^%s*(.-)%s*$"):gsub("\\", "/")
+            -- Pathfinder's bundled quest database is 3 MB: only the tests that ask for it load it
+            local skip = file:find("^QuestData/") and not opts.questData
+            if line:match("%.lua%s*$") and not skip then
+                local chunk = assert(loadfile(dir .. "/" .. file))
                 setfenv(chunk, env)
                 chunk(folder, mns)
             end

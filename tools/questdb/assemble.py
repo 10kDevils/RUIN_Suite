@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turns the two faction extracts into the RUIN_QuestData addon's files."""
+"""Turns the two faction extracts into Pathfinder's quest data files (RUIN_Pathfinder/QuestData)."""
 import re, sys, os
 src, out = sys.argv[1], sys.argv[2]
 A = open(os.path.join(src, "Alliance.lua")).read().splitlines()
