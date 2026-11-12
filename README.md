@@ -7,6 +7,7 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 | Folder | What it is |
 | --- | --- |
 | `RUIN_Core` … `RUIN_Exchange` | The six addons, linked as git submodules (each points at a tagged commit in its own repo) |
+| `tools/art` | Draws the suite's own interface art (module icons and badges, page-header drawings, control glyphs) into `RUIN_Core/Media` (`make_art.py`, needs Pillow) |
 | `tools/questdb` | Rebuilds Pathfinder's quest data (`RUIN_Pathfinder/QuestData`, GPLv3; see its NOTICE.md) from its source database (`extract.lua` per faction, then `assemble.py`) |
 | `build.sh` | Packs all seven into `dist/RUIN_Gaming_Companion_App-<version>.zip` |
 | `tests/` | Lua 5.1 test harness that simulates several game clients (`tests/run.sh`) |
@@ -17,7 +18,7 @@ The RUIN Gaming Companion App for World of Warcraft: Forever (and Retail), made 
 
 ## The addons (app version 0.4.6)
 
-In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Settings by default; each player can rearrange them under Settings → Options → Tab order. Guild and Settings use RUIN's navy, teal and gold; each module's page and tab use that addon's color.
+In the RUIN window the tabs run Guild, Finder, Muster, Pathfinder, Codex, Exchange and Settings by default; each player can rearrange them under Settings → Options → Tab order. Every page has its own icon, header drawing and color, used for whatever is selected, hovered or switched on there: Guild is RUIN's gold, Settings teal, and each module its own.
 
 | Addon | Version | Repository | What it does |
 | --- | --- | --- | --- |

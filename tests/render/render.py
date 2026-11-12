@@ -127,6 +127,10 @@ def region(e, ox, oy):
                 f'display:flex;align-items:center;justify-content:center">{mark}</div>')
     if k == "inp":
         return f'<div class="r" style="{base}background:#050505;border:1px solid #6e6e6e;box-sizing:border-box;border-radius:2px"></div>'
+    if k == "bar" and e.get("slim"):
+        th = max(24, h * float(e.get("frac", .5)))
+        return (f'<div class="r" style="{base}background:rgba(21,29,42,.55)">'
+                f'<div style="position:absolute;left:0;right:0;top:0;height:{th:.0f}px;background:{rgba(e.get("color"), .70)}"></div></div>')
     if k == "bar":
         th = max(18, h * float(e.get("frac", .5)))
         return (f'<div class="r" style="{base}background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);box-sizing:border-box">'

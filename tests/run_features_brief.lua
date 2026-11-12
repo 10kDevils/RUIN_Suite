@@ -35,6 +35,65 @@ do
     b:LockHighlight()
     check(b.locked == true and b:GetText() == "Solo", "buttons lock as selected and keep their text")
     check(W.MARKERS.quest and W.MARKERS.turnin and W.MARKERS.class, "one marker color set for the whole suite")
+    -- the redesigned kit: every state of a button paints, a check shows its mark, menu rows are flat
+    local env = alice.env
+    for _, state in ipairs({ "hover", "locked", "disabled", "plain" }) do
+        local bb = W.Button(env.UIParent, state, 80)
+        bb.IsEnabled = function() return state ~= "disabled" end
+        if state == "hover" then bb._scripts.OnEnter(bb); bb._scripts.OnLeave(bb); bb._scripts.OnEnter(bb)
+        elseif state == "locked" then bb:LockHighlight(); bb:UnlockHighlight(); bb:LockHighlight()
+        elseif state == "disabled" then bb:Disable(); W.PaintButton(bb) end
+    end
+    local on = false
+    local chk = W.Check(env.UIParent, "Switch", function() return on end, function(v) on = v end)
+    local markShown, fillShown
+    chk.mark.SetShown = function(_, v) markShown = v end
+    chk.fill.SetShown = function(_, v) fillShown = v end
+    chk:Refresh()
+    check(markShown == false and fillShown == false, "an unticked check box is empty")
+    on = true; chk:Refresh()
+    check(markShown == true and fillShown == true, "a ticked one fills and shows the check mark")
+    chk._scripts.OnEnter(chk); chk._scripts.OnLeave(chk)
+    local row = W.MenuRow(env.UIParent, 120)
+    local barShown
+    row.pickBar.SetShown = function(_, v) barShown = v end
+    row.IsEnabled = function() return true end
+    row:LockHighlight()
+    check(row.flat and barShown == true, "a menu row is flat, with a bar beside the current choice")
+    row:UnlockHighlight()
+    check(barShown == false, "and no bar when it isn't")
+    local dd = W.Dropdown(env.UIParent, 120, { "One", "Two" }, function() return "One" end, function() end)
+    check(dd.chevron ~= nil and dd.menu ~= nil, "a dropdown carries the chevron and its list")
+    -- the game's scroll bar slimmed down: arrows gone, a thumb in the page's color sized to the content
+    local sf = env.CreateFrame("ScrollFrame", nil, env.UIParent)
+    sf:SetSize(200, 100)
+    local sb = env.CreateFrame("Frame", nil, sf)
+    sb.ScrollUpButton, sb.ScrollDownButton = env.CreateFrame("Button", nil, sb), env.CreateFrame("Button", nil, sb)
+    sb.ThumbTexture = sb:CreateTexture()
+    sf.ScrollBar = sb
+    local range = 300
+    sf.GetVerticalScrollRange = function() return range end
+    sf.GetHeight = function() return 100 end
+    local thumbH
+    local realSetHeight = sb.ThumbTexture.SetHeight
+    sb.ThumbTexture.SetHeight = function(self, h) thumbH = h; if realSetHeight then realSetHeight(self, h) end end
+    W.StyleScrollBar(sf)
+    check(sb.ruinStyled and sb.ruinTrack ~= nil, "a scroll bar is restyled once")
+    check(thumbH == 25, "its thumb is as long as the share of the list in view (" .. tostring(thumbH) .. ")")
+    range = 0
+    if sf._hooks and sf._hooks.OnScrollRangeChanged then for _, fn in ipairs(sf._hooks.OnScrollRangeChanged) do fn(sf) end end
+    W.StyleScrollBar(sf)        -- a second call changes nothing
+    check(sb.ruinStyled, "and styling it again is harmless")
+    W.StyleScrollBar({})        -- no bar: nothing happens
+    -- a module's own window in its colors
+    local win = env.CreateFrame("Frame", nil, env.UIParent)
+    W.Themed(win, "Pathfinder")
+    check(win.band and win.ruinTheme == alice.ns.THEMES.Pathfinder and W.SchemeOf(win) == W.SchemeFor(alice.ns.THEMES.Pathfinder),
+        "a module's own window takes that module's colors")
+    local ps = W.SchemeFor(alice.ns.THEMES.Pathfinder)
+    check(ps.accent[2] > alice.ns.THEMES.Pathfinder.color[2] and not ps.core and W.SchemeFor(alice.ns.THEMES.Guild).accent[1] > 0.9,
+        "a page's accent is its color, lightened to read on navy; Guild's is gold")
+    check(W.SchemeOf(W.Button(env.UIParent, "Out", 60)).accent == W.PALETTE.gold, "outside any page the accent is RUIN's gold")
     errorsSoFar("widgets")
 end
 
@@ -469,8 +528,32 @@ do
         and #rec.coords == 4, "the wide emblem draws at the art's width for its height")
     B.Draw(parent, 18, "tall")
     check(rec.path == B.TALL and rec.w == 19 and rec.h == 18, "the tall emblem too")
-    check(alice.ns.THEMES.Guild.icon == B.ICON and alice.env.RUIN_API.Brand == B and alice.env.RUIN_API.apiLevel >= 13,
-        "the Guild page and modules use the emblem")
+    local gt = alice.ns.THEMES.Guild
+    check(gt.tabIcon == B.ICON and gt.icon:find("RUIN_Core\\Media\\BadgeGuild", 1, true) and alice.env.RUIN_API.Brand == B and alice.env.RUIN_API.apiLevel >= 13,
+        "the Guild page and modules use the emblem (its tab the emblem, its header the emblem's badge)")
+    -- every page of the suite has RUIN's own badge, tab glyph and header drawing, and the files are there
+    local here = debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$") or "."
+    local missing = {}
+    for _, name in ipairs({ "Guild", "Finder", "Muster", "Pathfinder", "Codex", "Exchange", "Settings", "Planner" }) do
+        local t = alice.ns.THEMES[name]
+        for _, key in ipairs({ "icon", "glyph", "art" }) do
+            local path = t[key]
+            if key == "glyph" and name == "Guild" then path = nil end
+            if path then
+                local file = path:match("Media\\(%w+)$")
+                local f = file and io.open(here .. "/../RUIN_Core/Media/" .. file .. ".tga", "rb")
+                if f then f:close() else missing[#missing + 1] = name .. "." .. key end
+            elseif not (key == "glyph" and name == "Guild") then
+                missing[#missing + 1] = name .. "." .. key
+            end
+        end
+    end
+    check(#missing == 0, "each page has its badge, tab glyph and header drawing in Media (" .. table.concat(missing, ", ") .. ")")
+    for _, file in ipairs({ "Check", "Chevron" }) do
+        local f = io.open(here .. "/../RUIN_Core/Media/" .. file .. ".tga", "rb")
+        check(f ~= nil, "the " .. file:lower() .. " glyph ships too")
+        if f then f:close() end
+    end
     local function tga(name)
         local f = io.open((arg[0]:match("^(.*)/") or ".") .. "/../RUIN_Core/Media/" .. name .. ".tga", "rb")
         if not f then return nil end
@@ -481,7 +564,27 @@ do
     end
     check(tga("Emblem") and tga("EmblemTall") and tga("EmblemIcon"), "the emblem textures are 32-bit TGAs with power-of-two sizes")
     local toc = io.open((arg[0]:match("^(.*)/") or ".") .. "/../RUIN_Core/RUIN_Core.toc"):read("*a")
-    check(toc:find("IconTexture: Interface\\AddOns\\RUIN_Core\\Media\\EmblemIcon", 1, true), "the addon list shows the emblem")
+    check(toc:find("IconTexture: Interface\\AddOns\\RUIN_Core\\Media\\BadgeGuild", 1, true), "the addon list shows the emblem's badge")
+    -- the new art: every texture a 32-bit TGA with power-of-two sides, and each addon's list icon is its badge
+    local art = { "Check", "Chevron" }
+    for _, n in ipairs({ "Guild", "Finder", "Muster", "Pathfinder", "Codex", "Exchange", "Settings", "Planner" }) do
+        art[#art + 1] = "Badge" .. n
+        if n ~= "Guild" then art[#art + 1] = "Icon" .. n end
+        if n ~= "Planner" then art[#art + 1] = "Art" .. n end
+    end
+    local bad = {}
+    for _, n in ipairs(art) do
+        local okFile, good = pcall(tga, n)
+        if not (okFile and good) then bad[#bad + 1] = n end
+    end
+    check(#bad == 0, "badges, glyphs and header drawings are 32-bit TGAs with power-of-two sizes (" .. table.concat(bad, ", ") .. ")")
+    local base = (arg[0]:match("^(.*)/") or ".") .. "/../"
+    local off = {}
+    for _, a in ipairs({ "Finder", "Muster", "Pathfinder", "Codex", "Exchange" }) do
+        local t = io.open(base .. "RUIN_" .. a .. "/RUIN_" .. a .. ".toc"):read("*a")
+        if not t:find("IconTexture: Interface\\AddOns\\RUIN_Core\\Media\\Badge" .. a, 1, true) then off[#off + 1] = a end
+    end
+    check(#off == 0, "each module's addon-list icon is its badge (" .. table.concat(off, ", ") .. ")")
 
     -- org admin: every character on the admin's account, export for the admin only
     local Org = alice.ns.Org

@@ -562,7 +562,11 @@ function F.Dump(root)
             local child = f._scrollChild
             local cr = child and rect(child)
             if cr and cr.h > r.h + 1 then
-                out[#out + 1] = { k = "bar", x = r.x + r.w + 4, y = r.y, w = 14, h = r.h, a = a, frac = r.h / cr.h }
+                if f.ruinBarColor then      -- RUIN's slim bar (W.StyleScrollBar)
+                    out[#out + 1] = { k = "bar", slim = true, color = f.ruinBarColor, x = r.x + r.w + 9, y = r.y + 1, w = 7, h = r.h - 2, a = a, frac = r.h / cr.h }
+                else
+                    out[#out + 1] = { k = "bar", x = r.x + r.w + 4, y = r.y, w = 14, h = r.h, a = a, frac = r.h / cr.h }
+                end
             end
         end
     end
