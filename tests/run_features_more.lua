@@ -218,6 +218,8 @@ do
     check(pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "with the marker off, the edge card still shows (in the marker's place)")
     pdbE.pinShowMarker = nil
     alice.navClamped = false
+    check(pdbE.pinEdgeTop == 10 and pdbE.pinEdgeBottom == 10 and pdbE.pinEdgeLeft == 10 and pdbE.pinEdgeRight == 10,
+        "the screen edge boundaries start at 10% on every side")
     -- the edge boundaries: a spot near a side counts as off screen
     local UIP = alice.env.UIParent
     local realW, realH = UIP.GetWidth, UIP.GetHeight
