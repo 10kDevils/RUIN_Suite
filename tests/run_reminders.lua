@@ -41,6 +41,14 @@ do
     px, py = 0.30, 0.45
     pf.CheckReminders()
     check(chatHas(alice, "You walked past") and chatHas(alice, "Marshal Gryan"), "walking away without it: reminded who gives it")
+    local lines = 0
+    for _, l in ipairs(alice.chat) do if tostring(l):find("You walked past", 1, true) then lines = lines + 1 end end
+    check(lines == 1, "one line in chat, not two (" .. lines .. ")")
+    local list, win = pf.Alerts()
+    check(win and win:IsShown() and list[1] and list[1].msg:find("You walked past", 1, true) and list[1].qid, "and in Pathfinder's alert window, with the quest to mark on the map")
+    check(win.rows[1].mark:IsShown(), "which has a Mark on map button")
+    win.rows[1].mark._scripts.OnClick(win.rows[1].mark, "LeftButton")
+    check(chatHas(alice, "Marked the giver on your map"), "that marks the giver")
     -- only once
     local before = #alice.chat
     px, py = 0.30, 0.302; pf.CheckReminders(); px, py = 0.30, 0.45; pf.CheckReminders()

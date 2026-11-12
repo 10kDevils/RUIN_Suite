@@ -334,6 +334,12 @@ do
     write("pathfinder--waypoint-editor-nomarker")
     pdb.pinShowMarker = nil
     alice.env.RUIN_PathfinderWaypointEditor:Hide()
+    local pfm = alice.env.RUIN_API:GetModule("Pathfinder")
+    pfm.Alert("Level 40: new spells and ranks at your class trainer.")
+    pfm.Alert("|cffffd100Up to Snuff|r's targets are here, but you don't have it: it's picked up from Deeg at 27, 77.", 587)
+    write("pathfinder--alerts")
+    alice.env.RUIN_PathfinderAlerts:Hide()
+    alice.env.RUIN_PathfinderWaypointEditor:Hide()
     if mainFrame then mainFrame:Show() end
 end
 undoQuests()
