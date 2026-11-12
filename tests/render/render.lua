@@ -328,6 +328,11 @@ do
     if mainFrame then mainFrame:Hide() end
     alice.env.RUIN_API:GetModule("Pathfinder").OpenWaypointEditor()
     write("pathfinder--waypoint-editor")
+    local pdb = alice.env.RUIN_PathfinderCharDB
+    pdb.pinShowMarker = false
+    alice.env.RUIN_API:GetModule("Pathfinder").OpenWaypointEditor()
+    write("pathfinder--waypoint-editor-nomarker")
+    pdb.pinShowMarker = nil
     alice.env.RUIN_PathfinderWaypointEditor:Hide()
     if mainFrame then mainFrame:Show() end
 end

@@ -212,6 +212,11 @@ do
     drive._scripts.OnUpdate(drive, 0.1)
     check(not pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "or without it, when the editor says so")
     pdbE.pinEdgeCard = nil
+    -- without the marker the card takes its place, above the distance
+    pdbE.pinShowMarker = false
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "with the marker off, the edge card still shows (in the marker's place)")
+    pdbE.pinShowMarker = nil
     alice.navClamped = false
     -- the edge boundaries: a spot near a side counts as off screen
     local UIP = alice.env.UIParent
