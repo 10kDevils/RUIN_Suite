@@ -157,6 +157,25 @@ do
     env.RUIN_CodexDB.spec = "Shadow"
     points = { 31, 0, 0 }
     check(CX.MySpec() == "Shadow", "a spec picked by hand still wins")
+    -- trees without point counts: the talents themselves are counted
+    env.RUIN_CodexDB.spec = "Auto"
+    env.GetTalentTabInfo = function(tab) return 200 + tab, names[tab], "desc", 135940 end
+    local ranks = { [1] = { 2, 0 }, [2] = { 0, 0 }, [3] = { 5, 5, 3 } }
+    env.GetNumTalents = function(tab) return #ranks[tab] end
+    env.GetTalentInfo = function(tab, i) return "t", 1, 1, i, ranks[tab][i], 5 end
+    check(CX.MySpec() == "Shadow", "with no point counts on the trees, Auto adds up the talents' ranks (" .. tostring(CX.MySpec()) .. ")")
+    -- Ruinous Forever Planner without a client spec falls back to its menu's last pick: Codex gives it the talents' spec
+    local savedP = env.RuinousForeverPlanner
+    local P = { char = { spec = "Discipline", class = "PRIEST" }, actualClass = "PRIEST",
+                Data = { profiles = { PRIEST = { "Discipline", "Holy", "Shadow" } } } }
+    function P.Profile(class, spec) P.char.spec = spec; return true end
+    function P.AutoProfile() P.detectedSpec = nil; P.Profile("PRIEST", "Discipline") end
+    env.RuinousForeverPlanner = P
+    CX.HookPlanner()
+    P.AutoProfile()
+    check(P.char.spec == "Shadow", "Ruinous Forever Planner is set to the spec your talents say (" .. tostring(P.char.spec) .. ")")
+    env.RuinousForeverPlanner = savedP
+    env.GetNumTalents, env.GetTalentInfo = nil, nil
     env.UnitClass, env.GetSpecialization, env.GetSpecializationInfo, env.GetTalentTabInfo, env.RUIN_CodexDB.spec = unpack(saved)
     errorsSoFar("spec from talents")
 end
