@@ -31,6 +31,8 @@ do
     QB.AcceptText = function() return "" end
     QB.TurninText = function(q) return "Hand in " .. tostring(q) end
 
+    check(QB.GroupLabel({ "A", "B" }) == "A + B" and QB.GroupLabel({ "A", "B", "C" }) == "A + 2 more", "a stop for several quests: the first one's name and how many more")
+    check(QB.JoinTexts({ "Bring it to Tinkmaster.", "Kill 8 boars" }) == "Bring it to Tinkmaster; Kill 8 boars", "their objectives joined without a stray period")
     local steps, yards, n = QB.LogRoute()
     check(steps and n == 4, "all four quests in the log are in it (" .. tostring(n) .. ")")
     local accepts, order = 0, {}
