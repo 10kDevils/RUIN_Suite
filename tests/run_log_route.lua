@@ -73,3 +73,28 @@ do
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("Pathfinder tabs")
 end
+
+print("Pathfinder: In-Game Navigation switch")
+do
+    local env = alice.env
+    local pf = env.RUIN_API:GetModule("Pathfinder")
+    local cdb = env.RUIN_PathfinderCharDB
+    local realSet, realGet = env.SetCVar, env.GetCVar
+    local cv = { showInGameNavigation = "1" }
+    env.SetCVar = function(k, v) cv[k] = tostring(v) end
+    env.GetCVar = function(k) return cv[k] end
+    pf.SetInGameNavigation(false)
+    check(cv.showInGameNavigation == "0" and cdb.autoNav == false, "unticking it turns the game's In-Game Navigation off (nothing drawn in the world)")
+    pf.SetInGameNavigation(true)
+    check(cv.showInGameNavigation == "1" and cdb.autoNav == true, "ticking it turns it back on")
+    local realCombat = env.InCombatLockdown
+    env.InCombatLockdown = function() return true end
+    pf.SetInGameNavigation(false)
+    check(cv.showInGameNavigation == "1", "in combat it waits")
+    env.InCombatLockdown = realCombat
+    Server.fire(alice, "PLAYER_REGEN_ENABLED")
+    check(cv.showInGameNavigation == "0", "and happens when combat ends")
+    pf.SetInGameNavigation(true)
+    env.SetCVar, env.GetCVar = realSet, realGet
+    errorsSoFar("navigation switch")
+end
