@@ -206,7 +206,32 @@ do
     alice.navClamped = true
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
+    check(pinFrame.card:IsShown(), "with its card, as on screen")
+    local pdbE = alice.env.RUIN_PathfinderCharDB
+    pdbE.pinEdgeCard = false
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(not pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "or without it, when the editor says so")
+    pdbE.pinEdgeCard = nil
     alice.navClamped = false
+    -- the edge boundaries: a spot near a side counts as off screen
+    local UIP = alice.env.UIParent
+    local realW, realH = UIP.GetWidth, UIP.GetHeight
+    UIP.GetWidth, UIP.GetHeight = function() return 1024 end, function() return 768 end
+    drive._scripts.OnUpdate(drive, 0.1)
+    check(not pinFrame.arrow:IsShown(), "on screen, inside the boundaries: no arrow")
+    local W0 = alice.env.UIParent:GetWidth()
+    pdbE.pinEdgeLeft = 45
+    drive._scripts.OnUpdate(drive, 0.1)
+    local b = pf.EdgeBounds(W0, alice.env.UIParent:GetHeight())
+    check((400 < b.left) == pinFrame.arrow:IsShown() and pinFrame.arrow:IsShown(), "a spot inside the left boundary moves the pin to the edge (" .. tostring(b.left) .. ")")
+    check(pf.EdgeSide(b.left, 300, b) == "left", "where it waits on the left boundary, the card goes to its right")
+    pdbE.pinEdgeLeft = 0
+    pdbE.pinEdgeTop, pdbE.pinEdgeBottom, pdbE.pinEdgeRight = 10, 20, 30
+    b = pf.EdgeBounds(1000, 800)
+    check(b.top == 720 and b.bottom == 160 and b.right == 700 and b.left == 44, "each side has its own boundary")
+    pdbE.pinEdgeTop, pdbE.pinEdgeBottom, pdbE.pinEdgeRight = 0, 0, 0
+    UIP.GetWidth, UIP.GetHeight = realW, realH
+    drive._scripts.OnUpdate(drive, 0.1)
     -- inside the quest's area (the game says in range), or nearer than the set distance, it steps aside
     drive._scripts.OnUpdate(drive, 0.6)
     alice.navState = 2

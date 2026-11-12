@@ -39,12 +39,13 @@ do
     T.openAllSubTabs(alice, "Pathfinder")
     local pf = R:GetModule("Pathfinder")
     local pick = pf.UI and pf.UI.pick
+    if pf.UI and pf.UI.tabs then pf.UI.tabs:Select(2) end     -- the Guide
     if pick then
         pick._scripts.OnClick(pick, "LeftButton")
         check(pick.items and pick.items[1] and pick.items[1]:GetText() ~= "", "Pathfinder's route picker opens a list of routes")
         local want = pick.items[2] and pick.items[2]:GetText()
         if pick.items[2] then pick.items[2]._scripts.OnClick(pick.items[2]) end
-        check(want == nil or pick:GetText() == want, "and picking one shows it")
+        check(want == nil or pick:GetText() == want, "and picking one shows it (" .. tostring(want) .. " / " .. tostring(pick:GetText()) .. ")")
     else
         check(false, "Pathfinder's route picker is there")
     end

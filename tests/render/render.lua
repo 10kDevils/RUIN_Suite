@@ -322,6 +322,15 @@ do  -- the quest section, scrolled into view
     write("codex--journal-quests")
 end
 API:OpenTab("Pathfinder"); sub("Pathfinder", "Routes"); write("pathfinder--routes-dungeons")
+-- the Waypoint Editor on its own (the main window hidden so the shot crops to it)
+do
+    local mainFrame = alice.env.RUIN_MainFrame
+    if mainFrame then mainFrame:Hide() end
+    alice.env.RUIN_API:GetModule("Pathfinder").OpenWaypointEditor()
+    write("pathfinder--waypoint-editor")
+    alice.env.RUIN_PathfinderWaypointEditor:Hide()
+    if mainFrame then mainFrame:Show() end
+end
 undoQuests()
 alice.env.SlashCmdList.RUINCODEX("city of dalaran"); write("codex--journal-dalaran")
 

@@ -64,6 +64,54 @@ do
     env.GetMacroSpell = function(i) return i == 3 and 133 or nil end
     X.OnMacroTooltip(tip, { type = 3 })
     check(added and added[2]:find("16.8 DPS"), "a spell in a macro gets the same line (" .. tostring(added and added[2]) .. ")")
+    -- newer clients: GetActionInfo gives a macro's spell itself ("macro", spellID, "spell")
+    added = nil
+    tip.ruinSpellMath = nil
+    env.GetActionInfo = function(slot) if slot == 7 then return "macro", 172, "spell" end end
+    env.GetMacroSpell = function() return nil end
+    X.OnMacroTooltip(tip, { type = 3 })
+    check(added and added[2]:find("DPS"), "a macro whose action info names its spell (newer clients) (" .. tostring(added and added[2]) .. ")")
+    -- nothing to go on but the name on the tooltip
+    added = nil
+    tip.ruinSpellMath = nil
+    env.GetActionInfo = function() return nil end
+    local realSpell2 = env.C_Spell
+    env.C_Spell = setmetatable({ GetSpellIDForSpellIdentifier = function(n) return n == "Fireball" and 133 or nil end }, { __index = realSpell2 })
+    X.OnMacroTooltip(tip, { type = 3, lines = { { leftText = "Fireball" } } })
+    check(added and added[2]:find("16.8 DPS"), "or by the spell's name on the tooltip (" .. tostring(added and added[2]) .. ")")
+    env.C_Spell = realSpell2
+    -- a tooltip that keeps its lines, and another addon wiping them after us
+    local ht = env.CreateFrame("GameTooltip", "HealTestTip")
+    local rows = {}
+    ht.GetName = function() return "HealTestTip" end
+    ht.NumLines = function() return #rows end
+    ht.IsShown = function() return true end
+    ht.Show = function() end
+    ht.GetOwner = function() return nil end
+    ht.GetSpell = function() return "Fireball", 133 end
+    ht.GetPrimaryTooltipData = function() return nil end
+    for i = 1, 6 do
+        env["HealTestTipTextLeft" .. i] = ht:CreateFontString()
+        env["HealTestTipTextRight" .. i] = ht:CreateFontString()
+    end
+    local function put(l, r)
+        rows[#rows + 1] = true
+        env["HealTestTipTextLeft" .. #rows]:SetText(l); env["HealTestTipTextRight" .. #rows]:SetText(r)
+    end
+    ht.AddDoubleLine = function(_, l, r) put(l, r) end
+    put("Fireball", nil); put("2.5 sec cast", nil)
+    X.OnSpellTooltip(ht, nil, 133)
+    check(#rows == 3 and X.HasLine(ht), "the line goes on and can be seen there")
+    X.OnSpellTooltip(ht, nil, 133)
+    check(#rows == 3, "a second call for the same showing adds nothing")
+    -- something rebuilds the tooltip without our line
+    rows = {}; put("Fireball", nil); put("2.5 sec cast", nil)
+    env.HealTestTipTextRight3:SetText(nil)
+    X.HealTooltip(ht, 1)
+    local dbg = tostring(#rows) .. " " .. tostring(X.HasLine(ht)) .. " " .. tostring(env.HealTestTipTextRight3:GetText())
+    check(#rows == 3 and X.HasLine(ht), "a tooltip that lost the line gets it back (" .. dbg .. ")")
+    X.HealTooltip(ht, 1)
+    check(#rows == 3, "and only once")
     env.GetActionInfo, env.GetMacroSpell = realAction, realMacro
     env.C_Spell, env.GetSpellCritChance = realSpell, realCrit
     errorsSoFar("spell math")
