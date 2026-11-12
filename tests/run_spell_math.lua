@@ -53,6 +53,18 @@ do
     env.SpellTestTipTextLeft2:SetText("2.5 sec cast")
     X.OnSpellTooltip(tip, { id = 133 })
     check(added and added[1]:find("1.55 mana per damage") and added[2]:find("16.8 DPS"), "the tooltip gets mana per point on the left and DPS on the right (" .. tostring(added and added[1]) .. " / " .. tostring(added and added[2]) .. ")")
+    -- a spell inside a macro on an action bar: the tooltip is the macro's
+    added = nil
+    tip.ruinSpellMath = nil          -- a new showing
+    local button = { action = 7 }
+    tip.GetOwner = function() return button end
+    tip.GetSpell = nil
+    local realAction, realMacro = env.GetActionInfo, env.GetMacroSpell
+    env.GetActionInfo = function(slot) if slot == 7 then return "macro", 3 end end
+    env.GetMacroSpell = function(i) return i == 3 and 133 or nil end
+    X.OnMacroTooltip(tip, { type = 3 })
+    check(added and added[2]:find("16.8 DPS"), "a spell in a macro gets the same line (" .. tostring(added and added[2]) .. ")")
+    env.GetActionInfo, env.GetMacroSpell = realAction, realMacro
     env.C_Spell, env.GetSpellCritChance = realSpell, realCrit
     errorsSoFar("spell math")
 end
