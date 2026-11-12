@@ -51,6 +51,11 @@ do
     check(#cl == 2 and cl[2].url == "https://ruin.example", "links reached Cara with the key")
     local el = eve.ns.Org:GetLinks()
     check(#el == 2, "and Eve, a member of another guild")
+    -- links written however people write them
+    local parsed, bad = Org.ParseLinks("Discord: https://discord.gg/abc\nStream - https://twitch.tv/ruin\nhttps://www.youtube.com/@ruin\nruin.gg\njust words")
+    check(#parsed == 4 and parsed[1].label == "Discord" and parsed[2].label == "Stream" and parsed[3].label == "YouTube"
+        and parsed[4].url == "ruin.gg" and #bad == 1 and bad[1] == "just words",
+        "links are read with =, :, - or just the address (the name comes from the site) (" .. #parsed .. ", " .. tostring(parsed[3] and parsed[3].label) .. ")")
     -- the Guild page's links card shows them, and follows a change
     for _, c in ipairs({ alice, eve }) do
         c.env.RUIN_API:OpenTab("Guild")
