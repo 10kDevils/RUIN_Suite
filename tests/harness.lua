@@ -398,6 +398,10 @@ function Server:NewClient(opts)
     env.C_Container = {
         GetContainerNumSlots = function(bag) return bag == 0 and #c.bag or 0 end,
         GetContainerItemInfo = function(bag, slot) return bag == 0 and c.bag[slot] or nil end,
+        GetContainerItemLink = function(bag, slot)
+            local it = bag == 0 and c.bag[slot]
+            return it and (it.hyperlink or ("|cffffffff|Hitem:" .. it.itemID .. "::|h[x]|h|r")) or nil
+        end,
     }
 
     c.ns = {}

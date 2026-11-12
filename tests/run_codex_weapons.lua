@@ -40,6 +40,23 @@ do
     pct = cx:Compare(503)                          -- 14 one-hander vs 24 two-hander
     check(type(pct) == "number" and pct < 0, "a one-hander against your two-hander is a downgrade, not an upgrade for an empty off hand (" .. tostring(pct) .. ")")
     check(cx:Compare(504) == "twohander" and cx:IsUpgrade(504) == nil, "a shield while you wield a two-hander isn't called an upgrade")
+    -- with an off hand in your bags or bank: the pair against the whole two-hander
+    alice.bag = { { itemID = 504 } }               -- a 10 shield in the bags
+    pct = cx:Compare(503)                          -- 14 + 10 = 24 vs 24
+    check(near(pct, 0), "a one-hander is weighed with the best off hand in your bags, against the whole two-hander (" .. tostring(pct) .. ")")
+    alice.bag = {}
+    env.RUIN_CodexDB.bank = { [env.UnitGUID("player")] = { "|cffffffff|Hitem:507::|h[x]|h|r", "|cffffffff|Hitem:504::|h[x]|h|r" } }
+    pct = cx:Compare(505)                          -- 12 + the shield 10 (better than the 6 held item) = 22 vs 24
+    check(near(pct, -8.3), "or in your bank, the best of them (" .. tostring(pct) .. ")")
+    env.UnitClass = function() return "Priest", "PRIEST" end
+    env.RUIN_CodexDB.spec = "Shadow"
+    alice.mns.RUIN_Codex.ItemStats.Forget()
+    local best = cx.BestOffhand()
+    check(not (best and best:find("item:504", 1, true)), "a class without shields never gets a shield as its off hand")
+    env.UnitClass = function() return "Warrior", "WARRIOR" end
+    env.RUIN_CodexDB.spec = "Arms"
+    alice.mns.RUIN_Codex.ItemStats.Forget()
+    env.RUIN_CodexDB.bank = nil
     -- a one-hand weapon for a class that can't wield two
     env.UnitClass = function() return "Paladin", "PALADIN" end
     env.CanDualWield = function() return false end
@@ -142,4 +159,19 @@ do
     check(CX.MySpec() == "Shadow", "a spec picked by hand still wins")
     env.UnitClass, env.GetSpecialization, env.GetSpecializationInfo, env.GetTalentTabInfo, env.RUIN_CodexDB.spec = unpack(saved)
     errorsSoFar("spec from talents")
+end
+
+print("Exchange: Working Overtime")
+do
+    local EX = alice.env.RUIN_API:GetModule("Exchange")
+    local xdb = alice.env.RUIN_ExchangeDB
+    local was = xdb.overtime
+    xdb.overtime = 5
+    check(math.abs(EX.Overtime(0.25, 2) - 0.45) < 1e-9 and math.abs(EX.Overtime(0.75, 1) - 0.95) < 1e-9, "rank 5 adds 20% on top of a green's and a yellow's chance")
+    check(EX.Overtime(0.9, 1) == 1 and EX.Overtime(1, 0) == 1, "never above 100%, and orange stays as it is")
+    xdb.overtime = 2
+    local c = EX.ChanceFor("Cooking", "Nothing Known", 2, 100)
+    check(math.abs(c - 0.33) < 1e-9, "the chance used for Price per Point includes it (" .. tostring(c) .. ")")
+    xdb.overtime = was
+    errorsSoFar("working overtime")
 end
