@@ -26,7 +26,9 @@ do
             if not l then return nil end
             return "x", 1, l[1], 1, true, 1, "", 0, 0, l[2], 0, false, nil, "Seller", nil, 0, l[3], true
         end,
-        GetCommoditySearchResultInfo = function(id, i) return i == 1 and { unitPrice = 777 } or nil end,
+        -- sorted dearest first, as a player can sort it
+        GetNumCommoditySearchResults = function() return 3 end,
+        GetCommoditySearchResultInfo = function(id, i) return ({ { unitPrice = 1500 }, { unitPrice = 990 }, { unitPrice = 777 } })[i] end,
         GetNumItemSearchResults = function() return 3 end,
         GetItemSearchResultInfo = function(_, i)
             return ({ { buyoutAmount = 5000, quantity = 1 }, { buyoutAmount = 3000, quantity = 1 }, { quantity = 1 } })[i]
@@ -52,9 +54,27 @@ do
     check(replicated == 1, "a second scan within 15 minutes waits")
 
     Server.fire(cara, "COMMODITY_SEARCH_RESULTS_UPDATED", 2318)
-    check(db.prices[2318] and db.prices[2318].p == 777, "clicking into a commodity reads its cheapest unit price")
+    check(db.prices[2318] and db.prices[2318].p == 777, "clicking into a commodity reads its cheapest unit price, however the list is sorted")
     Server.fire(cara, "ITEM_SEARCH_RESULTS_UPDATED", { itemID = 9999 })
     check(db.prices[9999] and db.prices[9999].p == 3000, "clicking into an item reads its cheapest buyout")
+
+    -- a later look that only shows dearer listings doesn't raise a fresh low price
+    db.prices[2772] = { p = 900, t = env.GetServerTime() - 60, by = "Cara Cole" }
+    local CH = env.C_AuctionHouse
+    local saveBrowse = CH.GetBrowseResults
+    rawset(CH, "GetBrowseResults", function() return { { itemKey = { itemID = 2772 }, minPrice = 1400 } } end)
+    Server.fire(cara, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED")
+    check(db.prices[2772].p == 900, "a dearer sighting doesn't replace a low price seen in the last 6 hours (" .. db.prices[2772].p .. ")")
+    db.prices[2772].t = env.GetServerTime() - 7 * 3600
+    Server.fire(cara, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED")
+    check(db.prices[2772].p == 1400, "but does once that low price is older")
+    rawset(CH, "GetBrowseResults", saveBrowse)
+    -- a share from another player that's higher doesn't replace a fresh low price either
+    db.prices[2771] = { p = 500, t = env.GetServerTime() - 60, by = "Cara Cole" }
+    cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2771, 2500 } }, "Eve Ember")
+    check(db.prices[2771].p == 500, "nor does a higher price someone else shares")
+    cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2771, 300 } }, "Eve Ember")
+    check(db.prices[2771].p == 300, "a lower one does")
 
     Server.fire(cara, "AUCTION_HOUSE_CLOSED")
     Server:Advance(30)
