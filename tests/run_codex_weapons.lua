@@ -118,3 +118,28 @@ do
     env.RuinousForeverPlanner = saved
     errorsSoFar("planner tooltip")
 end
+
+print("Codex: spec from your talents")
+do
+    local env = alice.env
+    local CX = env.RUIN_API:GetModule("Codex")
+    local saved = { env.UnitClass, env.GetSpecialization, env.GetSpecializationInfo, env.GetTalentTabInfo, env.RUIN_CodexDB.spec }
+    env.UnitClass = function() return "Priest", "PRIEST", 5 end
+    env.GetSpecialization = function() return 1 end                          -- the client always says the first spec
+    env.GetSpecializationInfo = function() return 256, "Discipline" end
+    local points = { 5, 0, 31 }
+    local names = { "Discipline", "Holy", "Shadow" }
+    -- newer clients: id, name, description, icon id, points spent
+    env.GetTalentTabInfo = function(tab) return 200 + tab, names[tab], "desc", 135940, points[tab] end
+    env.RUIN_CodexDB.spec = "Auto"
+    check(CX.MySpec() == "Shadow", "Auto picks the tree with the most points, not the client's first spec (" .. tostring(CX.MySpec()) .. ")")
+    points = { 21, 30, 0 }
+    check(CX.MySpec() == "Holy", "and follows a respec")
+    points = { 0, 0, 0 }
+    check(CX.MySpec() == "Discipline", "with no points spent, the client's spec")
+    env.RUIN_CodexDB.spec = "Shadow"
+    points = { 31, 0, 0 }
+    check(CX.MySpec() == "Shadow", "a spec picked by hand still wins")
+    env.UnitClass, env.GetSpecialization, env.GetSpecializationInfo, env.GetTalentTabInfo, env.RUIN_CodexDB.spec = unpack(saved)
+    errorsSoFar("spec from talents")
+end
