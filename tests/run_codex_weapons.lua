@@ -164,6 +164,23 @@ do
     env.GetNumTalents = function(tab) return #ranks[tab] end
     env.GetTalentInfo = function(tab, i) return "t", 1, 1, i, ranks[tab][i], 5 end
     check(CX.MySpec() == "Shadow", "with no point counts on the trees, Auto adds up the talents' ranks (" .. tostring(CX.MySpec()) .. ")")
+    -- WoW Forever: the trees are trait groups; the old talent functions are gone
+    env.GetTalentTabInfo, env.GetNumTalents, env.GetTalentInfo = nil, nil, nil
+    env.C_ClassTalents = { GetActiveConfigID = function() return 77 end }
+    env.C_Traits = {
+        GetConfigInfo = function(id) return id == 77 and { type = 4, name = "Priest", treeIDs = { 1115 } } or nil end,
+        GetGroupDisplayInfoByTreeID = function() return {
+            { groupID = 11702, displayName = "Shadow", orderIndex = 3 },
+            { groupID = 11700, displayName = "Discipline", orderIndex = 1 },
+            { groupID = 11701, displayName = "Holy", orderIndex = 2 } } end,
+        -- groups with nothing spent are left out
+        GetGroupCurrencyInfo = function() return {
+            { traitNodeGroupID = 11700, currencyInfos = { { traitCurrencyID = 1, spent = 5 } } },
+            { traitNodeGroupID = 11702, currencyInfos = { { traitCurrencyID = 1, spent = 21 } } } } end,
+    }
+    local trees, src = CX.TreePoints()
+    check(CX.MySpec() == "Shadow" and src == "trait groups" and trees[2][2] == 0,
+        "WoW Forever's trait groups give each tree's points, a missing group counting 0 (" .. tostring(CX.MySpec()) .. ")")
     -- Ruinous Forever Planner without a client spec falls back to its menu's last pick: Codex gives it the talents' spec
     local savedP = env.RuinousForeverPlanner
     local P = { char = { spec = "Discipline", class = "PRIEST" }, actualClass = "PRIEST",
@@ -175,7 +192,7 @@ do
     P.AutoProfile()
     check(P.char.spec == "Shadow", "Ruinous Forever Planner is set to the spec your talents say (" .. tostring(P.char.spec) .. ")")
     env.RuinousForeverPlanner = savedP
-    env.GetNumTalents, env.GetTalentInfo = nil, nil
+    env.GetNumTalents, env.GetTalentInfo, env.C_ClassTalents, env.C_Traits = nil, nil, nil, nil
     env.UnitClass, env.GetSpecialization, env.GetSpecializationInfo, env.GetTalentTabInfo, env.RUIN_CodexDB.spec = unpack(saved)
     errorsSoFar("spec from talents")
 end
