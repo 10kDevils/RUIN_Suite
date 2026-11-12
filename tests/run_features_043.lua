@@ -380,6 +380,10 @@ do
     alice.env.RUIN_API:GetModule("Exchange"):Send("CCONF", { id = "fake1", item = "Fake", cr = "Alice Ash", cu = "Eve Ember", t = 1 }, "ORG")
     Server:Advance(3)
     check(#cara.mns.RUIN_Exchange.History.Done() == 1, "only the customer can confirm a craft")
+    -- a customer can't invent a craft the crafter never logged
+    eve.env.RUIN_API:GetModule("Exchange"):Send("CCONF", { id = "fake2", item = "Made Up", cr = "Cara Cole", cu = "Eve Ember", t = 1 }, "ORG")
+    Server:Advance(3)
+    check(#alice.mns.RUIN_Exchange.History.Done() == 1, "a confirmation counts only for a craft its crafter logged")
     T.openAllSubTabs(cara, "Exchange")
     errorsSoFar("exchange 0.4.1")
 end

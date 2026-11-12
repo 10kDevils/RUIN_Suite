@@ -169,5 +169,12 @@ do
     Server:Advance(400)
     local eveAtlas = function() return eve.env.RUIN_PathfinderDB.atlas end
     check(eveAtlas() and eveAtlas().s[9001] and eveAtlas().o[9001], "sightings are shared with RUIN members")
+    -- one vote per player: the same sighting sent again doesn't add up
+    local epf = eve.env.RUIN_API:GetModule("Pathfinder")
+    local msg = { l = { "s", 9002, 1429, 5000, 5000 } }
+    epf:OnAtlas(msg, "Mal Mischief"); epf:OnAtlas(msg, "Mal Mischief"); epf:OnAtlas(msg, "Mal Mischief")
+    check(eveAtlas().s[9002] and eveAtlas().s[9002][4] == 1, "one player sending a sighting over and over counts once")
+    epf:OnAtlas(msg, "Ned Noble")
+    check(eveAtlas().s[9002][4] == 2, "a second player's counts")
     errorsSoFar("route planner")
 end

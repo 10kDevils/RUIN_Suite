@@ -70,11 +70,18 @@ do
     check(db.prices[2772].p == 1400, "but does once that low price is older")
     rawset(CH, "GetBrowseResults", saveBrowse)
     -- a share from another player that's higher doesn't replace a fresh low price either
-    db.prices[2771] = { p = 500, t = env.GetServerTime() - 60, by = "Cara Cole" }
+    db.prices[2771] = { p = 500, t = env.GetServerTime() - 60, by = "Dana Dusk" }
     cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2771, 2500 } }, "Eve Ember")
     check(db.prices[2771].p == 500, "nor does a higher price someone else shares")
     cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2771, 300 } }, "Eve Ember")
     check(db.prices[2771].p == 300, "a lower one does")
+    -- what you saw yourself isn't replaced by someone else's share, and a wild price is ignored
+    db.prices[2773] = { p = 500, t = env.GetServerTime() - 60, by = env.UnitName("player") }
+    cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2773, 450 } }, "Eve Ember")
+    check(db.prices[2773].p == 500, "a share doesn't replace a price you saw yourself lately")
+    db.prices[2774] = { p = 5000, t = env.GetServerTime() - 600, by = "Dana Dusk" }
+    cara.env.RUIN_API:GetModule("Exchange"):OnPrices({ t = env.GetServerTime(), l = { 2774, 1 } }, "Eve Ember")
+    check(db.prices[2774].p == 5000, "a price far below a recent one (a prank) is ignored")
 
     Server.fire(cara, "AUCTION_HOUSE_CLOSED")
     Server:Advance(30)
