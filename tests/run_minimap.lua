@@ -50,7 +50,7 @@ do
         -- round again: a corner spot moves to the nearest side
         mm.SetShape("round")
         check(mm.Dock() == "right" and pt[1] == "LEFT" and pt[3] == "RIGHT", "back to round, the dock moves to the nearest round spot")
-        check(mask and mask:find("CircleMask", 1, true) and env.GetMinimapShape == nil, "and the round mask comes back")
+        check(mask and mask:find("RUIN_Pathfinder\\Media\\MinimapMask", 1, true) and env.GetMinimapShape == nil, "and the round mask comes back")
         -- dragging it off frees it
         tr.justMoved = true
         tr._scripts.OnMouseUp(tr, "LeftButton")
