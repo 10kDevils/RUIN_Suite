@@ -16,10 +16,12 @@ do
     env.MinimapZoomIn.SetAlpha = function(_, a) alpha.zoom = a end
     env.MinimapZoomIn.GetAlpha = function() return 1 end
     check(mm.Shape() == "round" and mm.Style() == "blizzard", "starts as the game's round minimap")
+    mm.SetStyle("pathfinder"); mm.SetStyle("blizzard")
+    check(mask == nil, "a round map's mask is the game's own: RUIN never replaces it")
     check(#mm.DockChoices() == 5, "a round minimap: off, above, below and the two sides")
 
     mm.SetShape("square")
-    check(mask and mask:find("ChatFrameBackground", 1, true) and env.GetMinimapShape and env.GetMinimapShape() == "SQUARE",
+    check(mask and mask:find("WHITE8X8", 1, true) and env.GetMinimapShape and env.GetMinimapShape() == "SQUARE",
         "square: a square mask, and other addons are told the minimap is square")
     check(alpha.border == 0, "the game's round border is hidden on a square map")
     check(#mm.DockChoices() == 13, "a square minimap: both ends of every edge too")
@@ -48,7 +50,7 @@ do
         -- round again: a corner spot moves to the nearest side
         mm.SetShape("round")
         check(mm.Dock() == "right" and pt[1] == "LEFT" and pt[3] == "RIGHT", "back to round, the dock moves to the nearest round spot")
-        check(mask and mask:find("MinimapMask", 1, true) and env.GetMinimapShape == nil, "and the round mask comes back")
+        check(mask and mask:find("CircleMask", 1, true) and env.GetMinimapShape == nil, "and the round mask comes back")
         -- dragging it off frees it
         tr.justMoved = true
         tr._scripts.OnMouseUp(tr, "LeftButton")
