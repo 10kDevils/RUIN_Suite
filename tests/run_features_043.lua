@@ -45,6 +45,21 @@ do
     check(#h > 0, "the hierarchy lists the guilds' leaders and officers")
     local g = alice.ns.People:Grouped("class", "", false)
     check(#g > 0 and g[1].header ~= nil, "people grouped by class")
+    -- the search box searches what the view groups by
+    local function headers(rows) local t = {} for _, r in ipairs(rows) do if r.header then t[#t + 1] = r.header end end return t end
+    local firstClass = g[1].header
+    local byClass = headers(alice.ns.People:Grouped("class", firstClass:sub(1, 4):lower(), false))
+    check(#byClass >= 1 and byClass[1]:lower():find(firstClass:sub(1, 4):lower(), 1, true), "By class: searching a class finds it (" .. firstClass .. ")")
+    check(#headers(alice.ns.People:Grouped("class", "Alice", false)) == 0, "and a name doesn't (the Roster searches names)")
+    local all = alice.ns.People:Grouped("level", "", false)
+    local someLevel
+    for _, r in ipairs(all) do if not r.header and r.level then someLevel = r.level break end end
+    local exact = alice.ns.People:Grouped("level", tostring(someLevel), false)
+    local okLv = #exact > 1
+    for _, r in ipairs(exact) do if not r.header and r.level ~= someLevel then okLv = false end end
+    check(okLv, "By level: a number finds that level")
+    local range = alice.ns.People:Grouped("level", "1-100", false)
+    check(#range == #all, "and a range finds everyone in it")
     alice.env.RUIN_API:OpenTab("Guild")
     T.openAllSubTabs(alice, "Guild")
     errorsSoFar("census and people")
