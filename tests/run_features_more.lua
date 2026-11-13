@@ -167,7 +167,7 @@ do
     tr._scripts.OnMouseUp(tr, "LeftButton")
     pf.OpenTab = realOpen
     check(opened, "a double-click opens Pathfinder")
-    check(tr.open == nil and tr.clear and tr.clear.icon, "no Open button; a little x instead of Clear")
+    check(tr.open == nil and tr.clear and tr.clear.bars, "no Open button; a little x instead of Clear")
     alice.pos = { map = 1411, x = 0.40, y = 0.68 }
     -- the game's waypoint (3D pin in the world) sits on the step
     check(alice.waypoint and alice.waypoint.uiMapID == 1411 and math.abs(alice.waypoint.position.x - 0.433) < 0.001
@@ -220,6 +220,15 @@ do
     alice.navClamped = false
     check(pdbE.pinEdgeTop == 10 and pdbE.pinEdgeBottom == 10 and pdbE.pinEdgeLeft == 10 and pdbE.pinEdgeRight == 10,
         "the screen edge boundaries start at 10% on every side")
+    -- the edge arrow sits right on the edge of whatever shows (marker, card, distance)
+    local ax, ay = pf.EdgeArrowSpot({ { -19, -19, 19, 19 } }, 0)
+    check(math.abs(ax - (19 + 10)) < 0.01 and math.abs(ay) < 0.01, "pointing right: just outside the marker's right edge (" .. ax .. ", " .. ay .. ")")
+    ax, ay = pf.EdgeArrowSpot({ { -19, -19, 19, 19 }, { -50, -43, 50, -25 } }, -math.pi / 2)
+    check(math.abs(ax) < 0.01 and math.abs(ay - (-43 - 10)) < 0.01, "pointing down: just below the distance tag (" .. ax .. ", " .. ay .. ")")
+    ax, ay = pf.EdgeArrowSpot({ { -50, -43, 50, -25 }, { -150, -21, 50, 40 } }, 0)
+    check(math.abs(ax - (50 + 10)) < 0.01, "marker off, card beside it: on the right edge of the card and tag (" .. ax .. ")")
+    ax, ay = pf.EdgeArrowSpot({}, math.pi)
+    check(ax < 0 and math.abs(ay) < 0.01, "with nothing showing it still points the way")
     -- the edge boundaries: a spot near a side counts as off screen
     local UIP = alice.env.UIParent
     local realW, realH = UIP.GetWidth, UIP.GetHeight

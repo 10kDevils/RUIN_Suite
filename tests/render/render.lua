@@ -339,6 +339,20 @@ do
     pfm.Alert("|cffffd100Up to Snuff|r's targets are here, but you don't have it: it's picked up from Deeg at 27, 77.", 587)
     write("pathfinder--alerts")
     alice.env.RUIN_PathfinderAlerts:Hide()
+    -- the step tracker on its own
+    local cdb = alice.env.RUIN_PathfinderCharDB
+    cdb.tracker = true
+    if not cdb.route then
+        local ids = pfm.PickerRoutes and pfm.PickerRoutes() or {}
+        for _, id in ipairs(ids) do if id ~= "log" then pfm:StartRoute(id); break end end
+    end
+    pfm.UpdateTracker()
+    if alice.env.RUIN_PathfinderTracker then
+        local t = alice.env.RUIN_PathfinderTracker
+        for _, tab in ipairs(t.tabs or {}) do tab:SetAlpha(1) end
+        write("pathfinder--tracker")
+        t:Hide()
+    end
     alice.env.RUIN_PathfinderWaypointEditor:Hide()
     if mainFrame then mainFrame:Show() end
 end

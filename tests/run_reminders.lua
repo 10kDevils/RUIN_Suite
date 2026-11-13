@@ -47,8 +47,13 @@ do
     local list, win = pf.Alerts()
     check(win and win:IsShown() and list[1] and list[1].msg:find("You walked past", 1, true) and list[1].qid, "and in Pathfinder's alert window, with the quest to mark on the map")
     check(win.rows[1].mark:IsShown(), "which has a Mark on map button")
+    local openedMap
+    local realOpen = alice.env.OpenWorldMap
+    alice.env.OpenWorldMap = function(m) openedMap = m end
     win.rows[1].mark._scripts.OnClick(win.rows[1].mark, "LeftButton")
-    check(chatHas(alice, "Marked the giver on your map"), "that marks the giver")
+    alice.env.OpenWorldMap = realOpen
+    check(openedMap ~= nil and chatHas(alice, "Marked on your map: pick up"), "that opens the map on the giver, with a pin (" .. tostring(openedMap) .. ")")
+    check(not win:IsShown() and #pf.Alerts() == 0, "and closes the alert window")
     -- only once
     local before = #alice.chat
     px, py = 0.30, 0.302; pf.CheckReminders(); px, py = 0.30, 0.45; pf.CheckReminders()
