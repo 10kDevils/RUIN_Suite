@@ -575,18 +575,45 @@ do
     local dlg = oldie.env.RUIN_ConfirmDialog
     check(dlg and dlg.title and dlg.title:GetText() == "Update RUIN to connect" and chatHas(oldie, "CurseForge or GitHub"), "a RUIN below the minimum version gets the update prompt")
     check(not oldie.ns.Comms:IsJoined("ORG"), "and doesn't connect")
-    -- a RUIN too old to have that window: its guild whispers it in plain chat
-    local before = { [cara] = 0, [eve] = 0 }
-    send(oldie, "HELLO", { g = "Player-1-00000012", v = "0.5.0", p = 1, kr = 1, org = key(eve).org }, "GUILD")
-    Server:Advance(15)
-    local told = false
+    -- RUIN tells it, app to app: no player whispers anyone
+    local whispered, oldver = false, false
     for _, c in ipairs({ cara, eve }) do
-        for i = before[c] + 1, #(c.sentChat or {}) do
-            local m = c.sentChat[i]
-            if m[2] == "WHISPER" and tostring(m[1]):find("too old to connect", 1, true) then told = true end
-        end
+        for _, m in ipairs(c.sentChat or {}) do if m[2] == "WHISPER" and tostring(m[1]):find("RUIN", 1, true) then whispered = true end end
     end
-    check(told, "RUIN below the minimum is also whispered how to update (for versions too old to show the window)")
+    Server.tap = function(c, prefix, text, chatType, target)
+        if chatType == "WHISPER" and target and target:find("Nell", 1, true) and text:find("\030OLDVER\030", 1, true) then oldver = true end
+    end
+    oldie.ns.db.toldOld = nil
+    for _, c in ipairs({ cara, eve }) do c.ns.db.toldOld = {} end
+    send(oldie, "HELLO", { g = "Player-1-00000012", v = "0.7.1", p = 1, kr = 1, org = key(eve).org }, "GUILD")
+    Server:Advance(15)
+    Server.tap = nil
+    check(not whispered, "nobody's character whispers old versions")
+    check(oldver or chatHas(oldie, "can't connect"), "RUIN tells a RUIN below the minimum itself (app to app)")
+
+    -- new-version notices: signed, passed on to anyone older, shown once
+    local CRr = alice.ns.Crypto
+    local seedR = CRr.SHA256("test release key")
+    local pkR = CRr.Hex(CRr.SignKeyPair(seedR))
+    for _, c in ipairs({ alice, cara, eve, olga, mal }) do c.ns.Release.PUBLIC_KEY = pkR end
+    local notice = { v = "9.9.9", t = 1800000000, notes = { "Faster everything", "A new module" } }
+    notice.s = CRr.Hex(CRr.Sign(seedR, ("RUINR1|%s|%d|%s"):format(notice.v, notice.t, table.concat(notice.notes, "\n"))))
+    check(alice.ns.Release.Valid(notice), "a signed release notice checks out")
+    local fake = deepcopy(notice); fake.v = "9.9.10"
+    check(not alice.ns.Release.Valid(fake), "a changed one doesn't")
+    alice.ns.Release.Take(notice)
+    check(chatHas(alice, "RUIN 9.9.9 is out") and chatHas(alice, "CurseForge or GitHub"), "RUIN says a new version is out, and where to get it")
+    local dlg = alice.env.RUIN_ConfirmDialog
+    check(dlg and dlg.title:GetText() == "RUIN 9.9.9 is out" and dlg.text:GetText():find("A new module", 1, true), "in a window with the highlights")
+    alice.ns.Release.OnPeer(eve.ns.VERSION, "Eve Ember", "ORG")
+    Server:Advance(20)
+    check(chatHas(eve, "RUIN 9.9.9 is out") and eve.ns.db.latestRelease and eve.ns.db.latestRelease.v == "9.9.9", "and passes it on to players on an older version")
+    send(mal, "RELNOTE", { n = fake }, "PEER", "Cara Cole")
+    Server:Advance(5)
+    check(not chatHas(cara, "9.9.10"), "a faked notice is ignored")
+    local before = #alice.chat
+    alice.ns.Release.Take(notice)
+    check(#alice.chat == before, "each version is announced once")
 
     -- the admin's recovery code works on another PC
     local code = alice.ns.Org:RecoveryCode()
