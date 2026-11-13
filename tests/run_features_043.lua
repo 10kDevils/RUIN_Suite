@@ -252,6 +252,28 @@ do
     alice.env.UnitIsPlayer = function() return true end
     alice.targetGuild = "Briar Fang"
     check(WH.TagOf("target") == "Briar", "a Briar Fang player shows the Briar tag")
+    -- where the tag sits by the target frame
+    local fdb = alice.env.RUIN_FinderCharDB or alice.mns.RUIN_Finder.db
+    WH.RefreshMarks()
+    local badge = WH.TagBadge()
+    local function anchor() return badge._points and badge._points[1] end
+    check(badge and badge:IsShown(), "the tag shows by the target frame")
+    local pt
+    local realSet = badge.SetPoint
+    badge.SetPoint = function(self, a1, a2, a3, a4, a5) pt = { a1, a2, a3, a4, a5 }; return realSet(self, a1, a2, a3, a4, a5) end
+    check(WH.SetTagSpot("aboveright") and badge:IsShown(), "it can sit on another side or corner of the frame")
+    check(pt and pt[1] == "BOTTOMRIGHT" and pt[3] == "TOPRIGHT", "above, right: its bottom right on the frame's top right (" .. tostring(pt and pt[1]) .. ")")
+    local outlineShown
+    badge.outline.SetShown = function(_, v) outlineShown = v end
+    check(not WH.SetTagSpot("nowhere"), "an unknown spot is refused")
+    WH.UnlockTag(true)
+    check(WH.TagUnlocked() and outlineShown == true, "unlocked, it shows an outline to drag it by")
+    alice.targetGuild = nil
+    WH.RefreshMarks()
+    check(badge:IsShown(), "and a sample while no member is targeted")
+    WH.UnlockTag(false)
+    check(not badge:IsShown(), "locked again with no member targeted, it hides")
+    WH.SetTagSpot("below")
     alice.targetGuild = "Strangers"
     check(WH.TagOf("target") == nil, "players outside the org get no mark")
     alice.targetGuild = nil
