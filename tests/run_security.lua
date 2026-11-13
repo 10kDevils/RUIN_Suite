@@ -591,29 +591,18 @@ do
     check(not whispered, "nobody's character whispers old versions")
     check(oldver or chatHas(oldie, "can't connect"), "RUIN tells a RUIN below the minimum itself (app to app)")
 
-    -- new-version notices: signed, passed on to anyone older, shown once
-    local CRr = alice.ns.Crypto
-    local seedR = CRr.SHA256("test release key")
-    local pkR = CRr.Hex(CRr.SignKeyPair(seedR))
-    for _, c in ipairs({ alice, cara, eve, olga, mal }) do c.ns.Release.PUBLIC_KEY = pkR end
-    local notice = { v = "9.9.9", t = 1800000000, notes = { "Faster everything", "A new module" } }
-    notice.s = CRr.Hex(CRr.Sign(seedR, ("RUINR1|%s|%d|%s"):format(notice.v, notice.t, table.concat(notice.notes, "\n"))))
-    check(alice.ns.Release.Valid(notice), "a signed release notice checks out")
-    local fake = deepcopy(notice); fake.v = "9.9.10"
-    check(not alice.ns.Release.Valid(fake), "a changed one doesn't")
-    alice.ns.Release.Take(notice)
-    check(chatHas(alice, "RUIN 9.9.9 is out") and chatHas(alice, "CurseForge or GitHub"), "RUIN says a new version is out, and where to get it")
+    -- a newer version heard in a hello: a prompt, once per version
+    alice.ns.db.releaseShown, alice.ns.db.newestSeen = nil, nil
+    local newer = "0." .. tostring(tonumber(alice.ns.VERSION:match("^0%.(%d+)")) + 1) .. ".0"
+    alice.ns.Release.Heard(newer, "Eve Ember")
+    check(chatHas(alice, "RUIN " .. newer .. " is out") and chatHas(alice, "CurseForge or GitHub"), "RUIN says a new version is out, and where to get it")
     local dlg = alice.env.RUIN_ConfirmDialog
-    check(dlg and dlg.title:GetText() == "RUIN 9.9.9 is out" and dlg.text:GetText():find("A new module", 1, true), "in a window with the highlights")
-    alice.ns.Release.OnPeer(eve.ns.VERSION, "Eve Ember", "ORG")
-    Server:Advance(20)
-    check(chatHas(eve, "RUIN 9.9.9 is out") and eve.ns.db.latestRelease and eve.ns.db.latestRelease.v == "9.9.9", "and passes it on to players on an older version")
-    send(mal, "RELNOTE", { n = fake }, "PEER", "Cara Cole")
-    Server:Advance(5)
-    check(not chatHas(cara, "9.9.10"), "a faked notice is ignored")
+    check(dlg and dlg.title:GetText() == "RUIN " .. newer .. " is out", "in a window")
     local before = #alice.chat
-    alice.ns.Release.Take(notice)
+    alice.ns.Release.Heard(newer, "Cara Cole")
     check(#alice.chat == before, "each version is announced once")
+    alice.ns.Release.Heard("42.0.0", "Mal Mischief")
+    check(not chatHas(alice, "RUIN 42.0.0"), "a silly version number is ignored")
 
     -- the admin's recovery code works on another PC
     local code = alice.ns.Org:RecoveryCode()

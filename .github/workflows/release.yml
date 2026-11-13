@@ -67,10 +67,6 @@ jobs:
           echo "RUIN Core $version -> $tag"
 
       - name: Build zip
-        # RUIN_RELEASE_SEED signs the release notice players' RUIN passes on
-        # to everyone on an older version (tools/release/notice.py)
-        env:
-          RUIN_RELEASE_SEED: ${{ secrets.RUIN_RELEASE_SEED }}
         run: ./build.sh
 
       - name: Release notes from the change logs
