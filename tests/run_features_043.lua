@@ -258,6 +258,7 @@ do
     local badge = WH.TagBadge()
     local function anchor() return badge._points and badge._points[1] end
     check(badge and badge:IsShown(), "the tag shows by the target frame")
+    check(fdb == nil or fdb.tagAnchor == nil or fdb.tagAnchor == "right", "it starts on the frame's right side (" .. tostring(fdb and fdb.tagAnchor) .. ")")
     local pt
     local realSet = badge.SetPoint
     badge.SetPoint = function(self, a1, a2, a3, a4, a5) pt = { a1, a2, a3, a4, a5 }; return realSet(self, a1, a2, a3, a4, a5) end
