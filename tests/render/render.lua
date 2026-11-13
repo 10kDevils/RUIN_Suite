@@ -34,7 +34,7 @@ Server:Advance(10)
 Server:Slash(alice, "key create RUIN")
 Server:Slash(alice, "key addguild Briar Fang, 1, Briar")
 alice.ns.Org:SendFullKey("Cara Cole")
-Server:Advance(3)
+Server:Advance(20)
 cara.env.RUIN_ConfirmDialog.onAccept()
 Server:Advance(90)
 alice.ns.Org:SetLinks({ { label = "Discord", url = "https://discord.gg/ruin" }, { label = "Website", url = "https://ruin.gg" },

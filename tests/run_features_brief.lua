@@ -588,7 +588,7 @@ do
 
     -- org admin: every character on the admin's account, export for the admin only
     local Org = alice.ns.Org
-    check(Org:IsAdmin() and alice.env.RUIN_DB.adminOf and alice.env.RUIN_DB.adminOf.RUIN == alice.guid, "the admin's account is noted")
+    check(Org:IsAdmin() and alice.env.RUIN_DB.adminSeeds and alice.env.RUIN_DB.adminSeeds.RUIN ~= nil, "the admin's account holds the signing seed")
     local realGUID = alice.ns.playerGUID
     alice.ns.playerGUID = "Player-1-0000ALT1"
     check(Org:IsAdmin() and not Org:IsAdminCharacter(), "another character on the same account is admin too")

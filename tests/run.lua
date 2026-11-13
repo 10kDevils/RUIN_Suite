@@ -70,7 +70,7 @@ local alice = Server:NewClient({ name = "Alice Ash", guid = "Player-1-00000001",
 local bob   = Server:NewClient({ name = "Bob Brand", guid = "Player-1-00000005", guild = "Ashen Order", rank = 3 })
 local cara  = Server:NewClient({ name = "Cara Cole", guid = "Player-1-00000002", guild = "Briar Fang", rank = 0 })
 local dan   = Server:NewClient({ name = "Dan Dusk", guid = "Player-1-00000003", guild = "Briar Fang", rank = 1 })
-local eve   = Server:NewClient({ name = "Eve Ember", guid = "Player-1-00000004", guild = "Briar Fang", rank = 2, version = "0.1.1" })
+local eve   = Server:NewClient({ name = "Eve Ember", guid = "Player-1-00000004", guild = "Briar Fang", rank = 2, version = "9.1.1" })
 local gary  = Server.guilds["Ashen Order"][3]
 Server:Advance(15)
 errorsSoFar("load and login")
@@ -95,7 +95,7 @@ Server:Slash(alice, "key addguild Briar Fang, 1, Briar")
 check(key(alice).rev == 2 and key(alice).guilds["Briar Fang"].tag == "Briar", "guild added, rev 2")
 alice.target = "Cara Cole"
 alice.ns.UI:SendKeyToTarget()
-Server:Advance(10)   -- a key offer is several parts; Core sends at most 6 at once
+Server:Advance(20)   -- a key offer is several parts; Core sends at most 6 at once
 local confirmBox = cara.env.RUIN_ConfirmDialog
 check(confirmBox and confirmBox:IsShown() and confirmBox.onAccept ~= nil, "Cara got RUIN's own accept prompt")
 check(#cara.popups == 0, "no Blizzard StaticPopup used")
@@ -146,7 +146,7 @@ check(not chatHas(bob, "officer plans"), "Bob (member) does not")
 ---------------------------------------------------------------------------
 print("Version notice")
 ---------------------------------------------------------------------------
-check(chatHas(alice, "RUIN Core 0.1.1"), "Alice told a newer version (Eve's 0.1.1) is in use")
+check(chatHas(alice, "RUIN Core 9.1.1"), "Alice told a newer version (Eve's 9.1.1) is in use")
 
 ---------------------------------------------------------------------------
 print("Rotate key: everyone follows to new channels")

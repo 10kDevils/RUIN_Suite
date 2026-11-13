@@ -65,7 +65,7 @@ Server:Advance(10)
 Server:Slash(alice, "key create RUIN")
 Server:Slash(alice, "key addguild Briar Fang, 1, Briar")
 alice.ns.Org:SendFullKey("Cara Cole")
-Server:Advance(3)
+Server:Advance(20)
 cara.env.RUIN_ConfirmDialog.onAccept()
 Server:Advance(120)
 -- let officer hellos and the verified-officer lists go round
@@ -142,16 +142,17 @@ do
     Server:Advance(3)
     check(key(eve).c.n ~= "ruinxan", "an outsider's whispered key is refused")
 
-    -- a key from before admin names: the officer channel bootstraps the name
-    local old = deepcopy(key(cara)); old.an = nil; cara.ns.db.orgKey = old
+    -- signed keys (0.7.2): an unsigned change, even sent from the admin's name, is refused
+    local old = deepcopy(key(cara))
     local m = deepcopy(key(mal)); m.an, m.rev = { "Mal Mischief" }, old.rev + 1
     send(mal, "ORGKEY", { k = m }, "PEER", "Cara Cole")
     Server:Advance(3)
-    check(key(cara).rev == old.rev, "old key: a member naming himself admin by whisper is refused")
-    local a = deepcopy(key(alice)); a.rev = old.rev + 1
+    check(key(cara).rev == old.rev, "a member naming himself admin by whisper is refused")
+    local a = deepcopy(key(alice)); a.rev = old.rev + 1; a.links = { { l = "Discord", u = "https://evil.example" } }
     send(alice, "ORGKEY", { k = a }, "OFFICERS", key(alice).oc.n)
     Server:Advance(3)
-    check(key(cara).rev == old.rev + 1 and cara.ns.Org:IsAdminName("Alice Ash"), "old key: the admin on the officer channel adds her name")
+    check(key(cara).rev == old.rev, "a changed key without a fresh signature is refused, even from the admin's character")
+    check(cara.ns.Org:IsAdminName("Alice Ash"), "and the admin is still the admin")
 end
 errorsSoFar("C1")
 
@@ -464,6 +465,141 @@ do
     check(not (eve.env.RUIN_ConfirmDialog and eve.env.RUIN_ConfirmDialog.onAccept), "nobody but the admin or an officer can offer a key to a member")
 end
 errorsSoFar("review")
+
+---------------------------------------------------------------------------
+print("0.7.2: signatures, the data key and encryption")
+do
+    local CR = alice.ns.Crypto
+    -- the cryptography itself, against values worked out independently (Python)
+    check(CR.SHA256Hex("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "SHA-256 matches the standard")
+    check(CR.Hex(CR.HMAC(string.rep("key", 30), "The quick brown fox")) == "117f43dca6875c4628224a0aa2dc6a10c0f49eb5ec7465825700d9622d4b4388", "HMAC-SHA256 matches the standard")
+    local ks = CR.ChaCha20(CR.Unhex("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"), CR.Unhex("000000000000004a00000000"),
+        "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.", 1)
+    check(CR.Hex(ks):sub(1, 32) == "6e2e359a2568f98041ba0728dd0d6981", "ChaCha20 matches RFC 8439")
+    local seed = CR.SHA256("seed0")
+    check(CR.Hex(CR.SignKeyPair(seed)) == "d860c84be44d333dff5953d193f89915ab28cff01d6ccaf70df55c266851944a", "signing keys match the reference")
+    local sig = CR.Sign(seed, "")
+    check(CR.Hex(sig) == "60e482a5a418c7960ccb453115e1360e9915c2cea1878b721c38c7280f0f6ce4eb135c29ef8becea983ec663bb4e0905094cd6412a78484dc4aa385cdae06706", "signatures match the reference")
+    check(CR.Verify(CR.SignKeyPair(seed), "", sig) and not CR.Verify(CR.SignKeyPair(seed), "x", sig), "a signature checks out, and not for other text")
+
+    -- every key is signed; members know the admin by her public key
+    local k = key(alice)
+    check(type(k.pk) == "string" and type(k.sig) == "string" and key(eve).pk == k.pk, "the org key is signed and members have the admin's public key")
+    check(alice.ns.Org.VerifyKey(key(eve), k.pk), "a member's copy checks out")
+    -- an officer can't slip a phishing link into the key for other guilds
+    local phish = deepcopy(key(olga)); phish.rev = phish.rev + 1; phish.links = { { l = "Discord", u = "https://discord-free-nitro.example" } }
+    send(olga, "ORGKEY", { k = phish }, "PEER", "Eve Ember")
+    send(olga, "ORGKEY", { k = phish }, "PEER", "Cara Cole")
+    Server:Advance(5)
+    check(key(eve).rev == k.rev and key(cara).rev == k.rev, "an officer's altered key is refused (signature)")
+
+    -- the admin's name alone isn't the admin: a newcomer who took it has no attestation
+    check(eve.ns.Org:IsAdminName("Alice Ash"), "the real admin is vouched for")
+    local bad = { org = k.org, n = "Mal Mischief", e = alice.env.GetServerTime() + 3600, s = string.rep("00", 64) }
+    send(mal, "ADMINHI", bad, "ORG")
+    Server:Advance(3)
+    check(not eve.ns.Org:IsAdminName("Mal Mischief"), "a forged admin attestation is ignored")
+    -- disbanding needs the admin's signature, whoever sends it
+    send(mal, "DISBAND", { org = k.org, admin = k.admin, relay = 1 }, "PEER", "Eve Ember")
+    Server:Advance(3)
+    check(key(eve) ~= nil, "an unsigned disband is ignored")
+
+    -- the Watch token says nothing about the Battle.net account
+    alice.env.BNGetInfo = function() return 1, "Alice#1234" end
+    local tok = alice.ns.Watch:MyTagHash()
+    check(tok and tok ~= alice.ns.Hash(k.org .. "|alice#1234") .. alice.ns.Hash("alice#1234|" .. k.org), "the Watch token isn't a BattleTag hash")
+
+    -- the data key: every member of an org guild has it; the key never carries it
+    Server:Advance(60)
+    check(alice.ns.Org:DataKey() ~= nil and mal.ns.Org:DataKey() ~= nil and eve.ns.Org:DataKey() ~= nil, "members of the org's guilds get the data key")
+    check(k.dk == nil and not alice.ns.Serialize(key(eve)):find(alice.ns.Org:DataKeyHex(), 1, true), "the org key itself never carries it")
+    check(not alice.ns.Org:Encrypted(), "encryption waits for the admin to raise the minimum version")
+
+    -- Xan learns the org channel (a leaked phrase) and joins it
+    xan.env.JoinTemporaryChannel(k.c.n, k.c.p)
+    xan.ns.db.orgKey = deepcopy(key(mal))           -- and even a copy of the member key
+    local seen = {}
+    Server.tap = function(c, prefix, text, chatType) if chatType == "CHANNEL" then seen[#seen + 1] = text end end
+
+    -- the admin raises the minimum version: from here on, org traffic is sealed
+    local ok = alice.ns.Org:SetMinVersion(alice.ns.CRYPTO_VERSION)
+    Server:Advance(60)
+    check(ok and alice.ns.Org:Encrypted() and eve.ns.Org:Encrypted() and cara.ns.Org:Encrypted(), "the admin raises the minimum version: the org encrypts")
+    check(eve.ns.Org:DataKey() ~= nil and cara.ns.Org:DataKey() ~= nil and mal.ns.Org:DataKey() ~= nil, "and every member has the current data key")
+    seen = {}
+    local heard = {}
+    xan.ns.Comms:Register("GCHAT", function(d) heard[#heard + 1] = d.t end)
+    send(olga, "GCHAT", { a = "Olga Oak", g = G.olga, gu = "Ashen Order", t = "secret plans at dawn", c = "MAGE" }, "ORG")
+    Server:Advance(3)
+    check(chatHas(cara, "secret plans at dawn"), "members still read org chat")
+    local leaked = false
+    for _, t in ipairs(seen) do if t:find("secret plans", 1, true) or t:find("GCHAT", 1, true) then leaked = true end end
+    check(#seen > 0 and not leaked, "on the wire it's ciphertext: no text, not even what kind of message")
+    check(#heard == 0, "someone on the channel with the phrase (and the member key) reads nothing")
+    -- plain messages are refused once the org encrypts (Xan can't inject)
+    local raw = table.concat({ "1", "GCHAT", "x1", "1", "1", alice.ns.Serialize({ a = "Xan Outsider", g = G.xan, gu = "Ashen Order", t = "plain injection", c = "MAGE" }) }, "\030")
+    xan.env.C_ChatInfo.SendAddonMessage("RUIN", raw, "CHANNEL", xan.env.GetChannelName(k.c.n))
+    Server:Advance(3)
+    check(not chatHas(cara, "plain injection"), "a plain message on the encrypted channel is dropped")
+    -- a whisper can't be passed on as someone else's
+    local sealedTo
+    Server.tap = function(c, prefix, text, chatType, target) if chatType == "WHISPER" and c.name == "Olga Oak" then sealedTo = text end end
+    send(olga, "Finder:JOINREQ", { g = G.olga, c = "MAGE", l = 20, role = "DPS", a = "Dungeon" }, "PEER", "Eve Ember")
+    Server:Advance(3)
+    Server.tap = nil
+    check(sealedTo and sealedTo:find("\030E\030", 1, true), "whispers are sealed too")
+
+    -- Mal leaves the guild: officers see him go, the admin changes the data key
+    local dkr = key(alice).dkr
+    for i, m in ipairs(Server.guilds["Ashen Order"]) do if m.name == "Mal Mischief" then table.remove(Server.guilds["Ashen Order"], i) end end
+    mal.guild = nil
+    alice.ns:ScanRoster(); olga.ns:ScanRoster()
+    Server:Advance(200)
+    check(key(alice).dkr == dkr + 1 and key(eve).dkr == dkr + 1, "someone leaving a guild gets the org a new data key")
+    check(eve.ns.Org:DataKey() ~= nil and cara.ns.Org:DataKey() ~= nil, "the members who stayed get it")
+    check(select(2, mal.ns.Org:DataKey()) ~= dkr + 1, "the one who left doesn't")
+    Server:Advance(1000)    -- past the old key's grace period
+    local malHeard = {}
+    mal.ns.Comms:Register("GCHAT", function(d) malHeard[#malHeard + 1] = d.t end)
+    send(olga, "GCHAT", { a = "Olga Oak", g = G.olga, gu = "Ashen Order", t = "after he left", c = "MAGE" }, "ORG")
+    Server:Advance(3)
+    check(#malHeard == 0 and chatHas(cara, "after he left"), "and can't read org traffic any more")
+
+    -- RUIN older than the minimum: a prompt, and no connection
+    local oldie = Server:NewClient({ name = "Nell Newbie", guid = "Player-1-00000012", guild = "Briar Fang", rank = 4, modules = MODULES, version = "0.7.1" })
+    table.insert(Server.guilds["Briar Fang"], { name = "Nell Newbie", rank = 4, guid = "Player-1-00000012" })
+    cara.ns:ScanRoster()
+    oldie.ns.db.orgKey = deepcopy(key(eve))
+    oldie.ns:Fire("KEY_CHANGED", "import")
+    Server:Advance(30)
+    local dlg = oldie.env.RUIN_ConfirmDialog
+    check(dlg and dlg.title and dlg.title:GetText() == "Update RUIN to connect" and chatHas(oldie, "CurseForge or GitHub"), "a RUIN below the minimum version gets the update prompt")
+    check(not oldie.ns.Comms:IsJoined("ORG"), "and doesn't connect")
+    -- a RUIN too old to have that window: its guild whispers it in plain chat
+    local before = { [cara] = 0, [eve] = 0 }
+    send(oldie, "HELLO", { g = "Player-1-00000012", v = "0.5.0", p = 1, kr = 1, org = key(eve).org }, "GUILD")
+    Server:Advance(15)
+    local told = false
+    for _, c in ipairs({ cara, eve }) do
+        for i = before[c] + 1, #(c.sentChat or {}) do
+            local m = c.sentChat[i]
+            if m[2] == "WHISPER" and tostring(m[1]):find("too old to connect", 1, true) then told = true end
+        end
+    end
+    check(told, "RUIN below the minimum is also whispered how to update (for versions too old to show the window)")
+
+    -- the admin's recovery code works on another PC
+    local code = alice.ns.Org:RecoveryCode()
+    check(type(code) == "string" and code:find("^RUIN%-"), "the admin has a recovery code")
+    local seeds = alice.env.RUIN_DB.adminSeeds
+    local saved = seeds[k.org]
+    seeds[k.org] = nil
+    check(not alice.ns.Org:IsAdmin(), "without the signing seed (a new PC), not the admin")
+    check(not alice.ns.Org:Recover("RUIN-AAAA-BBBB"), "a wrong code is refused")
+    check(alice.ns.Org:Recover(code) and alice.ns.Org:IsAdmin(), "the recovery code makes the account the admin again")
+    check(seeds[k.org] == saved, "(the same seed)")
+end
+errorsSoFar("0.7.2")
 
 print(("\n%d passed, %d failed, %d addon messages sent"):format(pass, fail, Server.sent))
 os.exit(fail == 0 and 0 or 1)

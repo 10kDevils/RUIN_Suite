@@ -107,7 +107,7 @@ do
     local mu = alice.env.RUIN_API:GetModule("Muster")
     alice.pos = { map = 1411, x = 0.40, y = 0.40 }
     local ev = mu:Rally("Crossroads")
-    Server:Advance(2)
+    Server:Advance(6)
     check(ev and ev.rally and alice.env.RUIN_API.Map:GetPins("Muster")[ev.id], "rally pinned on the map")
     check(cara.env.RUIN_API.Map:GetPins("Muster")[ev.id], "Cara's map shows it too")
     -- an enemy sighting near the rally contests it

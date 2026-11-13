@@ -12,6 +12,16 @@ do
     end
     toc:close()
 end
+-- clients run the Core version in its TOC unless a test says otherwise
+local TOC_VERSION = "0.7.2"
+do
+    local toc = io.open(ADDON_DIR .. "/RUIN_Core.toc")
+    for line in toc:lines() do
+        local v = line:match("^## Version:%s*(%S+)")
+        if v then TOC_VERSION = v end
+    end
+    toc:close()
+end
 
 Server = { epoch = os.time(), time = 0, clients = {}, byName = {}, channels = {}, timers = {}, errors = {}, guilds = {},
            sent = 0, maxLen = 0, line = 0 }
@@ -83,6 +93,7 @@ local function route(c, prefix, text, chatType, target)
     assert(not text:find("\0", 1, true), "NUL in addon message")
     Server.sent = Server.sent + 1
     if #text > Server.maxLen then Server.maxLen = #text end
+    if Server.tap then Server.tap(c, prefix, text, chatType, target) end
     if chatType == "GUILD" then
         for _, o in ipairs(Server.clients) do
             if o.guild == c.guild then deliver(o, prefix, text, "GUILD", c.name, "", 0, 0, "", 0) end
@@ -248,7 +259,7 @@ function Server:NewClient(opts)
     env.tinsert = table.insert
     env.wipe = function(t) for k in pairs(t) do t[k] = nil end return t end
     env.SlashCmdList = {}
-    env.GetAddOnMetadata = function() return opts.version or "0.1.0" end
+    env.GetAddOnMetadata = function() return opts.version or TOC_VERSION end
     env.geterrorhandler = function()
         return function(e) table.insert(Server.errors, c.name .. ": " .. tostring(e)) end
     end
@@ -410,6 +421,8 @@ function Server:NewClient(opts)
         setfenv(chunk, env)
         chunk("RUIN_Core", c.ns)
     end
+    -- RUIN_ENCRYPT=1: new orgs start encrypted (the whole suite then runs sealed)
+    if os.getenv("RUIN_ENCRYPT") then c.ns.MIN_SUPPORTED = c.ns.CRYPTO_VERSION end
     -- Remember every row of sub-tabs, so tests can open each sub-page.
     c.subtabs = {}
     local W = c.ns.Widgets

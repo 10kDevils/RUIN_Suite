@@ -16,7 +16,7 @@ do
     Server:Advance(120)
     check(E:Get() == nil, "her guild's officer doesn't hand the key back on its own")
     C:SendFullKey("Eve Ember")
-    Server:Advance(3)
+    Server:Advance(20)
     eve.env.RUIN_ConfirmDialog.onAccept()
     Server:Advance(30)
     check(E:Get() ~= nil and not E.Refused(E:Get().org), "accepting the key again brings her back")
