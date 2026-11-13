@@ -63,6 +63,8 @@ do
     check(mm.Shape() == "square", "/path minimap square")
     env.SlashCmdList.RUINPATH("dock top")
     check(mm.Dock() == "top", "/path dock top")
+    env.SlashCmdList.RUINPATH("minimap debug")
+    check(T.chatHas(alice, "RUIN is hiding"), "/path minimap debug lists what's around the minimap")
     env.SlashCmdList.RUINPATH("dock off"); env.SlashCmdList.RUINPATH("minimap round")
     check(mm.Dock() == nil and mm.Shape() == "round", "and back")
     env.RUIN_API:OpenTab("Pathfinder")
