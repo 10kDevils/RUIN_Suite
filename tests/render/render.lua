@@ -321,6 +321,19 @@ do  -- the quest section, scrolled into view
     CX.UI.detail:SetItems({ unpack(lines, from) })
     write("codex--journal-quests")
 end
+do  -- Finder: alice lists a group of 5 with a queue, and two players ask to join
+    local adb = alice.env.RUIN_FinderCharDB
+    adb.groupSize, adb.allowQueue, adb.detail = 5, true, "Gnomeregan"
+    alice.env.SlashCmdList.RUINFINDER("group dungeon")
+    for _, c in ipairs({ cara, eve }) do
+        c.env.RUIN_API:GetModule("Finder"):Send("JOINREQ", { g = c.guid, c = c == cara and "WARRIOR" or "PRIEST", l = 22,
+            sp = c == cara and "Protection" or "Holy", role = c == cara and "Tank" or "Healer", a = "Dungeon" }, "PEER", "Alice Ash")
+    end
+    Server:Advance(5)
+    if alice.env.RUIN_ConfirmDialog then alice.env.RUIN_ConfirmDialog:Hide() end
+    API:OpenTab("Finder"); sub("Finder", "Board"); write("finder--board-group")
+    alice.env.SlashCmdList.RUINFINDER("off"); adb.listing = "Player"
+end
 API:OpenTab("Pathfinder"); sub("Pathfinder", "Routes"); write("pathfinder--routes-dungeons")
 -- the Waypoint Editor on its own (the main window hidden so the shot crops to it)
 do
