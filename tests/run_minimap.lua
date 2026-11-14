@@ -213,3 +213,16 @@ do
     env.ObjectiveTrackerFrame = nil
     errorsSoFar("objective tracker")
 end
+
+print("Core: tooltips")
+do
+    local W = alice.env.RUIN_API.Widgets
+    local long = "The game's own look, or Pathfinder's: a panel in the suite's look behind the tracker, headers in Pathfinder's color, quest titles and objectives in the suite's text colors"
+    local wrapped = W.Wrap(long)
+    local widest, lines = 0, 0
+    for line in (wrapped .. "\n"):gmatch("(.-)\n") do lines = lines + 1; widest = math.max(widest, #line) end
+    check(lines >= 4 and widest <= W.TIP_WIDTH, "long tooltip text breaks onto short lines")
+    check(W.Wrap("Short tip") == "Short tip", "short text stays on one line")
+    check(W.Wrap("|cffffffffcolored|r words stay whole") == "|cffffffffcolored|r words stay whole", "color codes don't count toward the width")
+    errorsSoFar("tooltips")
+end

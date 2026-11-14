@@ -6,7 +6,8 @@ TGA files: white glyphs on clear, tinted in game, drawn large and scaled down.
 
 Objective tracker: Disc, Ring (the quest marker's body and edge), Question,
 Bang, Dots (what the marker says), Minus, Plus (collapse), Chevron, Check,
-Slot (an item button's frame). Minimap: Search (tracking), Mail.
+Slot (an item button's frame). Minimap: Search (tracking), Mail, Sun, Moon
+(day and night), North (the N).
 """
 import math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -83,6 +84,25 @@ def mail(c):
     c.line([(12, 19), (32, 35), (52, 19)], 5)
 
 
+def sun(c):
+    c.disc(32, 32, 11)
+    for i in range(8):
+        a = i * math.pi / 4
+        c.line([(32 + math.cos(a) * 18, 32 + math.sin(a) * 18), (32 + math.cos(a) * 26, 32 + math.sin(a) * 26)], 5)
+
+
+def moon(c):
+    body, bite = Canvas(S, S, K), Canvas(S, S, K)
+    body.disc(32, 32, 22)
+    bite.disc(43, 24, 19)
+    body.cut(bite)
+    c.add(body)
+
+
+def letter_n(c):
+    c.line([(20, 47), (20, 17), (44, 47), (44, 17)], 7.5, caps=False)
+
+
 def disc(c):
     c.disc(32, 32, 29)
 
@@ -92,7 +112,8 @@ def ring(c):
 
 
 ICONS = {"Disc": disc, "Ring": ring, "Question": question, "Bang": bang, "Dots": dots, "Minus": minus,
-         "Plus": plus, "Chevron": chevron, "Check": check, "Slot": slot, "Search": search, "Mail": mail}
+         "Plus": plus, "Chevron": chevron, "Check": check, "Slot": slot, "Search": search, "Mail": mail,
+         "Sun": sun, "Moon": moon, "North": letter_n}
 
 if __name__ == "__main__":
     for n, f in ICONS.items():
