@@ -18,7 +18,7 @@ do
     -- the game's pieces that move onto the bar
     local home = env.CreateFrame("Frame")
     local pieces = {}
-    for _, n in ipairs({ "TimeManagerClockButton", "GameTimeFrame", "AddonCompartmentFrame", "MiniMapTracking" }) do
+    for _, n in ipairs({ "TimeManagerClockButton", "GameTimeFrame", "AddonCompartmentFrame", "MiniMapTracking", "MiniMapMailFrame" }) do
         local f = env.CreateFrame("Button", n, home)
         f._parent = home
         f.SetParent = function(self, p) self._parent = p end
@@ -27,6 +27,17 @@ do
         env[n] = f
         pieces[n] = f
     end
+
+    -- coordinates another addon printed under the map
+    local stray = m:CreateFontString(nil, "OVERLAY")
+    stray:SetText("8.5, 55.4")
+    local strayAlpha = 1
+    stray.SetAlpha = function(_, a) strayAlpha = a end
+    stray.GetAlpha = function() return strayAlpha end
+    local realPos = env.C_Map.GetPlayerMapPosition
+    local realBest = env.C_Map.GetBestMapForUnit
+    env.C_Map.GetBestMapForUnit = function() return 15 end
+    env.C_Map.GetPlayerMapPosition = function() return { x = 0.4213, y = 0.6631 } end
 
     check(mm.Style() == "blizzard", "starts as the game's own minimap")
     check(#mm.DockChoices() == 5, "dock spots: off, above, below and the two sides")
@@ -40,7 +51,13 @@ do
     check(bar and bar:IsShown() and mm.Bar() == bar, "a flat bar sits above the map")
     local onBar = true
     for n, f in pairs(pieces) do if f:GetParent() == home then onBar = false end end
-    check(onBar, "the tracking button, clock, calendar and addon list move onto the bar")
+    check(onBar, "the tracking button, clock, calendar, addon list and mail move into the housing")
+    check(pieces.MiniMapTracking:GetAlpha() == 0 and pieces.MiniMapTracking:IsMouseEnabled() ~= false, "the tracking button is drawn flat by Pathfinder and still takes clicks")
+    local foot = env.RUIN_PathfinderMinimapFoot
+    check(foot and foot:IsShown() and mm.Foot() == foot, "a matching foot sits below the map")
+    mm.Tick(true)
+    check(mm.Coords() == "42.1, 66.3", "the foot shows your coordinates")
+    check(strayAlpha == 0, "coordinates printed by the map elsewhere give way to the foot's")
 
     -- the tracker docks on the bar above, and grows away from the map elsewhere
     local pf = env.RUIN_API:GetModule("Pathfinder")
@@ -56,7 +73,7 @@ do
         mm.SetDock("left")
         check(pt and pt[1] == "RIGHT" and pt[2] == m and pt[3] == "LEFT" and pt[4] < 0 and mm.Grow() == "left", "left side: it grows left")
         mm.SetDock("bottom")
-        check(pt and pt[1] == "TOP" and pt[3] == "BOTTOM" and pt[5] < 0 and mm.Grow() == "down", "below: it grows down")
+        check(pt and pt[1] == "TOP" and pt[2] == foot and pt[3] == "BOTTOM" and pt[5] < 0 and mm.Grow() == "down", "below: it hangs under the foot and grows down")
         tr.justMoved = true
         tr._scripts.OnMouseUp(tr, "LeftButton")
         tr.justMoved = nil
@@ -89,6 +106,9 @@ do
     mm.SetStyle("blizzard")
     local back = true
     for _, f in pairs(pieces) do if f:GetParent() ~= home then back = false end end
+    check(strayAlpha == 1 and pieces.MiniMapTracking:GetAlpha() == 1, "the other coordinates and the game's own icons come back")
+    env.C_Map.GetPlayerMapPosition = realPos
+    env.C_Map.GetBestMapForUnit = realBest
     check(back and alpha.border == 1 and alpha.zoom == 1 and not deco:IsShown() and not bar:IsShown(), "the game's look comes back as it was")
     env.SlashCmdList.RUINPATH("minimap pathfinder")
     check(mm.Style() == "pathfinder", "/path minimap pathfinder")

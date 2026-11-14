@@ -41,8 +41,20 @@ local function mockObj()
             self._events[e] = true
         end,
         UnregisterEvent = function(self, e) self._events[e] = nil end,
-        CreateFontString = function() return mockObj() end,
-        CreateTexture = function() return mockObj() end,
+        CreateFontString = function(self)
+            local r = mockObj(); r._type = "FontString"
+            self._regions = self._regions or {}; table.insert(self._regions, r); return r
+        end,
+        CreateTexture = function(self)
+            local r = mockObj(); r._type = "Texture"
+            self._regions = self._regions or {}; table.insert(self._regions, r); return r
+        end,
+        GetRegions = function(self) return unpack(self._regions or {}) end,
+        GetObjectType = function(self) return self._type or "Frame" end,
+        SetAlpha = function(self, a) self._alpha = a end,
+        GetAlpha = function(self) return self._alpha or 1 end,
+        EnableMouse = function(self, v) self._mouse = v and true or false end,
+        IsMouseEnabled = function(self) return self._mouse ~= false end,
         GetFontString = function(self) self._fs = self._fs or mockObj(); return self._fs end,
         GetStringWidth = function() return 60 end,
         GetStringHeight = function() return 14 end,
