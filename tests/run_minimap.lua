@@ -65,7 +65,7 @@ do
     check(mask == nil, "the game's round mask is never replaced")
     check(env.RUIN_PathfinderMinimapDeco and env.RUIN_PathfinderMinimapDeco:IsShown(), "Pathfinder's style draws its own ring")
     check(alpha.border == 0 and alpha.zoom == 0 and m:GetScript("OnMouseWheel") ~= nil, "the game's border and + / - buttons give way to mouse-wheel zoom")
-    check(math.abs(mscale * 140 - (200 - 38)) < 0.01 and mpt and mpt[1] == "CENTER" and mpt[2] == box,
+    check(math.abs(mscale * 140 - (200 - 44)) < 0.01 and mpt and mpt[1] == "CENTER" and mpt[2] == box,
         "the map grows to fill its Edit Mode box (its shorter side), centered in it")
     local bar = env.RUIN_PathfinderMinimapBar
     check(bar and bar:IsShown() and mm.Bar() == bar, "a flat bar sits above the map")
@@ -76,7 +76,8 @@ do
     local foot = env.RUIN_PathfinderMinimapFoot
     check(foot and foot:IsShown() and mm.Foot() == foot, "a matching foot sits below the map")
     mm.Tick(true)
-    check(mm.Coords() == "42.1, 66.3", "the foot shows your coordinates")
+    check(mm.Coords() == "42.1, 66.3" and tostring(env.RUIN_PathfinderMinimapBar.zone:GetText()):find("42.1, 66.3", 1, true),
+        "your coordinates sit beside the zone name")
     check(strayAlpha == 0, "coordinates printed by the map elsewhere give way to the foot's")
 
     -- the tracker docks on the bar above, and grows away from the map elsewhere
