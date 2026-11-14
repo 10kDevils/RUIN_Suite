@@ -163,7 +163,22 @@ do
     local block = env.CreateFrame("Frame"); block.HeaderText = fs()
     local line = env.CreateFrame("Frame"); line.Text = fs(); line.Dash = fs()
     local done = env.CreateFrame("Frame"); done.Text = fs(); done.Dash = fs(); done.Icon = env.CreateFrame("Frame")
-    local kids = { [mod] = { block }, [block] = { line, done } }
+    -- its icons: a quest marker, an item button, a collapse button, a check mark
+    local poi = env.CreateFrame("Button"); poi._type = "Button"; poi.questID = 101
+    poi.GetWidth = function() return 20 end
+    local item = env.CreateFrame("Button"); item._type = "Button"; item.icon = item:CreateTexture(); item.itemLink = "x"
+    local normal = item:CreateTexture()
+    item.GetNormalTexture = function() return normal end
+    mod.Header.MinimizeButton = env.CreateFrame("Button"); mod.Header.MinimizeButton._type = "Button"
+    local tick = done.Icon:CreateTexture()
+    done.Icon = tick
+    tick.IsShown = function() return true end
+    local tickArt
+    tick.SetTexture = function(_, t) tickArt = t end
+    env.C_QuestLog.IsComplete = env.C_QuestLog.IsComplete or function() return false end
+    local realComplete = env.C_QuestLog.IsComplete
+    env.C_QuestLog.IsComplete = function(q) return q == 101 end
+    local kids = { [mod] = { block }, [block] = { poi, item, line, done } }
     for f, list in pairs(kids) do f.GetChildren = function() return unpack(list) end end
     otf.modules = { mod }
     otf.GetTop = function() return 600 end
@@ -184,11 +199,17 @@ do
     check(block.HeaderText.rgb and block.HeaderText.rgb[1] > 0.9, "quest titles in the suite's white")
     check(line.Text.rgb and line.Text.rgb[1] < 0.8 and is(line.Dash.rgb, acc), "objectives in its grey, with an accent dash")
     check(done.Text.rgb and done.Text.rgb[2] > done.Text.rgb[1] + 0.2, "finished objectives in green")
+    check(poi:GetAlpha() == 0 and poi:IsMouseEnabled() ~= false and ot.KindOf(poi) == "poi", "the quest marker is redrawn flat and still takes clicks")
+    check(normal:GetAlpha() == 0 and item:GetAlpha() == 1, "the item button keeps its item and loses the game's frame")
+    check(mod.Header.MinimizeButton:GetAlpha() == 0, "the collapse button is redrawn")
+    check(type(tickArt) == "string" and tickArt:find("ModernCheck"), "finished objectives get Pathfinder's check")
     check(ot.SetAlpha(0.4) and ot.Alpha() == 0.4, "the panel's opacity is a setting")
     check(mm.SetAlpha(0.6) and mm.Alpha() == 0.6, "and so is the minimap frame's")
     env.SlashCmdList.RUINPATH("objectives blizzard")
     check(ot.Style() == "blizzard" and not back:IsShown() and otf.Header.Background:GetAlpha() == 1 and updated > 0,
         "/path objectives blizzard hands the tracker back to the game")
+    check(poi:GetAlpha() == 1 and normal:GetAlpha() == 1 and mod.Header.MinimizeButton:GetAlpha() == 1, "and its own icons")
+    env.C_QuestLog.IsComplete = realComplete
     env.ObjectiveTrackerFrame = nil
     errorsSoFar("objective tracker")
 end
