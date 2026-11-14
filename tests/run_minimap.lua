@@ -64,17 +64,17 @@ do
     env.GetPlayerFacing = function() return math.pi / 2 end
     mm.SetShape("square")
     mm.SetStyle("pathfinder")
-    check(mask and mask:find("CircleMask", 1, true) == nil and mask:find("MinimapMask", 1, true) and env.GetMinimapShape == nil,
-        "a rotating minimap shows round (a square one would have empty corners)")
+    check(mask and mask:find("MinimapSquareInner", 1, true) and m.ruinViewScale and m.ruinViewScale < 1,
+        "a rotating square map grows behind a mask of its old size, so the turning map always fills it")
     local deco = env.RUIN_PathfinderMinimapDeco
     local np
     local realSP = deco.north.SetPoint
     deco.north.SetPoint = function(self, a, b, c, x, y) np = { x, y }; return realSP(self, a, b, c, x, y) end
     mm.PlaceNorth()
-    check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right side")
+    check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right edge")
     cvars.rotateMinimap = "0"
     mm.Apply()
-    check(mask:find("WHITE8X8", 1, true) and env.GetMinimapShape() == "SQUARE", "rotation off: square again")
+    check(m.ruinViewScale == nil and mask:find("WHITE8X8", 1, true), "rotation off: the map is its own size again")
     mm.PlaceNorth()
     check(np and math.abs(np[1]) < 1 and np[2] > 10, "and north is back on top")
     env.GetCVar = realCVar
