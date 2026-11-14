@@ -143,3 +143,52 @@ do
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("minimap")
 end
+
+print("Pathfinder: objective tracker style")
+do
+    local env = alice.env
+    local ot = alice.mns.RUIN_Pathfinder.Objectives
+    local mm = alice.mns.RUIN_Pathfinder.Minimap
+    check(ot ~= nil, "Pathfinder styles the objective tracker")
+    -- a stand-in for the game's tracker: a header, a section, a quest and its lines
+    local function fs()
+        local f = env.CreateFrame("Frame"):CreateFontString()
+        f.SetTextColor = function(self, r, g, b) self.rgb = { r, g, b } end
+        return f
+    end
+    local otf = env.CreateFrame("Frame")
+    otf.Header = env.CreateFrame("Frame"); otf.Header.Text = fs(); otf.Header.Background = otf.Header:CreateTexture()
+    local mod = env.CreateFrame("Frame")
+    mod.Header = env.CreateFrame("Frame"); mod.Header.Text = fs()
+    local block = env.CreateFrame("Frame"); block.HeaderText = fs()
+    local line = env.CreateFrame("Frame"); line.Text = fs(); line.Dash = fs()
+    local done = env.CreateFrame("Frame"); done.Text = fs(); done.Dash = fs(); done.Icon = env.CreateFrame("Frame")
+    local kids = { [mod] = { block }, [block] = { line, done } }
+    for f, list in pairs(kids) do f.GetChildren = function() return unpack(list) end end
+    otf.modules = { mod }
+    otf.GetTop = function() return 600 end
+    mod.GetBottom = function() return 400 end
+    mod.GetHeight = function() return 180 end
+    local updated = 0
+    otf.Update = function() updated = updated + 1 end
+    env.ObjectiveTrackerFrame = otf
+
+    check(ot.Style() == "blizzard", "starts in the game's own look")
+    ot.SetStyle("pathfinder")
+    local back = env.RUIN_PathfinderObjectivesBack
+    check(back and back:IsShown(), "a panel in the suite's look sits behind the tracker")
+    local acc = mm.Scheme().accent
+    local function is(c, want) return c and math.abs(c[1] - want[1]) < 0.01 and math.abs(c[2] - want[2]) < 0.01 end
+    check(is(otf.Header.Text.rgb, acc) and is(mod.Header.Text.rgb, acc), "headers take Pathfinder's color")
+    check(otf.Header.Background:GetAlpha() == 0, "the game's header backdrop gives way")
+    check(block.HeaderText.rgb and block.HeaderText.rgb[1] > 0.9, "quest titles in the suite's white")
+    check(line.Text.rgb and line.Text.rgb[1] < 0.8 and is(line.Dash.rgb, acc), "objectives in its grey, with an accent dash")
+    check(done.Text.rgb and done.Text.rgb[2] > done.Text.rgb[1] + 0.2, "finished objectives in green")
+    check(ot.SetAlpha(0.4) and ot.Alpha() == 0.4, "the panel's opacity is a setting")
+    check(mm.SetAlpha(0.6) and mm.Alpha() == 0.6, "and so is the minimap frame's")
+    env.SlashCmdList.RUINPATH("objectives blizzard")
+    check(ot.Style() == "blizzard" and not back:IsShown() and otf.Header.Background:GetAlpha() == 1 and updated > 0,
+        "/path objectives blizzard hands the tracker back to the game")
+    env.ObjectiveTrackerFrame = nil
+    errorsSoFar("objective tracker")
+end
