@@ -39,6 +39,24 @@ do
     env.C_Map.GetBestMapForUnit = function() return 15 end
     env.C_Map.GetPlayerMapPosition = function() return { x = 0.4213, y = 0.6631 } end
 
+    -- the minimap's Edit Mode box, taller than wide
+    local box = env.CreateFrame("Frame")
+    box.GetWidth = function() return 200 end
+    box.GetHeight = function() return 240 end
+    box.GetEffectiveScale = function() return 1 end
+    env.MinimapCluster = box
+    local holder = env.CreateFrame("Frame")
+    holder.GetEffectiveScale = function() return 1 end
+    m.GetParent = function() return holder end
+    m.GetEffectiveScale = function() return 1 end
+    local mscale = 1
+    m.SetScale = function(_, v) mscale = v end
+    m.GetScale = function() return mscale end
+    m.GetWidth = function() return 140 end
+    local mpt
+    local realMSP = m.SetPoint
+    m.SetPoint = function(self, a, b, ...) mpt = { a, b }; return realMSP(self, a, b, ...) end
+
     check(mm.Style() == "blizzard", "starts as the game's own minimap")
     check(#mm.DockChoices() == 5, "dock spots: off, above, below and the two sides")
     check(mm.SHAPES == nil and mm.SetShape == nil, "there is no square map setting")
@@ -47,6 +65,8 @@ do
     check(mask == nil, "the game's round mask is never replaced")
     check(env.RUIN_PathfinderMinimapDeco and env.RUIN_PathfinderMinimapDeco:IsShown(), "Pathfinder's style draws its own ring")
     check(alpha.border == 0 and alpha.zoom == 0 and m:GetScript("OnMouseWheel") ~= nil, "the game's border and + / - buttons give way to mouse-wheel zoom")
+    check(math.abs(mscale * 140 - (200 - 38)) < 0.01 and mpt and mpt[1] == "CENTER" and mpt[2] == box,
+        "the map grows to fill its Edit Mode box (its shorter side), centered in it")
     local bar = env.RUIN_PathfinderMinimapBar
     check(bar and bar:IsShown() and mm.Bar() == bar, "a flat bar sits above the map")
     local onBar = true
@@ -107,6 +127,7 @@ do
     local back = true
     for _, f in pairs(pieces) do if f:GetParent() ~= home then back = false end end
     check(strayAlpha == 1 and pieces.MiniMapTracking:GetAlpha() == 1, "the other coordinates and the game's own icons come back")
+    check(mscale == 1, "and the map its own size")
     env.C_Map.GetPlayerMapPosition = realPos
     env.C_Map.GetBestMapForUnit = realBest
     check(back and alpha.border == 1 and alpha.zoom == 1 and not deco:IsShown() and not bar:IsShown(), "the game's look comes back as it was")
