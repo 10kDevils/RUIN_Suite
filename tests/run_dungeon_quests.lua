@@ -92,8 +92,19 @@ do
     T.openAllSubTabs(alice, "Codex")
     local qb = CX.UI.questRoute
     qb.SetEnabled = function(self, v) self._en = v end
+    local CNs = alice.mns.RUIN_Codex
+    local hot, empty
+    for i, d in ipairs(CNs.Dungeons) do
+        if d.name == "Hall of Thanes" then hot = i end
+        if d.name == "Krol'dok Stronghold" then empty = i end
+    end
+    CX.UI.selected = hot
     T.openAllSubTabs(alice, "Codex")
-    check(qb._en == true, "the Journal's Quest route button is on for a dungeon Pathfinder knows")
+    check(qb._en == true, "the Journal's Quest route button is on for a dungeon with quests for you")
+    CX.UI.selected = empty
+    T.openAllSubTabs(alice, "Codex")
+    check(qb._en == false and tostring(qb.tip):find("No quests are known", 1, true), "and greyed out, with a tip, for one with none (Krol'dok Stronghold)")
+    CX.UI.selected = 1
 
     -- Pathfinder's library lists the dungeon routes
     R:OpenTab("Pathfinder")

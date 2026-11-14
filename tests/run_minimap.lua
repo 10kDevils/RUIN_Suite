@@ -40,7 +40,7 @@ do
         local real = tr.SetPoint
         tr.SetPoint = function(self, a, b, c, d, e) pt = { a, b, c, d, e }; return real(self, a, b, c, d, e) end
         mm.SetDock("topleft")
-        check(pt and pt[1] == "BOTTOMLEFT" and pt[2] == m and pt[3] == "TOPLEFT" and pt[5] > 0, "above, left edge: it sits on the map's top and grows up")
+        check(pt and pt[1] == "BOTTOMLEFT" and pt[2] == mm.View() and pt[3] == "TOPLEFT" and pt[5] > 0, "above, left edge: it sits on the map's top and grows up")
         mm.SetDock("left")
         check(pt and pt[1] == "RIGHT" and pt[3] == "LEFT" and pt[4] < 0 and mm.Grow() == "left", "left side: it grows left")
         mm.SetDock("bottomright")
@@ -57,6 +57,28 @@ do
         tr.justMoved = nil
         check(mm.Dock() == nil, "dragging the tracker off the minimap undocks it")
     end
+    -- a rotating map: the N turns with it, and a square map keeps its footprint
+    local cvars = { rotateMinimap = "1" }
+    local realCVar = env.GetCVar
+    env.GetCVar = function(k) if cvars[k] then return cvars[k] end return realCVar and realCVar(k) end
+    env.GetPlayerFacing = function() return math.pi / 2 end
+    mm.SetShape("square")
+    mm.SetStyle("pathfinder")
+    check(mask and mask:find("MinimapSquareInner", 1, true) and m.ruinViewScale and m.ruinViewScale < 1,
+        "a rotating square map grows behind a mask of its old size, so the turning map always fills it")
+    local deco = env.RUIN_PathfinderMinimapDeco
+    local np
+    local realSP = deco.north.SetPoint
+    deco.north.SetPoint = function(self, a, b, c, x, y) np = { x, y }; return realSP(self, a, b, c, x, y) end
+    mm.PlaceNorth()
+    check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right edge")
+    cvars.rotateMinimap = "0"
+    mm.Apply()
+    check(m.ruinViewScale == nil and mask:find("WHITE8X8", 1, true), "rotation off: the map is its own size again")
+    mm.PlaceNorth()
+    check(np and math.abs(np[1]) < 1 and np[2] > 10, "and north is back on top")
+    env.GetCVar = realCVar
+    mm.SetShape("round")
     mm.SetStyle("blizzard")
     check(alpha.border == 1 and alpha.zoom == 1 and not env.RUIN_PathfinderMinimapDeco:IsShown(), "the game's look comes back as it was")
     env.SlashCmdList.RUINPATH("minimap square")
