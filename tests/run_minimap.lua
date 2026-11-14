@@ -1,7 +1,7 @@
--- Pathfinder 0.7.2: the minimap's shape and style, and the tracker docked to it.
+-- Pathfinder: the minimap's style, the bar above it, and the tracker docked to it.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 
-print("Pathfinder: minimap shape, style and tracker dock")
+print("Pathfinder: minimap style, bar and tracker dock")
 do
     local env = alice.env
     local mm = alice.mns.RUIN_Pathfinder.Minimap
@@ -15,22 +15,34 @@ do
     env.MinimapBorder.GetAlpha = function() return 1 end
     env.MinimapZoomIn.SetAlpha = function(_, a) alpha.zoom = a end
     env.MinimapZoomIn.GetAlpha = function() return 1 end
-    check(mm.Shape() == "round" and mm.Style() == "blizzard", "starts as the game's round minimap")
-    mm.SetStyle("pathfinder"); mm.SetStyle("blizzard")
-    check(mask == nil, "a round map's mask is the game's own: RUIN never replaces it")
-    check(#mm.DockChoices() == 5, "a round minimap: off, above, below and the two sides")
+    -- the game's pieces that move onto the bar
+    local home = env.CreateFrame("Frame")
+    local pieces = {}
+    for _, n in ipairs({ "TimeManagerClockButton", "GameTimeFrame", "AddonCompartmentFrame", "MiniMapTracking" }) do
+        local f = env.CreateFrame("Button", n, home)
+        f._parent = home
+        f.SetParent = function(self, p) self._parent = p end
+        f.GetParent = function(self) return self._parent end
+        f:SetPoint("TOPLEFT", home, "TOPLEFT", 1, 1)
+        env[n] = f
+        pieces[n] = f
+    end
 
-    mm.SetShape("square")
-    check(mask and mask:find("WHITE8X8", 1, true) and env.GetMinimapShape and env.GetMinimapShape() == "SQUARE",
-        "square: a square mask, and other addons are told the minimap is square")
-    check(alpha.border == 0, "the game's round border is hidden on a square map")
-    check(#mm.DockChoices() == 13, "a square minimap: both ends of every edge too")
+    check(mm.Style() == "blizzard", "starts as the game's own minimap")
+    check(#mm.DockChoices() == 5, "dock spots: off, above, below and the two sides")
+    check(mm.SHAPES == nil and mm.SetShape == nil, "there is no square map setting")
 
     mm.SetStyle("pathfinder")
-    check(env.RUIN_PathfinderMinimapDeco and env.RUIN_PathfinderMinimapDeco:IsShown(), "Pathfinder's style draws its own edge")
-    check(alpha.zoom == 0 and m:GetScript("OnMouseWheel") ~= nil, "and the + / - buttons give way to mouse-wheel zoom")
+    check(mask == nil, "the game's round mask is never replaced")
+    check(env.RUIN_PathfinderMinimapDeco and env.RUIN_PathfinderMinimapDeco:IsShown(), "Pathfinder's style draws its own ring")
+    check(alpha.border == 0 and alpha.zoom == 0 and m:GetScript("OnMouseWheel") ~= nil, "the game's border and + / - buttons give way to mouse-wheel zoom")
+    local bar = env.RUIN_PathfinderMinimapBar
+    check(bar and bar:IsShown() and mm.Bar() == bar, "a flat bar sits above the map")
+    local onBar = true
+    for n, f in pairs(pieces) do if f:GetParent() == home then onBar = false end end
+    check(onBar, "the tracking button, clock, calendar and addon list move onto the bar")
 
-    -- the tracker docks to a spot and grows away from it
+    -- the tracker docks on the bar above, and grows away from the map elsewhere
     local pf = env.RUIN_API:GetModule("Pathfinder")
     local tr = env.RUIN_PathfinderTracker
     if not tr then pf.UpdateTracker(); tr = env.RUIN_PathfinderTracker end
@@ -39,56 +51,53 @@ do
         local pt
         local real = tr.SetPoint
         tr.SetPoint = function(self, a, b, c, d, e) pt = { a, b, c, d, e }; return real(self, a, b, c, d, e) end
-        mm.SetDock("topleft")
-        check(pt and pt[1] == "BOTTOMLEFT" and pt[2] == mm.View() and pt[3] == "TOPLEFT" and pt[5] > 0, "above, left edge: it sits on the map's top and grows up")
+        mm.SetDock("top")
+        check(pt and pt[1] == "BOTTOM" and pt[2] == bar and pt[3] == "TOP" and mm.Grow() == "up", "above: it sits on the bar and grows up")
         mm.SetDock("left")
-        check(pt and pt[1] == "RIGHT" and pt[3] == "LEFT" and pt[4] < 0 and mm.Grow() == "left", "left side: it grows left")
-        mm.SetDock("bottomright")
-        check(pt and pt[1] == "TOPRIGHT" and pt[3] == "BOTTOMRIGHT" and pt[5] < 0 and mm.Grow() == "down", "below, right edge: it grows down")
-        mm.SetDock("righttop")
-        check(pt and pt[1] == "TOPLEFT" and pt[3] == "TOPRIGHT" and mm.Grow() == "right", "right side, top: it grows right")
-        -- round again: a corner spot moves to the nearest side
-        mm.SetShape("round")
-        check(mm.Dock() == "right" and pt[1] == "LEFT" and pt[3] == "RIGHT", "back to round, the dock moves to the nearest round spot")
-        check(mask and mask:find("RUIN_Pathfinder\\Media\\MinimapMask", 1, true) and env.GetMinimapShape == nil, "and the round mask comes back")
-        -- dragging it off frees it
+        check(pt and pt[1] == "RIGHT" and pt[2] == m and pt[3] == "LEFT" and pt[4] < 0 and mm.Grow() == "left", "left side: it grows left")
+        mm.SetDock("bottom")
+        check(pt and pt[1] == "TOP" and pt[3] == "BOTTOM" and pt[5] < 0 and mm.Grow() == "down", "below: it grows down")
         tr.justMoved = true
         tr._scripts.OnMouseUp(tr, "LeftButton")
         tr.justMoved = nil
         check(mm.Dock() == nil, "dragging the tracker off the minimap undocks it")
     end
-    -- a rotating map: the N turns with it, and a square map keeps its footprint
+    -- an old saved spot ("topleft") means its side
+    local cdb = env.RUIN_PathfinderCharDB
+    if cdb then
+        cdb.trackerDock = "lefttop"
+        check(mm.Dock() == "left", "a spot saved by an older Pathfinder becomes its side")
+        cdb.trackerDock = nil
+    end
+
+    -- a rotating map: the N turns with it
     local cvars = { rotateMinimap = "1" }
     local realCVar = env.GetCVar
     env.GetCVar = function(k) if cvars[k] then return cvars[k] end return realCVar and realCVar(k) end
     env.GetPlayerFacing = function() return math.pi / 2 end
-    mm.SetShape("square")
-    mm.SetStyle("pathfinder")
-    check(mask and mask:find("MinimapSquareInner", 1, true) and m.ruinViewScale and m.ruinViewScale < 1,
-        "a rotating square map grows behind a mask of its old size, so the turning map always fills it")
     local deco = env.RUIN_PathfinderMinimapDeco
     local np
     local realSP = deco.north.SetPoint
     deco.north.SetPoint = function(self, a, b, c, x, y) np = { x, y }; return realSP(self, a, b, c, x, y) end
     mm.PlaceNorth()
-    check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right edge")
+    check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right side")
     cvars.rotateMinimap = "0"
-    mm.Apply()
-    check(m.ruinViewScale == nil and mask:find("WHITE8X8", 1, true), "rotation off: the map is its own size again")
     mm.PlaceNorth()
-    check(np and math.abs(np[1]) < 1 and np[2] > 10, "and north is back on top")
+    check(np and math.abs(np[1]) < 1 and np[2] > 10, "rotation off: north is back on top")
     env.GetCVar = realCVar
-    mm.SetShape("round")
+
     mm.SetStyle("blizzard")
-    check(alpha.border == 1 and alpha.zoom == 1 and not env.RUIN_PathfinderMinimapDeco:IsShown(), "the game's look comes back as it was")
-    env.SlashCmdList.RUINPATH("minimap square")
-    check(mm.Shape() == "square", "/path minimap square")
+    local back = true
+    for _, f in pairs(pieces) do if f:GetParent() ~= home then back = false end end
+    check(back and alpha.border == 1 and alpha.zoom == 1 and not deco:IsShown() and not bar:IsShown(), "the game's look comes back as it was")
+    env.SlashCmdList.RUINPATH("minimap pathfinder")
+    check(mm.Style() == "pathfinder", "/path minimap pathfinder")
     env.SlashCmdList.RUINPATH("dock top")
     check(mm.Dock() == "top", "/path dock top")
     env.SlashCmdList.RUINPATH("minimap debug")
     check(T.chatHas(alice, "RUIN is hiding"), "/path minimap debug lists what's around the minimap")
-    env.SlashCmdList.RUINPATH("dock off"); env.SlashCmdList.RUINPATH("minimap round")
-    check(mm.Dock() == nil and mm.Shape() == "round", "and back")
+    env.SlashCmdList.RUINPATH("dock off"); env.SlashCmdList.RUINPATH("minimap blizzard")
+    check(mm.Dock() == nil and mm.Style() == "blizzard", "and back")
     env.RUIN_API:OpenTab("Pathfinder")
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("minimap")
