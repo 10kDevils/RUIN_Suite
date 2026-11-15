@@ -7,7 +7,7 @@ TGA files: white glyphs on clear, tinted in game, drawn large and scaled down.
 Objective tracker: Disc, Ring (the quest marker's body and edge), Question,
 Bang, Dots (what the marker says), Minus, Plus (collapse), Chevron, Check,
 Slot (an item button's frame). Minimap: Search (tracking), Mail, Sun, Moon
-(day and night), North (the N).
+(day and night), North (the N). Windows: Close, Expand, Shrink.
 """
 import math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -103,6 +103,27 @@ def letter_n(c):
     c.line([(20, 47), (20, 17), (44, 47), (44, 17)], 7.5, caps=False)
 
 
+def close(c):
+    c.line([(18, 18), (46, 46)], 7)
+    c.line([(46, 18), (18, 46)], 7)
+
+
+def expand(c):
+    # two corners pointing out: the window grows
+    c.line([(12, 26), (12, 12), (26, 12)], 6)
+    c.line([(12, 12), (27, 27)], 6)
+    c.line([(38, 52), (52, 52), (52, 38)], 6)
+    c.line([(52, 52), (37, 37)], 6)
+
+
+def shrink(c):
+    # two corners pointing in: the window shrinks
+    c.line([(14, 28), (28, 28), (28, 14)], 6)
+    c.line([(28, 28), (13, 13)], 6)
+    c.line([(50, 36), (36, 36), (36, 50)], 6)
+    c.line([(36, 36), (51, 51)], 6)
+
+
 def disc(c):
     c.disc(32, 32, 29)
 
@@ -113,7 +134,8 @@ def ring(c):
 
 ICONS = {"Disc": disc, "Ring": ring, "Question": question, "Bang": bang, "Dots": dots, "Minus": minus,
          "Plus": plus, "Chevron": chevron, "Check": check, "Slot": slot, "Search": search, "Mail": mail,
-         "Sun": sun, "Moon": moon, "North": letter_n}
+         "Sun": sun, "Moon": moon, "North": letter_n,
+         "Close": close, "Expand": expand, "Shrink": shrink}
 
 if __name__ == "__main__":
     for n, f in ICONS.items():

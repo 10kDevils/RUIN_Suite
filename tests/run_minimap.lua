@@ -227,3 +227,51 @@ do
     check(W.Wrap("|cffffffffcolored|r words stay whole") == "|cffffffffcolored|r words stay whole", "color codes don't count toward the width")
     errorsSoFar("tooltips")
 end
+
+print("Pathfinder: world map style")
+do
+    local env = alice.env
+    local wm = alice.mns.RUIN_Pathfinder.WorldMap
+    check(wm ~= nil, "Pathfinder styles the world map")
+    local function fs()
+        local f = env.CreateFrame("Frame"):CreateFontString()
+        f.rgb = { 1, 0.82, 0 }
+        f.SetTextColor = function(self, r, g, b) self.rgb = { r, g, b } end
+        f.GetTextColor = function(self) return unpack(self.rgb) end
+        return f
+    end
+    local wmf = env.CreateFrame("Frame")
+    wmf.IsVisible = function() return true end
+    wmf.BorderFrame = env.CreateFrame("Frame")
+    local parchment = wmf.BorderFrame:CreateTexture()
+    parchment.GetWidth = function() return 600 end
+    parchment.GetHeight = function() return 400 end
+    wmf.BorderFrame.TitleContainer = { TitleText = fs() }
+    wmf.BorderFrame.CloseButton = env.CreateFrame("Button"); wmf.BorderFrame.CloseButton._type = "Button"
+    local qmf = env.CreateFrame("Frame"); qmf.IsVisible = function() return true end
+    local scroll = env.CreateFrame("Frame"); scroll.IsVisible = function() return true end
+    local contents = env.CreateFrame("Frame"); contents.IsVisible = function() return true end
+    scroll.Contents = contents
+    local header = env.CreateFrame("Frame"); header.ButtonText = fs()
+    header.CollapseButton = env.CreateFrame("Button"); header.CollapseButton._type = "Button"
+    local obj = env.CreateFrame("Frame"); obj.Text = fs(); obj.Dash = fs()
+    contents.GetChildren = function() return header, obj end
+    env.WorldMapFrame, env.QuestMapFrame, env.QuestScrollFrame = wmf, qmf, scroll
+
+    check(wm.Style() == "blizzard", "starts in the game's own look")
+    wm.SetStyle("pathfinder")
+    local back = env.RUIN_PathfinderWorldMapBack
+    local acc = alice.mns.RUIN_Pathfinder.Minimap.Scheme().accent
+    check(back and back:IsShown(), "a panel in the suite's look sits behind the map window")
+    check(parchment:GetAlpha() == 0, "the game's frame art gives way")
+    check(wmf.BorderFrame.TitleContainer.TitleText.rgb[2] == acc[2], "the title takes Pathfinder's color")
+    check(wmf.BorderFrame.CloseButton:GetAlpha() == 0, "the close button is drawn flat")
+    check(header.ButtonText.rgb[2] == acc[2] and header.CollapseButton:GetAlpha() == 0, "quest log headers in Pathfinder's color, flat collapse buttons")
+    check(obj.Text.rgb[1] < 0.7 and obj.Dash.rgb[2] == acc[2], "objectives in the suite's grey with a green dash")
+    check(wm.SetAlpha(0.5) and wm.Alpha() == 0.5, "the background's opacity is a setting")
+    env.SlashCmdList.RUINPATH("worldmap blizzard")
+    check(not back:IsShown() and parchment:GetAlpha() == 1 and wmf.BorderFrame.CloseButton:GetAlpha() == 1
+        and wmf.BorderFrame.TitleContainer.TitleText.rgb[2] == 0.82, "/path worldmap blizzard gives the window back")
+    env.WorldMapFrame, env.QuestMapFrame, env.QuestScrollFrame = nil, nil, nil
+    errorsSoFar("world map")
+end
