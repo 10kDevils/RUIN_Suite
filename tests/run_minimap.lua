@@ -116,7 +116,7 @@ do
     env.SlashCmdList.RUINPATH("minimap blizzard")
     check(mm.Dock() == nil and mm.Style() == "blizzard", "and back (the tracker no longer docks)")
     local pf = env.RUIN_API:GetModule("Pathfinder")
-    check(pf.PinStyle() == "ruin" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and pf.SetPinStyle("blizzard") and pf.PinStyle() == "blizzard", "the waypoint's style: RUIN to start, any look, the game's own too")
+    check(pf.PinStyle() == "blizzard" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and pf.SetPinStyle("blizzard") and pf.PinStyle() == "blizzard", "the waypoint's style: the game's own to start, any look")
     pf.SetPinStyle("ruin")
     -- every style at once
     check(pf.SetAllStyles("muster") and mm.Style() == "muster" and pf.TrackerStyle() == "muster" and pf.PinStyle() == "muster"
