@@ -1,7 +1,7 @@
 -- Pathfinder: the minimap's style, the bar above it, and the tracker docked to it.
 local alice, check, errorsSoFar = T.alice, T.check, T.errorsSoFar
 
-print("Pathfinder: minimap style, bar and tracker dock")
+print("Pathfinder: minimap style and bar")
 do
     local env = alice.env
     local mm = alice.mns.RUIN_Pathfinder.Minimap
@@ -58,7 +58,6 @@ do
     m.SetPoint = function(self, a, b, ...) mpt = { a, b }; return realMSP(self, a, b, ...) end
 
     check(mm.Style() == "blizzard", "starts as the game's own minimap")
-    check(#mm.DockChoices() == 5, "dock spots: off, above, below and the two sides")
     check(mm.SHAPES == nil and mm.SetShape == nil, "there is no square map setting")
 
     mm.SetStyle("pathfinder")
@@ -79,34 +78,6 @@ do
     check(mm.Coords() == "42.1, 66.3" and tostring(env.RUIN_PathfinderMinimapBar.zone:GetText()):find("42.1, 66.3", 1, true),
         "your coordinates sit beside the zone name")
     check(strayAlpha == 0, "coordinates printed by the map elsewhere give way to the foot's")
-
-    -- the tracker docks on the bar above, and grows away from the map elsewhere
-    local pf = env.RUIN_API:GetModule("Pathfinder")
-    local tr = env.RUIN_PathfinderTracker
-    if not tr then pf.UpdateTracker(); tr = env.RUIN_PathfinderTracker end
-    check(tr ~= nil, "the tracker is there to dock")
-    if tr then
-        local pt
-        local real = tr.SetPoint
-        tr.SetPoint = function(self, a, b, c, d, e) pt = { a, b, c, d, e }; return real(self, a, b, c, d, e) end
-        mm.SetDock("top")
-        check(pt and pt[1] == "BOTTOM" and pt[2] == bar and pt[3] == "TOP" and mm.Grow() == "up", "above: it sits on the bar and grows up")
-        mm.SetDock("left")
-        check(pt and pt[1] == "RIGHT" and pt[2] == m and pt[3] == "LEFT" and pt[4] < 0 and mm.Grow() == "left", "left side: it grows left")
-        mm.SetDock("bottom")
-        check(pt and pt[1] == "TOP" and pt[2] == foot and pt[3] == "BOTTOM" and pt[5] < 0 and mm.Grow() == "down", "below: it hangs under the foot and grows down")
-        tr.justMoved = true
-        tr._scripts.OnMouseUp(tr, "LeftButton")
-        tr.justMoved = nil
-        check(mm.Dock() == nil, "dragging the tracker off the minimap undocks it")
-    end
-    -- an old saved spot ("topleft") means its side
-    local cdb = env.RUIN_PathfinderCharDB
-    if cdb then
-        cdb.trackerDock = "lefttop"
-        check(mm.Dock() == "left", "a spot saved by an older Pathfinder becomes its side")
-        cdb.trackerDock = nil
-    end
 
     -- a rotating map: the N turns with it
     local cvars = { rotateMinimap = "1" }
@@ -134,12 +105,19 @@ do
     check(back and alpha.border == 1 and alpha.zoom == 1 and not deco:IsShown() and not bar:IsShown(), "the game's look comes back as it was")
     env.SlashCmdList.RUINPATH("minimap pathfinder")
     check(mm.Style() == "pathfinder", "/path minimap pathfinder")
-    env.SlashCmdList.RUINPATH("dock top")
-    check(mm.Dock() == "top", "/path dock top")
     env.SlashCmdList.RUINPATH("minimap debug")
     check(T.chatHas(alice, "RUIN is hiding"), "/path minimap debug lists what's around the minimap")
-    env.SlashCmdList.RUINPATH("dock off"); env.SlashCmdList.RUINPATH("minimap blizzard")
-    check(mm.Dock() == nil and mm.Style() == "blizzard", "and back")
+    -- the looks: RUIN's gold and each module's color
+    env.SlashCmdList.RUINPATH("minimap codex")
+    local L = alice.mns.RUIN_Pathfinder.Looks
+    check(mm.Style() == "codex" and mm.Scheme().color == L.Scheme("codex").color, "/path minimap codex: the minimap in Codex's colors")
+    check(L.Scheme("ruin").accent[1] == 0.90 and L.Scheme("ruin").accent[2] == 0.72, "RUIN's look wears the waypoint's gold")
+    check(#mm.STYLES == 7 and mm.STYLES[2] == "ruin" and mm.STYLES[7] == "exchange", "the looks, in order: Blizzard, RUIN, Pathfinder, Finder, Muster, Codex, Exchange")
+    env.SlashCmdList.RUINPATH("minimap blizzard")
+    check(mm.Dock() == nil and mm.Style() == "blizzard", "and back (the tracker no longer docks)")
+    local pf = env.RUIN_API:GetModule("Pathfinder")
+    check(pf.PinStyle() == "ruin" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and not pf.SetPinStyle("blizzard"), "the waypoint's style: RUIN to start, any module's look")
+    pf.SetPinStyle("ruin")
     env.RUIN_API:OpenTab("Pathfinder")
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("minimap")
