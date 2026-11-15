@@ -246,6 +246,14 @@ do
     header.CollapseButton = env.CreateFrame("Button"); header.CollapseButton._type = "Button"
     local obj = env.CreateFrame("Frame"); obj.Text = fs(); obj.Dash = fs()
     contents.GetChildren = function() return header, obj end
+    -- the quest's details: the game's dark parchment ink
+    local det = env.CreateFrame("Frame"); det.IsVisible = function() return true end
+    local body, head, gold = fs(), fs(), fs()
+    body.rgb, head.rgb, gold.rgb = { 0.18, 0.12, 0.06 }, { 0.2, 0.1, 0 }, { 1, 0.82, 0 }
+    head.GetName = function() return "QuestInfoTitleHeader" end
+    for _, x in ipairs({ body, head, gold }) do x.GetObjectType = function() return "FontString" end end
+    det.GetRegions = function() return body, head, gold end
+    qmf.DetailsFrame = det
     env.WorldMapFrame, env.QuestMapFrame, env.QuestScrollFrame = wmf, qmf, scroll
 
     check(wm.Style() == "blizzard", "starts in the game's own look")
@@ -257,6 +265,8 @@ do
     check(wmf.BorderFrame.TitleContainer.TitleText.rgb[2] == acc[2], "the title takes Pathfinder's color")
     check(wmf.BorderFrame.CloseButton:GetAlpha() == 0, "the close button is drawn flat")
     check(header.ButtonText.rgb[2] == acc[2] and header.CollapseButton:GetAlpha() == 0, "quest log headers in Pathfinder's color, flat collapse buttons")
+    check(body.rgb[1] > 0.8 and head.rgb[2] == acc[2] and gold.rgb[1] == 1 and gold.rgb[2] == 0.82,
+        "a quest's details are readable: dark text lightened, headings in the look's color, colored text left alone")
     local hd = wm.Heads[header]
     check(hd and hd.band:IsShown() and hd.edge:IsShown(), "zone headers get a band and an edge")
     header.ButtonText:SetTextColor(0.5, 0.5, 0.5)

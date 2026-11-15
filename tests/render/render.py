@@ -14,7 +14,7 @@ def rgba(c, a=1.0):
     al = (float(c[3]) if len(c) > 3 and c[3] is not None else 1.0) * a
     return f"rgba({round(r*255)},{round(g*255)},{round(b*255)},{al:.3f})"
 
-CODE = re.compile(r"\|c([0-9a-fA-F]{8})|\|r|\|T[^|]*\|t|\|H[^|]*\|h|\|h|\|n|\n")
+CODE = re.compile(r"\|c([0-9a-fA-F]{8})|\|r|\|T[^|]*\|t|\|A[^|]*\|a|\|H[^|]*\|h|\|h|\|n|\n")
 
 def markup(text, base):
     out, stack, pos = [], [], 0
@@ -29,7 +29,11 @@ def markup(text, base):
             if stack:
                 stack.pop()
                 out.append("</span>")
-        elif tok.startswith("|T"):
+        elif tok.startswith("|A:bags-greenarrow"):
+            out.append('<span style="color:#3ee04a;font-weight:700">&#9650;</span>')
+        elif tok.startswith("|T") and "Skull" in tok:
+            out.append('<span style="color:#e8e0d0">&#9760;</span>')
+        elif tok.startswith("|T") or tok.startswith("|A"):
             out.append('<i class="ic"></i>')
         elif tok in ("|n", "\n"):
             out.append("<br>")

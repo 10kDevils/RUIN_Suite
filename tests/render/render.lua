@@ -310,6 +310,12 @@ do  -- the loot lists, scrolled into view
     local lines = CX.JournalLines(CX:FindDungeon("Hall of Thanes"), false)
     local from = 1
     for i, l in ipairs(lines) do if l[1]:find("Bosses and loot", 1, true) then from = i end end
+    -- two of them upgrades for the character (the arrow as it shows in game)
+    for _, l in ipairs(lines) do
+        if l[1]:find("Aetherwisp Bracers", 1, true) or l[1]:find("Flamefist Grips", 1, true) then
+            l[1] = l[1]:gsub("%-|r ", "-|r " .. CX.UP_ARROW .. " ", 1)
+        end
+    end
     CX.UI.detail:SetItems({ unpack(lines, from) })
     write("codex--journal-loot")
 end
