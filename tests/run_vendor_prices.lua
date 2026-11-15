@@ -53,6 +53,15 @@ do
     -- a stack of 6: the AH price for the stack, with the price each
     lines = plainLines(X.PriceLines("item:2678", 6))
     check(lines[2]:find("^AH price: 2s 40c %(40c each%)"), "a stack is priced as the stack (" .. tostring(lines[2]) .. ")")
+    -- the price to expect is the low end of the last week's prices (a misposted one left out)
+    local day = math.floor(env.GetServerTime() / 86400)
+    db.history[2678] = { [day] = 60, [day - 1] = 35, [day - 2] = 50, [day - 3] = 10, [day - 20] = 5 }
+    db.prices[2678].p = 60
+    local exp, cur = X.ExpectedPrice(2678)
+    check(exp == 35 and cur == 60, "the expected AH price is the week's low end, not a mispost or an old low (" .. tostring(exp) .. ")")
+    lines = plainLines(X.PriceLines("item:2678"))
+    check(lines[2]:find("^AH price: 35c") and lines[2]:find("now 60c"), "the tooltip shows it, with the dearer listing now (" .. lines[2] .. ")")
+    db.history[2678] = nil
     -- where to sell: the AH when it beats the vendor's buying price by enough, else the vendor
     db.prices[2678].p = 40
     lines = plainLines(X.PriceLines("item:2678", 6))
