@@ -90,6 +90,9 @@ do
     local linked = cfx.LinkifyChat("lfg " .. txt .. " pst")
     check(linked:find("|Haddon:RUIN:finder:Alice", 1, true) and linked:find("^lfg ") and linked:find(" pst$"), "Finder turns it into a link")
     check(cfx.LinkifyChat("hello") == "hello", "other chat is left alone")
+    check(cfx.LinkifyChat(txt, "Mallory") == txt, "someone else's name in the text isn't made a link (no borrowed trust)")
+    local _, out = cfx.ChatFilter(nil, "CHAT_MSG_GUILD", txt, "Alice Ash-Realm")
+    check(out and out:find("|Haddon:RUIN:finder:", 1, true), "the player's own listing, from them, is")
     Server:Advance(130)
     cfx.OnItemRef("addon:RUIN:finder:" .. (txt:match("Finder: (.-) %- ")))
     local cui = cfx.UI
