@@ -208,15 +208,15 @@ do
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
     check(pinFrame.card:IsShown(), "with its card, as on screen")
     local pdbE = alice.env.RUIN_PathfinderCharDB
-    pdbE.pinEdgeCard = false
+    pf.SetPinSetting("pinEdgeCard", false)
     drive._scripts.OnUpdate(drive, 0.1)
     check(not pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "or without it, when the editor says so")
-    pdbE.pinEdgeCard = nil
+    pf.SetPinSetting("pinEdgeCard", nil)
     -- without the marker the card takes its place, above the distance
-    pdbE.pinShowMarker = false
+    pf.SetPinSetting("pinShowMarker", false)
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.card:IsShown() and pinFrame.arrow:IsShown(), "with the marker off, the edge card still shows (in the marker's place)")
-    pdbE.pinShowMarker = nil
+    pf.SetPinSetting("pinShowMarker", nil)
     alice.navClamped = false
     check(pdbE.pinEdgeTop == 10 and pdbE.pinEdgeBottom == 10 and pdbE.pinEdgeLeft == 10 and pdbE.pinEdgeRight == 10,
         "the screen edge boundaries start at 10% on every side")
