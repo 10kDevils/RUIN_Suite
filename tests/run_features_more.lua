@@ -288,6 +288,23 @@ do
     drive._scripts.OnUpdate(drive, 0.1)
     check(not pinFrame.obj:IsShown() and not pinFrame.dist._text:find("sec"), "objectives and walking time follow their options")
     pdb.pinObjectives, pdb.pinWalk = true, true
+    -- travel time follows your speed: on foot by road, mounted faster, flying the flight path
+    local env = alice.env
+    local speeds = { 0, 7, 0, 4.72 }
+    env.GetUnitSpeed = function() return unpack(speeds) end
+    local foot = pf.TravelSeconds(1000)
+    check(math.abs(foot - (150 * 1.15 + 850 * 1.35) / 7) < 0.01, ("on foot: roads for the long part, straight across near the end (%.0f s for 1000 yd)"):format(foot))
+    speeds = { 0, 14, 0, 4.72 }
+    check(math.abs(pf.TravelSeconds(1000) - foot / 2) < 0.01, "mounted at double speed: half the time")
+    speeds = { 25, 14, 25, 4.72 }
+    env.IsFlying = function() return true end
+    check(math.abs(pf.TravelSeconds(1000) - 1000 * 1.25 / 25) < 0.01, "flying: along the flight path at flying speed")
+    env.IsFlying = function() return false end
+    speeds = { 21, 14, 0, 4.72 }
+    check(math.abs(pf.TravelSeconds(140) - 140 * 1.15 / 21) < 0.01, "a speed boost you're moving at counts")
+    env.GetUnitSpeed, env.IsFlying = nil, nil
+    check(pf.PinLift(40, 768) == 0 and pf.PinLift(300, 768) > 0 and pf.PinLift(2000, 768) == 768 * 0.125
+        and pf.PinLift(300, 768) < pf.PinLift(600, 768), "the waypoint rises over faraway spots, not close ones")
     -- the waypoint no longer depends on the tracker's arrow option
     pdb.arrow = false
     pf.RefreshPin()
