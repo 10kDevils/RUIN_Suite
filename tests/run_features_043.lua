@@ -324,6 +324,29 @@ do
     local sl = cara.mns.RUIN_Muster.Wanted.Slayers()
     check(sl[1] and sl[1].name == "Alice Ash" and sl[1].week == 1, "honorable kills count on the Slayers list")
     check(cara.mns.RUIN_Muster.Wanted.Row("Gankster") ~= nil, "a killer of RUIN members is looked up when they die (revenge)")
+    local AWa = alice.mns.RUIN_Muster.Wanted
+    check(AWa.HonorVictim("Rogueface dies, honorable kill (12.5 Honor Points)") == "Rogueface"
+        and AWa.HonorVictim("Rogueface-Realm dies, honorable kill (Estimated Honor Points: 9)") == "Rogueface-Realm",
+        "kill messages without a PvP rank (Retail 12, Forever) are read too")
+    -- the kill count going up, with no message, still counts (the dead enemy you target)
+    local hk = 10
+    local saved = { alice.env.UnitExists, alice.env.UnitIsPlayer, alice.env.UnitIsDead, alice.env.UnitIsEnemy }
+    alice.env.GetPVPLifetimeStats = function() return hk end
+    AWa.OnKillsChanged()
+    hk = 11
+    alice.env.UnitExists = function(u) return u == "target" end
+    alice.env.UnitIsPlayer = function(u) return u == "target" end
+    alice.env.UnitIsDead = function(u) return u == "target" end
+    alice.env.UnitIsEnemy = function() return true end
+    local realUnitName = alice.env.UnitName
+    alice.env.UnitName = function(u) if u == "target" then return "Stabbins" end return realUnitName(u) end
+    AWa.OnKillsChanged()
+    Server:Advance(5)
+    local found = false
+    for _, k in ipairs(cara.env.RUIN_MusterDB.wanted.kills) do if k.v == "Stabbins" and k.k == "Alice Ash" then found = true end end
+    check(found, "an honorable kill the game counts but doesn't announce goes on Slayers")
+    alice.env.UnitName = realUnitName
+    alice.env.UnitExists, alice.env.UnitIsPlayer, alice.env.UnitIsDead, alice.env.UnitIsEnemy = saved[1], saved[2], saved[3], saved[4]
 
     -- War Room
     local mu = alice.env.RUIN_API:GetModule("Muster")

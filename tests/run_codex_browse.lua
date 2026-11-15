@@ -110,5 +110,18 @@ do
     for i = 2, #sizes do if sizes[i] < sizes[i - 1] then sorted = false end end
     check(sorted and heads[1] == "20-player raids" and heads[#heads] == "40-player raids", "raids group by size, smallest first (" .. table.concat(heads, ", ") .. ")")
     ui.jmode = "Dungeons"
+
+    -- stat weights: a leveling shadow priest's Intellect and Spirit outweigh a little spell power
+    local IS = CN.ItemStats
+    local function stats(lines) local t = {}; for _, l in ipairs(lines) do IS.ParseLine(l, t) end; return t end
+    local new = stats({ "+6 Strength", "Equip: Restores 2 mana per 5 sec.", "Equip: Increases damage and healing done by magical spells and effects by up to 5." })
+    local old = stats({ "+3 Strength", "+8 Intellect", "Enchanted: Spirit +4" })
+    check(old.SPI == 4 and old.INT == 8, "an enchant on what you wear counts (you lose it in a swap)")
+    local function sc(t, lvl) return IS.Score(t, CX.WeightsFor("PRIEST", "Shadow", lvl), "PRIEST", "Shadow") end
+    check(sc(new, 26) < sc(old, 26), ("at level 26, +5 spell power and 2 mp5 don't beat 8 Intellect and 4 Spirit (%.1f vs %.1f)"):format(sc(new, 26), sc(old, 26)))
+    check(sc(new, 60) > sc(old, 60), "at 60, the spell power wins")
+    -- weapon damage outweighs a few stats on a two-hander
+    local arms = CX.WeightsFor("WARRIOR", "Arms", 30)
+    check(IS.Score({ DPS = 20, STR = 5 }, arms) < IS.Score({ DPS = 23 }, arms), "for Arms, 3 weapon DPS beats 5 Strength")
     errorsSoFar("codex browse")
 end
