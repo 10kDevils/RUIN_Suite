@@ -257,11 +257,17 @@ do
     check(wmf.BorderFrame.TitleContainer.TitleText.rgb[2] == acc[2], "the title takes Pathfinder's color")
     check(wmf.BorderFrame.CloseButton:GetAlpha() == 0, "the close button is drawn flat")
     check(header.ButtonText.rgb[2] == acc[2] and header.CollapseButton:GetAlpha() == 0, "quest log headers in Pathfinder's color, flat collapse buttons")
+    local hd = wm.Heads[header]
+    check(hd and hd.band:IsShown() and hd.edge:IsShown(), "zone headers get a band and an edge")
+    header.ButtonText:SetTextColor(0.5, 0.5, 0.5)
+    check(header.ButtonText.rgb[2] == acc[2], "and keep their color when the game repaints them")
     check(obj.Text.rgb[1] < 0.7 and obj.Dash.rgb[2] == acc[2], "objectives in the suite's grey with a green dash")
     check(wm.SetAlpha(0.5) and wm.Alpha() == 0.5, "the background's opacity is a setting")
     env.SlashCmdList.RUINPATH("worldmap blizzard")
     check(not back:IsShown() and parchment:GetAlpha() == 1 and wmf.BorderFrame.CloseButton:GetAlpha() == 1
         and wmf.BorderFrame.TitleContainer.TitleText.rgb[2] == 0.82, "/path worldmap blizzard gives the window back")
+    wm.Tick(nil, 1)
+    check(hd.band:IsShown() and header.ButtonText.rgb[1] == 1 and header.ButtonText.rgb[2] == 0.82, "in Blizzard's look the zone headers still stand out, in the game's gold")
     env.WorldMapFrame, env.QuestMapFrame, env.QuestScrollFrame = nil, nil, nil
     errorsSoFar("world map")
 end
