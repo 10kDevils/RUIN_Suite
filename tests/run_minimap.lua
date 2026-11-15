@@ -118,6 +118,15 @@ do
     local pf = env.RUIN_API:GetModule("Pathfinder")
     check(pf.PinStyle() == "ruin" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and not pf.SetPinStyle("blizzard"), "the waypoint's style: RUIN to start, any module's look")
     pf.SetPinStyle("ruin")
+    -- every style at once
+    check(pf.SetAllStyles("muster") and mm.Style() == "muster" and pf.TrackerStyle() == "muster" and pf.PinStyle() == "muster"
+        and pf.AllStyles() == "muster", "one setting sets every style")
+    check(pf.SetTrackerAlpha(0.5) and pf.TrackerAlpha() == 0.5, "the tracker's background opacity is a setting")
+    pf.SetTrackerStyle("pathfinder")
+    check(pf.AllStyles() == "mixed", "and reads Mixed when they differ")
+    pf.SetAllStyles("blizzard")
+    check(mm.Style() == "blizzard" and pf.PinStyle() == "muster", "Blizzard puts the game's frames back; the waypoint keeps its look")
+    pf.SetPinStyle("ruin"); pf.SetTrackerAlpha(0.94)
     env.RUIN_API:OpenTab("Pathfinder")
     T.openAllSubTabs(alice, "Pathfinder")
     errorsSoFar("minimap")
