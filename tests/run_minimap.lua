@@ -112,7 +112,7 @@ do
     local L = alice.mns.RUIN_Pathfinder.Looks
     check(mm.Style() == "codex" and mm.Scheme().color == L.Scheme("codex").color, "/path minimap codex: the minimap in Codex's colors")
     check(L.Scheme("ruin").accent[1] == 0.90 and L.Scheme("ruin").accent[2] == 0.72, "RUIN's look wears the waypoint's gold")
-    check(#mm.STYLES == 7 and mm.STYLES[2] == "ruin" and mm.STYLES[7] == "exchange", "the looks, in order: Blizzard, RUIN, Pathfinder, Finder, Muster, Codex, Exchange")
+    check(#mm.STYLES == 8 and mm.STYLES[2] == "ruin" and mm.STYLES[3] == "core" and mm.STYLES[8] == "exchange", "the looks, in order: Blizzard, RUIN, Blue & Gold, Pathfinder, Finder, Muster, Codex, Exchange")
     env.SlashCmdList.RUINPATH("minimap blizzard")
     check(mm.Dock() == nil and mm.Style() == "blizzard", "and back (the tracker no longer docks)")
     local pf = env.RUIN_API:GetModule("Pathfinder")
