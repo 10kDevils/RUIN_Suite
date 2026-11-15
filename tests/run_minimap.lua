@@ -116,7 +116,7 @@ do
     env.SlashCmdList.RUINPATH("minimap blizzard")
     check(mm.Dock() == nil and mm.Style() == "blizzard", "and back (the tracker no longer docks)")
     local pf = env.RUIN_API:GetModule("Pathfinder")
-    check(pf.PinStyle() == "ruin" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and not pf.SetPinStyle("blizzard"), "the waypoint's style: RUIN to start, any module's look")
+    check(pf.PinStyle() == "ruin" and pf.SetPinStyle("muster") and pf.PinStyle() == "muster" and pf.SetPinStyle("blizzard") and pf.PinStyle() == "blizzard", "the waypoint's style: RUIN to start, any look, the game's own too")
     pf.SetPinStyle("ruin")
     -- every style at once
     check(pf.SetAllStyles("muster") and mm.Style() == "muster" and pf.TrackerStyle() == "muster" and pf.PinStyle() == "muster"
@@ -125,7 +125,7 @@ do
     pf.SetTrackerStyle("pathfinder")
     check(pf.AllStyles() == "mixed", "and reads Mixed when they differ")
     pf.SetAllStyles("blizzard")
-    check(mm.Style() == "blizzard" and pf.PinStyle() == "muster", "Blizzard puts the game's frames back; the waypoint keeps its look")
+    check(mm.Style() == "blizzard" and pf.PinStyle() == "blizzard" and pf.TrackerStyle() == "blizzard", "Blizzard gives everything the game's own look")
     check(pf.SetAllAlpha(0.6) and pf.AllAlpha() == 0.6 and mm.Alpha() == 0.6 and pf.TrackerAlpha() == 0.6, "one opacity for everything")
     pf.SetTrackerAlpha(0.9)
     check(pf.AllAlpha() == "mixed", "and Mixed when they differ")
