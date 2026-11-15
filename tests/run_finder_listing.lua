@@ -78,6 +78,23 @@ do
     ui.reqRows[1].no._scripts.OnClick(ui.reqRows[1].no)
     Server:Advance(5)
     check(#F.Requests() == 0 and chatHas(cara, "declined"), "Decline takes them off and lets them know")
+    -- chat link to your listing
+    db.looking, db.listing, db.activity, db.detail = true, "Player", "Dungeon", "Gnomeregan"
+    local txt = F.ListingLinkText()
+    check(txt:find("^%[RUIN Finder: Alice") and txt:find("Dungeon: Gnomeregan%]$"), "the link reads plainly (" .. txt .. ")")
+    local inserted
+    alice.env.ChatEdit_InsertLink = function(t) inserted = t; return true end
+    ui.linkBtn._scripts.OnClick(ui.linkBtn)
+    check(inserted == txt, "Link in chat puts it in the chat box")
+    local cfx = cara.env.RUIN_API:GetModule("Finder")
+    local linked = cfx.LinkifyChat("lfg " .. txt .. " pst")
+    check(linked:find("|Haddon:RUIN:finder:Alice", 1, true) and linked:find("^lfg ") and linked:find(" pst$"), "Finder turns it into a link")
+    check(cfx.LinkifyChat("hello") == "hello", "other chat is left alone")
+    Server:Advance(130)
+    cfx.OnItemRef("addon:RUIN:finder:" .. (txt:match("Finder: (.-) %- ")))
+    local cui = cfx.UI
+    local first = cui and cui.list and cui.list.rows[1]
+    check(first and first.text:GetText():find("Linked", 1, true) and first.text:GetText():find("Alice", 1, true), "clicking it opens the board on that listing")
     alice.env.SlashCmdList.RUINFINDER("off")
     db.listing = "Player"
     errorsSoFar("finder listing")

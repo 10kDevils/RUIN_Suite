@@ -811,9 +811,9 @@ do
     check(alice.env.RUIN_API:OpenTab("Options") and alice.env.RUIN_API:OpenTab("Settings"), "and still opens by its old name")
     local names
     for _, st in ipairs(alice.subtabs) do
-        if st.names and st.names[1] == "Org" then names = table.concat(st.names, ",") end
+        if st.names and st.names[2] == "Org" then names = table.concat(st.names, ",") end
     end
-    check(names == "Org,Options,Feedback", "its sub-tabs are Org, Options and Feedback")
+    check(names == "Options,Org,Feedback", "its sub-tabs are Options, Org and Feedback")
 
     -- Feedback: a GitHub link with the text filled in; nothing goes to anyone in-game
     local FB = cara.ns.Feedback

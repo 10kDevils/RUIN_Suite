@@ -113,7 +113,7 @@ do
     Server:Advance(10)
     check(not chatHas(alice, "ruin rises at dawn"), "setting it doesn't print the phrase in chat")
     alice.env.RUIN_API:OpenTab("Settings")
-    alice.ns.UI:SelectSettingsTab(1)
+    alice.ns.UI:SelectSettingsTab("Org")
     alice.ns.UI:Refresh()
     local S = alice.ns.UI.settings
     local function statusText() return S.status:GetText() or "" end

@@ -121,8 +121,8 @@ do
     local inCodex = {}
     for _, list in ipairs({ CN.Dungeons, CN.Raids }) do
         for _, d in ipairs(list) do
-            inCodex[d.name] = true
-            if not PF:DungeonEntry(d.name) then missing[#missing + 1] = d.name end
+            inCodex[d.group or d.name] = true
+            if not PF:DungeonEntry(d.group or d.name) then missing[#missing + 1] = d.name end
         end
     end
     for _, e in ipairs(alice.mns.RUIN_Pathfinder.DungeonQuestIndex) do

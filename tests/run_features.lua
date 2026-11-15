@@ -57,8 +57,20 @@ print("Muster")
 do
     local mu = alice.env.RUIN_API:GetModule("Muster")
     local at = os.date("%Y-%m-%d %H:%M", os.time() + 3 * 3600)
+    local cal = {}
+    alice.env.IsInGuild = function() return true end
+    alice.env.C_Calendar = {
+        CreateGuildSignUpEvent = function() cal.made = true end,
+        EventSetTitle = function(t) cal.title = t end, EventSetDescription = function(d) cal.desc = d end,
+        EventSetDate = function(m, d, y) cal.date = { m, d, y } end, EventSetTime = function(h, mi) cal.time = { h, mi } end,
+        EventSetType = function(t) cal.type = t end, AddEvent = function() cal.added = true end,
+    }
     local ev = mu:Create("Molten Core", at, { kind = "Raid", desc = "Bring fire resist", size = "10",
                                               need = { 2, 3, 5 }, weekly = true })
+    local want = os.date("*t", os.time() + 3 * 3600)
+    check(cal.added and cal.title == "Molten Core" and cal.type == 0 and cal.desc:find("fire resist", 1, true)
+        and cal.date and cal.date[2] == want.day and cal.time[1] == want.hour, "posting an event also adds it to the Guild Calendar")
+    alice.env.C_Calendar = nil
     Server:Advance(3)
     local cev = cara.env.RUIN_MusterDB.events[ev.id]
     check(cev and cev.desc == "Bring fire resist" and cev.need[2] == 3 and cev.weekly, "description, role limits and weekly reached Cara")
@@ -98,7 +110,7 @@ do
 end
 
 T.here = here
-for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_features_043.lua", "/run_finder_listing.lua", "/run_macros.lua", "/run_party.lua", "/run_forever_data.lua", "/run_exchange_recipes.lua", "/run_map_corner.lua", "/run_codex_journal.lua", "/run_dungeon_quests.lua", "/run_codex_loot.lua", "/run_codex_sections.lua", "/run_hud_drag.lua", "/run_codex_weapons.lua", "/run_dropdowns.lua", "/run_restrictions.lua", "/run_ah_scan.lua", "/run_exchange_display.lua", "/run_recipe_costs.lua", "/run_dalaran_route.lua", "/run_zone_routes.lua", "/run_throttle.lua", "/run_vendor_prices.lua", "/run_trainer_costs.lua", "/run_spell_math.lua", "/run_planner.lua", "/run_questdata.lua", "/run_reminders.lua", "/run_officer_lock.lua", "/run_admin_transfer.lua", "/run_org_leave.lua", "/run_log_route.lua", "/run_minimap.lua" }) do
+for _, extra in ipairs({ "/run_features_more.lua", "/run_features_brief.lua", "/run_features_043.lua", "/run_finder_listing.lua", "/run_macros.lua", "/run_party.lua", "/run_forever_data.lua", "/run_exchange_recipes.lua", "/run_map_corner.lua", "/run_codex_journal.lua", "/run_dungeon_quests.lua", "/run_codex_loot.lua", "/run_codex_sections.lua", "/run_hud_drag.lua", "/run_codex_weapons.lua", "/run_dropdowns.lua", "/run_restrictions.lua", "/run_ah_scan.lua", "/run_exchange_display.lua", "/run_recipe_costs.lua", "/run_dalaran_route.lua", "/run_zone_routes.lua", "/run_throttle.lua", "/run_vendor_prices.lua", "/run_trainer_costs.lua", "/run_spell_math.lua", "/run_planner.lua", "/run_questdata.lua", "/run_reminders.lua", "/run_officer_lock.lua", "/run_admin_transfer.lua", "/run_org_leave.lua", "/run_log_route.lua", "/run_minimap.lua", "/run_codex_browse.lua" }) do
     local path = here .. extra
     local fh = io.open(path, "r")
     if fh then fh:close(); dofile(path) end
