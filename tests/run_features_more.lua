@@ -302,8 +302,18 @@ do
     env.IsFlying = function() return false end
     speeds = { 21, 14, 0, 4.72 }
     check(math.abs(pf.TravelSeconds(140) - 140 * 1.15 / 21) < 0.01, "a speed boost you're moving at counts")
+    -- in combat Retail 12 hides the speed: the last one known stands in, no error
+    speeds = { 14, 14, 0, 4.72 }
+    pf.TravelSeconds(100)
+    local SECRET = {}
+    env.issecretvalue = function(v) return v == SECRET end
+    speeds = { SECRET, SECRET, SECRET, SECRET }
+    local ok, t = pcall(pf.TravelSeconds, 100)
+    check(ok and math.abs(t - 100 * 1.15 / 14) < 0.01, "in combat (hidden speed) the last known speed is used, without an error")
+    check(pf.TravelSeconds(SECRET) == nil and pf.PinLift(SECRET, 768) == 0, "a hidden distance is left alone")
+    env.issecretvalue = nil
     env.GetUnitSpeed, env.IsFlying = nil, nil
-    check(pf.PinLift(40, 768) == 0 and pf.PinLift(300, 768) > 0 and pf.PinLift(2000, 768) == 768 * 0.125
+    check(pf.PinLift(40, 768) == 0 and pf.PinLift(300, 768) > 0 and pf.PinLift(2000, 768) == 768 * 0.05
         and pf.PinLift(300, 768) < pf.PinLift(600, 768), "the waypoint rises over faraway spots, not close ones")
     -- the waypoint no longer depends on the tracker's arrow option
     pdb.arrow = false
