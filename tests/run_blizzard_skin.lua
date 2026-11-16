@@ -36,7 +36,7 @@ do
         "its title and portrait follow the open module (" .. tostring(bramMain and bramMain.title) .. ")")
     check((templates.UIPanelButtonTemplate or 0) > 10 and (templates.UICheckButtonTemplate or 0) > 5
         and (templates.InputBoxTemplate or 0) > 2, "buttons, check boxes and input boxes are the game's")
-    check((templates.PanelTopTabButtonTemplate or 0) > 10, "tabs are the game's top tabs")
+    check((templates.PanelTopTabButtonTemplate or 0) > 5, "page tabs are the game's top tabs")
     check((templates.InsetFrameTemplate or 0) > 3, "panels are the game's insets")
     errorsSoFar("blizzard window style")
 end

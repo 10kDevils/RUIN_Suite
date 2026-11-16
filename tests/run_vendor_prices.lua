@@ -109,7 +109,30 @@ do
     db.prices[6888].p = 120
     L = plainLines(X.PriceLines("item:6889"))
     check(not L[#L]:find("^Craft") and not L[#L]:find("^%(sells"), "and doesn't when it doesn't (" .. L[#L] .. ")")
+    -- soulbound: never the auction house; disenchant, craft or vendor
+    db.prices[6888].p = 5000
+    L = plainLines(X.PriceLines("item:6889", 1, true))
+    check(L[2] == "Soulbound: can't go on the auction house" and L[3] == "Craft: Herb Baked Egg", "a soulbound reagent still says Craft, never the AH (" .. tostring(L[3]) .. ")")
+    for _, l in ipairs(L) do check(not l:find("AH"), "no AH line for a soulbound item (" .. l .. ")") end
     db.crafters[guid] = nil
+    db.prices[302].p = 999999
+    L = plainLines(X.PriceLines("item:302", 1, true))
+    check(L[3] and L[3]:find("^Disenchant: ~15s") and L[#L] == "Vendor: 3s", "a pricey soulbound blue is disenchanted, not sold on the AH, with the vendor price beside (" .. tostring(L[3]) .. ")")
+    db.prices[10978].p = 10
+    L = plainLines(X.PriceLines("item:302", 1, true))
+    check(#L == 3 and L[3] == "Sell to Vendor: 3s", "and vendored when the mats are worth less (" .. tostring(L[#L]) .. ")")
+    alice.items[302].bind = 1
+    L = plainLines(X.PriceLines("item:302"))
+    check(L[#L] == "Sell to Vendor: 3s", "an item that binds when picked up counts as soulbound on its own (" .. L[#L] .. ")")
+    alice.items[302].bind = nil
+    db.prices[10978].p = 1500
+    local realSlots = env.C_Container.GetContainerNumSlots
+    env.C_Container.GetContainerNumSlots = function(bag) return bag == 0 and 1 or 0 end
+    local realCI = env.C_Container.GetContainerItemInfo
+    env.C_Container.GetContainerItemInfo = function() return { hyperlink = alice.items[302].link, stackCount = 1, isBound = true } end
+    local items = X:SweepBags()
+    check(items[1] and items[1].label == "disenchant", "the bag sweep labels a soulbound item Disenchant, not Sell (AH) (" .. tostring(items[1] and items[1].label) .. ")")
+    env.C_Container.GetContainerItemInfo, env.C_Container.GetContainerNumSlots = realCI, realSlots
     check(X.DisenchantYield(2678) == nil, "things that aren't gear can't be disenchanted")
 
     -- the section is boxed: a faint gold border round its lines
