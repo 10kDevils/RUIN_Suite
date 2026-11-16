@@ -463,6 +463,8 @@ function Server:NewClient(opts)
     end
     table.insert(Server.clients, c)
     Server.byName[c.name] = c
+    -- the tests draw RUIN's own window unless a test picks the Blizzard one
+    if env.RUIN_DB == nil then env.RUIN_DB = { settings = { appStyle = "ruin", styleV = 2 } } end
     fire(c, "ADDON_LOADED", "RUIN_Core")
     fire(c, "PLAYER_LOGIN")
     return c
