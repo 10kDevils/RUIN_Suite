@@ -27,6 +27,8 @@ Server.guilds["Briar Fang"] = {
 local AS = os.getenv("RENDER_AS") or "alice"
 local alice = Server:NewClient({ name = "Alice Ash", guid = "Player-1-00000001", guild = "Ashen Order", rank = 0,
                                  modules = MODULES, ui = AS == "alice" and F or nil })
+-- RENDER_STYLE=blizzard draws the window in its Blizzard style
+if os.getenv("RENDER_STYLE") == "blizzard" then alice.ns.Widgets.ApplyAppStyle("blizzard") end
 local cara = Server:NewClient({ name = "Cara Cole", guid = "Player-1-00000002", guild = "Briar Fang", rank = 0, modules = MODULES })
 local eve = Server:NewClient({ name = "Eve Ember", guid = "Player-1-00000004", guild = "Briar Fang", rank = 2, modules = MODULES,
                                ui = AS == "eve" and F or nil })
