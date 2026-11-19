@@ -10,9 +10,10 @@
 # * Run it by hand from the Actions tab: builds the zip (and publishes the
 #   release if the version has none).
 #
-# The addon repos are public, so no extra token is needed; if they ever go
-# private again, add a fine-grained token with read-only "Contents" access to
-# the RUIN_* repos as the secret SUITE_TOKEN.
+# The addon repos are public, so GitHub's own token reads them. If they ever
+# go private again, add a fine-grained token with read-only "Contents" access
+# to the RUIN_* repos as the secret SUITE_TOKEN and use it in both checkouts
+# (token: ${{ secrets.SUITE_TOKEN }}); an expired token there fails the release.
 name: Release suite
 on:
   push:
@@ -30,7 +31,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
-          token: ${{ secrets.SUITE_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Install Lua 5.1
         run: sudo apt-get update -q && sudo apt-get install -y -q lua5.1
       - name: Run the tests
@@ -48,7 +49,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-          token: ${{ secrets.SUITE_TOKEN || github.token }}
+          token: ${{ github.token }}
 
       - name: Work out the version
         id: v
