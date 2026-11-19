@@ -257,17 +257,34 @@ do
     send(mal, "Muster:EVENT", { id = "far", title = "Far", at = now + 400 * 86400, by = "Mal Mischief", t = now, signups = {} }, "ORG")
     Server:Advance(2)
     check(not eve.env.RUIN_MusterDB.events.far, "an event more than 90 days out is refused")
-    -- bounties and loot points are officers'
-    send(mal, "Muster:BOUNTY", { id = "malb", target = "Cara Cole", kind = "Player", reward = "1000g", exp = now + 3600, t = now }, "ORG")
+    -- loot points are officers'; bounties anyone in the org may post (Muster
+    -- 0.8.1), credited to the real sender, a few open each, and only the
+    -- poster or an officer takes one down
+    send(mal, "Muster:BOUNTY", { id = "malb", target = "Cara Cole", kind = "Player", reward = "1000g", by = "Olga Oak", exp = now + 3600, t = now }, "ORG")
     send(mal, "Muster:LNOTE", { id = "maln", ev = evId, item = "Thunderfury", to = "Mal Mischief", kind = "Main spec", pts = -9999, t = now }, "ORG")
     Server:Advance(2)
-    check(not eve.env.RUIN_MusterDB.bounties.malb, "a member's bounty is ignored")
-    check(not (eve.env.RUIN_MusterDB.loot and eve.env.RUIN_MusterDB.loot.notes.maln), "and his loot note")
+    local mb = eve.env.RUIN_MusterDB.bounties.malb
+    check(mb and tostring(mb.by):find("^Mal"), "a member's bounty is his, whoever it claims posted it (" .. tostring(mb and mb.by) .. ")")
+    check(not (eve.env.RUIN_MusterDB.loot and eve.env.RUIN_MusterDB.loot.notes.maln), "and his loot note is ignored")
+    for k = 1, 6 do
+        send(mal, "Muster:BOUNTY", { id = "malx" .. k, target = "Target " .. k, kind = "Player", reward = "", exp = now + 3600, t = now }, "ORG")
+    end
+    Server:Advance(3)
+    local his = 0
+    for _, b in pairs(eve.env.RUIN_MusterDB.bounties) do if tostring(b.by):find("^Mal") then his = his + 1 end end
+    check(his == 5, "a member can't have more than five open (" .. his .. ")")
     olga.env.RUIN_API:GetModule("Muster"):PostBounty("Grim Tusk", "Player", "100g")
     Server:Advance(3)
-    local got = false
-    for _, b in pairs(eve.env.RUIN_MusterDB.bounties) do if b.target == "Grim Tusk" then got = true end end
+    local got
+    for id, b in pairs(eve.env.RUIN_MusterDB.bounties) do if b.target == "Grim Tusk" then got = id end end
     check(got, "legit: an officer's bounty reaches the other guild")
+    if got then
+        send(mal, "Muster:BDEL", { id = got }, "ORG")
+        send(mal, "Muster:BOUNTY", { id = got, target = "Olga Oak", kind = "Player", reward = "", exp = now + 3600, t = now + 9 }, "ORG")
+        Server:Advance(2)
+        local ob = eve.env.RUIN_MusterDB.bounties[got]
+        check(ob and ob.target == "Grim Tusk", "a member can't take down or rewrite someone else's bounty")
+    end
 
     -- Exchange
     local ex = alice.mns.RUIN_Exchange.Treasury

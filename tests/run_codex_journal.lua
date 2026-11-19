@@ -45,7 +45,7 @@ do
     -- a listed drop's tracker: "dropped 1 of 4 kills · 25%"
     local realInfo = cara.env.GetItemInfo
     local known = {
-        [990001] = { "Ephemeral Choker", "|cff1eff00|Hitem:990001::|h[Ephemeral Choker]|h|r", 2 },
+        [270227] = { "Ephemeral Choker", "|cff1eff00|Hitem:270227::|h[Ephemeral Choker]|h|r", 2 },
         [990010] = { "Thane's Belt", "|cff1eff00|Hitem:990010::|h[Thane's Belt]|h|r", 2 },
         [990011] = { "Runed Ring", "|cff0070dd|Hitem:990011::|h[Runed Ring]|h|r", 3 },
         [990012] = { "Linen Cloth", "|cffffffff|Hitem:990012::|h[Linen Cloth]|h|r", 1 },
@@ -60,7 +60,7 @@ do
             return real(id)
         end
     end
-    dbC.drops[INST] = { [990001] = { n = 1 } }
+    dbC.drops[INST] = { [270227] = { n = 1 } }
     local lines = CC.JournalLines(hot(), false)
     local t = text(lines)
     check(t:find("Faldrim Anvilmar|r  " .. "|cff", 1, true) and t:find("killed 4x by RUIN", 1, true), "the boss says how often RUIN killed it")
@@ -70,8 +70,8 @@ do
     check(choker and choker[1]:find("(Neck", 1, true), "the list from the launch data stays the main source (name and slot)")
     local other
     for _, l in ipairs(lines) do if l[1]:find("Aetherwisp Bracers", 1, true) then other = l end end
-    check(other and other[1]:find("0/4 kills", 1, true) and other.name == "Aetherwisp Bracers" and not other.link,
-        "a listed drop nobody has seen yet: 0 of 4, and no link to show")
+    check(other and other[1]:find("0/4 kills", 1, true) and other.name == "Aetherwisp Bracers" and other.link and other.link:find("271096", 1, true),
+        "a listed drop nobody has seen yet: 0 of 4, linked by its item ID")
 
     -- mob loot windows
     local loot = {}
@@ -92,11 +92,11 @@ do
     open("Creature-0-1-2-3-500-0002", {})
     open("Creature-0-1-2-3-500-0003", { known[990011][2] })
     open("Creature-0-1-2-3-500-0004", { known[990010][2] })
-    open("Creature-0-1-2-3-4001-0009", { known[990001][2] }, "Faldrim Anvilmar")  -- a boss corpse
+    open("Creature-0-1-2-3-4001-0009", { known[270227][2] }, "Faldrim Anvilmar")  -- a boss corpse
     open("GameObject-0-1-2-3-77-0001", { known[990011][2] })           -- a chest
     local mA = dbA.mobs[INST]
     check(mA and mA.n == 4, "four mob corpses looted: a corpse counts once, bosses and chests don't count (" .. tostring(mA and mA.n) .. ")")
-    check(mA.items[990010] == 2 and mA.items[990011] == 1 and not mA.items[990012] and not mA.items[990001],
+    check(mA.items[990010] == 2 and mA.items[990011] == 1 and not mA.items[990012] and not mA.items[270227],
         "greens and blues in the loot windows count; whites and the boss's loot don't")
     check(not (dbC.mobs[INST] and dbC.mobs[INST].n > 0), "sent in a batch, not one message per corpse")
     Server:Advance(90)
@@ -131,6 +131,10 @@ do
     Server:Advance(60)
     check(dbC.mobs[INST].n == 4 and dbC.kills[INST]["Faldrim Anvilmar"] == 4, "impossible counts are ignored")
 
+    -- a drop listed by name only (WoW Forever's lists all carry IDs now, so
+    -- one is added here): the game can't show it until someone loots it
+    local hotLoot = cara.mns.RUIN_Codex.Loot.data.hot
+    table.insert(hotLoot.bosses[1].items, { name = "Unseen Shroud", info = "Back" })
     -- the page: click an item for its full tooltip
     cara.env.RUIN_API:OpenTab("Codex")
     T.openAllSubTabs(cara, "Codex")
@@ -144,7 +148,7 @@ do
     local beltRow, nameRow
     for _, r in ipairs(ui.detail.rows) do
         if r._shown and r.link and r.text:GetText():find("Thane's Belt", 1, true) then beltRow = r end
-        if r._shown and r.itemName == "Aetherwisp Bracers" then nameRow = r end
+        if r._shown and r.itemName == "Unseen Shroud" then nameRow = r end
     end
     check(beltRow ~= nil, "the General item has a row on the page")
     if beltRow then beltRow._scripts.OnMouseUp(beltRow, "LeftButton") end
@@ -160,7 +164,8 @@ do
     check(nameRow ~= nil, "a listed item the game doesn't know yet has a row")
     if nameRow then nameRow._scripts.OnEnter(nameRow) end
     local tl = table.concat(cara.tooltip.lines, "\n")
-    check(tl:find("Aetherwisp Bracers", 1, true) and tl:find("hasn't sent this item yet", 1, true), "hovering it says why there's no full tooltip yet")
+    check(tl:find("Unseen Shroud", 1, true) and tl:find("hasn't sent this item yet", 1, true), "hovering it says why there's no full tooltip yet")
+    table.remove(hotLoot.bosses[1].items)
 
     cara.env.GetItemInfo = realInfo
     for _, c in ipairs({ alice, cara, eve }) do c.instance = nil; c.env.IsInInstance = realInInstance[c] end

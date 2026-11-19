@@ -38,11 +38,11 @@ do
     local durgen = by["Durgen Dirgehammer"]
     local names = {}
     for _, it in ipairs(durgen and durgen.items or {}) do names[#names + 1] = it.name .. (it.id and "#" .. it.id or "") end
-    check(table.concat(names, ",") == "Durgen's Crescent Axe#8002,Direhammer Leggings#8001,Durgen Dirgehammer's Head#8003,Robes of the Disgraced Thane",
+    check(table.concat(names, ",") == "Durgen's Crescent Axe#8002,Direhammer Leggings#8001,Durgen Dirgehammer's Head#8003,Robes of the Disgraced Thane#270261",
         "a boss lists its drops with item IDs (gear by item level, quest items last), then launch-data drops the database lacks (" .. table.concat(names, ",") .. ")")
     check(durgen.items[2].info and durgen.items[2].info:find("Legs", 1, true), "a drop in both lists keeps the launch data's slot")
     local faldrim = by["Faldrim Anvilmar"]
-    check(faldrim and faldrim.items[1] and faldrim.items[1].name == "Ephemeral Choker" and not faldrim.items[1].id,
+    check(faldrim and faldrim.items[1] and faldrim.items[1].name == "Ephemeral Choker" and faldrim.items[1].id == 270227,
         "the launch data's drops the database doesn't have yet stay on the list")
     check(by["Old Rustjaw"] and by["Old Rustjaw"].tip:find("Rare", 1, true) and by["Old Rustjaw"].items[1].id == 8004, "a rare gets its own list")
     local trash = {}

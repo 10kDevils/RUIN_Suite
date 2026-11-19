@@ -685,7 +685,9 @@ do
     local lines = {}
     local tip = { GetItem = function() return "x", "|cffffffff|Hitem:2589::|h[Linen Cloth]|h|r" end, AddLine = function(_, l) lines[#lines + 1] = l end }
     for _, hook in ipairs(alice.tooltipHooks) do hook(tip) end
-    check(table.concat(lines, "\n"):find("AH 7%-day avg:"), "tooltip shows the 7-day trend")
+    -- Exchange 0.8.2: the tooltip lists what the item is worth each way (the
+    -- trend stays in the price list)
+    check(table.concat(lines, "\n"):find("RUIN: Exchange") and table.concat(lines, "\n"):find("AH:"), "the tooltip shows the RUIN: Exchange section with the AH row")
     -- profession leveling plan from known recipes and RUIN prices
     Server.fire(alice, "TRADE_SKILL_SHOW")
     Server:Advance(4)

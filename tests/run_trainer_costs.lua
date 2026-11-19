@@ -11,6 +11,10 @@ do
     local db = env.RUIN_ExchangeDB
     local now = env.GetServerTime()
     local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
+    -- reagents count at the market (Exchange 0.8.4): earlier tests' price
+    -- history and merchants mustn't leak in
+    local savedHistory, savedVendor = db.history, db.vendor
+    db.history, db.vendor = {}, {}
     db.prices[2677] = { p = 100, t = now }      -- boar ribs 1s
     db.prices[2678] = { p = 20, t = now }       -- mild spices 20c
     db.prices[2589] = { p = 300, t = now }      -- linen 3s
@@ -62,6 +66,7 @@ do
     check(not rows[1].ruinCost:IsShown(), "once it would be grey nothing is shown")
 
     env.ClassTrainerFrame = nil
+    db.history, db.vendor = savedHistory, savedVendor
     errorsSoFar("trainer costs")
 end
 

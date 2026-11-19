@@ -101,11 +101,11 @@ do
     T.openAllSubTabs(alice, "Codex")
     local ui = cx.UI
     for _, w in ipairs({ ui.plannerNote, ui.tipCheck, ui.specCycle }) do w.SetShown = function(self, v) self._vis = v and true or false end end
-    ui.tabs:Select(1)                               -- the Journal
+    ui.tabs:Select(2)                               -- the Journal (Best in Slot is first)
     check(ui.plannerNote._vis == true and ui.tipCheck._vis == false and ui.specCycle._vis == false,
         "the Journal says the planner handles gear, instead of Codex's weights and tooltip switch")
     env.RuinousForeverPlanner = realPlanner
-    ui.tabs:Select(1)
+    ui.tabs:Select(2)
     check(ui.tipCheck._vis == true and ui.plannerNote._vis == false, "without the planner, Codex's own controls come back")
 
     env.UnitClass, env.GetItemStats, env.C_TooltipInfo, env.GetInventoryItemLink, env.GetItemInfoInstant, env.CanDualWield = unpack(saved, 1, 6)

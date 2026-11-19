@@ -34,8 +34,10 @@ do
     local seq = {}
     for _, s in ipairs(r and r.steps or {}) do seq[#seq + 1] = line(s) end
     -- Old Halls Incursion is picked up from the NPC who takes the torn map, so it comes next
-    local want = { "accept:A Torn Map", "turnin:A Torn Map", "accept:Old Halls Incursion", "accept:Restless Spirits", "accept:An Old Grudge", "note:",
-                   "accept:Ghostly Errand", "complete:Restless Spirits", "complete:Ghostly Errand", "complete:An Old Grudge",
+    -- Pathfinder 0.8.4: quests picked up inside (and ones with no known giver)
+    -- come after the trip there, the last thing before the run
+    local want = { "accept:A Torn Map", "turnin:A Torn Map", "accept:Old Halls Incursion", "accept:Restless Spirits", "note:",
+                   "accept:Ghostly Errand", "accept:An Old Grudge", "note:", "complete:Restless Spirits", "complete:Ghostly Errand", "complete:An Old Grudge",
                    "complete:Old Halls Incursion", "turnin:Ghostly Errand", "turnin:Restless Spirits", "turnin:Old Halls Incursion", "turnin:An Old Grudge" }
     local ok = r ~= nil
     for i, w in ipairs(want) do if seq[i] ~= w then ok = false end end
@@ -122,7 +124,9 @@ do
     for _, list in ipairs({ CN.Dungeons, CN.Raids }) do
         for _, d in ipairs(list) do
             inCodex[d.group or d.name] = true
-            if not PF:DungeonEntry(d.group or d.name) then missing[#missing + 1] = d.name end
+            -- a raid that isn't open yet (no bosses listed) has nothing for Pathfinder
+            local upcoming = list == CN.Raids and #(d.bosses or {}) == 0
+            if not upcoming and not PF:DungeonEntry(d.group or d.name) then missing[#missing + 1] = d.name end
         end
     end
     for _, e in ipairs(alice.mns.RUIN_Pathfinder.DungeonQuestIndex) do

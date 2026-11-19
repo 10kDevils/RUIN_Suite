@@ -8,8 +8,11 @@ do
     local env = alice.env
     local X = env.RUIN_API:GetModule("Exchange")
     local db = env.RUIN_ExchangeDB
-    local saved = db.prices
+    local saved, savedHistory, savedVendor = db.prices, db.history, db.vendor
     db.prices = { [2589] = { p = 300, t = env.GetServerTime() } }   -- linen cloth 3s
+    -- reagents count at the market (Exchange 0.8.4): the week's prices and
+    -- merchants matter, so earlier tests' linen history mustn't leak in
+    db.history, db.vendor = {}, {}
 
     local function strip(t) return (alice.env.RUIN_API.Widgets.PlainMoney(t or "")):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") end
     db.rskill = {}
@@ -85,6 +88,6 @@ do
     check(ct and ct.Tailoring and ct.Tailoring["Linen Cloak"] and ct.Tailoring["Linen Cloak"].y == 66, "the color levels RUIN sees are shared with the org")
 
     env.ProfessionsFrame = nil
-    db.prices = saved
+    db.prices, db.history, db.vendor = saved, savedHistory, savedVendor
     errorsSoFar("recipe costs")
 end

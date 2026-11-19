@@ -1,5 +1,6 @@
 -- Exchange 0.5.2: vendor prices. Seen at a merchant, shared with RUIN, and
 -- used only where they're cheaper than the auction house, marked as vendor.
+-- Exchange 0.8.4's section layout: each way out of the bag and its value.
 local alice, cara, check, errorsSoFar = T.alice, T.cara, T.check, T.errorsSoFar
 local Server = Server
 
@@ -46,28 +47,45 @@ do
     check(db.vendor[2678].kind == "Trade Goods", "the merchant's title is kept too")
     local P = alice.env.RUIN_API.Widgets.PlainMoney
     local function plainLines(t) local o = {} for i, l in ipairs(t or {}) do o[i] = (P(l):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end return o end
+    -- prices below are written straight into the saved data, so tell Exchange
+    -- they changed (in game every price goes through it, which does this)
+    local function bump() X.priceGen = (X.priceGen or 0) + 1 end
+    local GREEN = "|cff5cd973"
+    -- the line starting with label, plain, and whether it's the green (best) one
+    local function row(t, label)
+        for _, l in ipairs(t or {}) do
+            local plain = (P(l):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+            if plain:find("^%s*" .. label) then return plain, l:find(GREEN, 1, true) ~= nil end
+        end
+    end
+    -- Exchange 0.8.4: the section lists what each way out of the bag is worth
+    -- (vendor, disenchant or craft, the AH after its deposit and cut), the
+    -- best one green; a cheaper merchant shows as Buy from vendor
+    bump()
     local lines = plainLines(X.PriceLines("item:2678"))
-    check(lines[1] == "RUIN: Exchange" and lines[2]:find("^AH price: 40c") and lines[3] == "Vendor: 10c from Trade Goods NPC",
-          "the tooltip's RUIN: Exchange section: the AH price, then the cheaper merchant by kind (" .. tostring(lines[2]) .. " / " .. tostring(lines[3]) .. ")")
+    check(lines[1] == "RUIN: Exchange" and lines[2] == "Buy from vendor: 10c from Trade Goods NPC" and lines[3] == "AH: 0c",
+          "the tooltip's RUIN: Exchange section: the cheaper merchant by kind, then what one nets on the AH (" .. tostring(lines[2]) .. " / " .. tostring(lines[3]) .. ")")
     check((X.PriceLines("item:2678")[2] or ""):find("UI%-CopperIcon"), "with the game's coin icons")
-    -- a stack of 6: the AH price for the stack, with the price each
+    -- a stack of 6: priced as the stack, with the price each
     lines = plainLines(X.PriceLines("item:2678", 6))
-    check(lines[2]:find("^AH price: 2s 40c %(40c each%)"), "a stack is priced as the stack (" .. tostring(lines[2]) .. ")")
-    -- the price to expect is the low end of the last week's prices (a misposted one left out)
+    check(lines[2] == "Buy from vendor: 60c (10c each) from Trade Goods NPC" and lines[3] == "AH: 1s 28c  (21c each)",
+          "a stack is priced as the stack, the AH after the 1s deposit and 5% cut (" .. tostring(lines[2]) .. " / " .. tostring(lines[3]) .. ")")
+    -- the price to expect: the one just seen while it's fresh, else the low end
+    -- of the last week's prices (a misposted one left out)
     local day = math.floor(env.GetServerTime() / 86400)
     db.history[2678] = { [day] = 60, [day - 1] = 35, [day - 2] = 50, [day - 3] = 10, [day - 20] = 5 }
     db.prices[2678].p = 60
     local exp, cur = X.ExpectedPrice(2678)
-    check(exp == 35 and cur == 60, "the expected AH price is the week's low end, not a mispost or an old low (" .. tostring(exp) .. ")")
-    lines = plainLines(X.PriceLines("item:2678"))
-    check(lines[2]:find("^AH price: 35c") and lines[2]:find("now 60c"), "the tooltip shows it, with the dearer listing now (" .. lines[2] .. ")")
-    db.history[2678] = nil
-    -- where to sell: the AH when it beats the vendor's buying price by enough, else the vendor
-    db.prices[2678].p = 40
+    check(exp == 60 and cur == 60, "a price seen in the last two hours is the one to expect (" .. tostring(exp) .. ")")
+    db.prices[2678].t = env.GetServerTime() - 3 * 3600
+    exp, cur = X.ExpectedPrice(2678)
+    check(exp == 35 and cur == 60, "once it's older, the week's low end, not a mispost or an old low (" .. tostring(exp) .. ")")
+    bump()
     lines = plainLines(X.PriceLines("item:2678", 6))
-    local last = lines[#lines]
-    check(last:find("^Sell on AH: 2s 40c") or last:find("^Sell to Vendor:"), "the last line says where to sell, for the whole stack (" .. last .. ")")
-    -- disenchant: recommended when the mats are worth more, or the likely mat is blue or better
+    check(lines[3] == "AH: 99c  (17c each)", "the AH line uses that price (" .. tostring(lines[3]) .. ")")
+    db.history[2678] = nil
+    db.prices[2678].p, db.prices[2678].t = 40, env.GetServerTime()
+    -- disenchant: recommended when the mats are worth more
     alice.items[301] = { name = "Ridge Cleaver", link = "|cff1eff00|Hitem:301::|h[Ridge Cleaver]|h|r", q = 2, ilvl = 22, loc = "INVTYPE_2HWEAPON", sell = 300, classID = 2 }
     alice.items[10998] = { name = "Lesser Astral Essence", link = "|cff1eff00|Hitem:10998::|h[Lesser Astral Essence]|h|r", q = 2, sell = 0 }
     alice.items[10940] = { name = "Strange Dust", link = "|cffffffff|Hitem:10940::|h[Strange Dust]|h|r", q = 1, sell = 0 }
@@ -78,22 +96,31 @@ do
     db.prices[10998] = { p = 2000, t = env.GetServerTime() }
     db.prices[10940] = { p = 300, t = env.GetServerTime() }
     db.prices[10978] = { p = 1500, t = env.GetServerTime() }
-    local L = plainLines(X.PriceLines("item:301"))
-    check(L[#L]:find("^Disenchant: ~") and L[#L]:find("Lesser Astral Essence"), "Disenchant when the mats beat the AH and the vendor (" .. L[#L] .. ")")
+    bump()
+    local L = X.PriceLines("item:301")
+    local de, deBest = row(L, "Disenchant:")
+    check(de and de:find("^Disenchant: ~") and deBest and row(L, "into Lesser Astral Essence"), "Disenchant is best when the mats beat the AH and the vendor (" .. tostring(de) .. ")")
     db.prices[10998].p, db.prices[10940].p, db.prices[10978].p = 10, 10, 10
-    L = plainLines(X.PriceLines("item:301"))
-    check(L[#L]:find("^Sell to Vendor: 3s"), "otherwise sell it: 4s on the AH nets less than the vendor's 3s after the deposit and cut (" .. L[#L] .. ")")
+    bump()
+    L = X.PriceLines("item:301")
+    local v, vBest = row(L, "Vendor:")
+    local ah = row(L, "AH:")
+    check(v == "Vendor: 3s" and vBest and ah == "AH: 2s 80c", "otherwise the vendor: 4s on the AH nets less than the vendor's 3s after the deposit and cut (" .. tostring(ah) .. ")")
     db.prices[301].p = 1000
-    L = plainLines(X.PriceLines("item:301"))
-    check(L[#L] == "Sell on AH: 10s  (nets 8s 50c)", "the AH when it's worth it after the 1 silver deposit and 5% cut (" .. L[#L] .. ")")
+    bump()
+    ah, vBest = row(X.PriceLines("item:301"), "AH:")
+    check(ah == "AH: 8s 50c" and vBest, "the AH when it's worth it after the 1 silver deposit and 5% cut (" .. tostring(ah) .. ")")
     alice.items[302] = { name = "Bright Helm", link = "|cff0070dd|Hitem:302::|h[Bright Helm]|h|r", q = 3, ilvl = 24, loc = "INVTYPE_HEAD", sell = 300, classID = 4 }
     db.prices[302] = { p = 99999, t = env.GetServerTime() }
-    L = plainLines(X.PriceLines("item:302"))
-    check(L[#L]:find("^Sell on AH"), "disenchanting is only about the mats' value: a pricey blue sells (" .. L[#L] .. ")")
+    bump()
+    ah, vBest = row(X.PriceLines("item:302"), "AH:")
+    check(vBest, "disenchanting is only about the mats' value: a pricey blue sells (" .. tostring(ah) .. ")")
     db.prices[302].p = 500
     db.prices[10978].p = 1500
-    L = plainLines(X.PriceLines("item:302"))
-    check(L[#L]:find("^Disenchant: ~15s") and L[#L]:find("Small Glimmering Shard"), "and a cheap one is disenchanted (" .. L[#L] .. ")")
+    bump()
+    L = X.PriceLines("item:302")
+    de, deBest = row(L, "Disenchant:")
+    check(de == "Disenchant: ~15s" and deBest and row(L, "into Small Glimmering Shard"), "and a cheap one is disenchanted (" .. tostring(de) .. ")")
 
     -- craft: a reagent that makes something worth more than the reagents
     alice.items[6888] = { name = "Herb Baked Egg", link = "|cffffffff|Hitem:6888::|h[Herb Baked Egg]|h|r", q = 1, sell = 6 }
@@ -104,28 +131,39 @@ do
     db.recipeBook.Cooking["Herb Baked Egg"] = { { 6889, 1 }, { 2678, 1 } }
     db.prices[6888] = { p = 5000, t = env.GetServerTime() }
     db.prices[6889] = { p = 100, t = env.GetServerTime() }
-    L = plainLines(X.PriceLines("item:6889"))
-    check(L[#L - 1] == "Craft: Herb Baked Egg" and L[#L]:find("^%(sells ~"), "a reagent says Craft when what it makes sells for more, the sums on the line below (" .. L[#L - 1] .. " / " .. L[#L] .. ")")
+    bump()
+    L = X.PriceLines("item:6889")
+    local cr, crBest = row(L, "Craft:")
+    local margin = row(L, "Margin:")
+    check(cr and crBest and row(L, "Herb Baked Egg") and margin and margin:find("sells for 50s"), "a reagent says Craft when what it makes sells for more, the sums below it (" .. tostring(cr) .. " / " .. tostring(margin) .. ")")
     db.prices[6888].p = 120
-    L = plainLines(X.PriceLines("item:6889"))
-    check(not L[#L]:find("^Craft") and not L[#L]:find("^%(sells"), "and doesn't when it doesn't (" .. L[#L] .. ")")
+    bump()
+    margin = row(X.PriceLines("item:6889"), "Margin:")
+    check(margin and margin:find("%+10c") and margin:find("sells for 1s 20c"), "and the margin shrinks with what it sells for (" .. tostring(margin) .. ")")
     -- soulbound: never the auction house; disenchant, craft or vendor
     db.prices[6888].p = 5000
+    bump()
     L = plainLines(X.PriceLines("item:6889", 1, true))
-    check(L[2] == "Soulbound: can't go on the auction house" and L[3] == "Craft: Herb Baked Egg", "a soulbound reagent still says Craft, never the AH (" .. tostring(L[3]) .. ")")
-    for _, l in ipairs(L) do check(not l:find("AH"), "no AH line for a soulbound item (" .. l .. ")") end
+    check(L[2] == "Binds to you: can't go on the auction house" and row(X.PriceLines("item:6889", 1, true), "Craft:"), "a soulbound reagent still says Craft, never the AH (" .. tostring(L[2]) .. ")")
+    for _, l in ipairs(L) do check(not l:find("AH:"), "no AH line for a soulbound item (" .. l .. ")") end
     db.crafters[guid] = nil
     db.prices[302].p = 999999
-    L = plainLines(X.PriceLines("item:302", 1, true))
-    check(L[3] and L[3]:find("^Disenchant: ~15s") and L[#L] == "Vendor: 3s", "a pricey soulbound blue is disenchanted, not sold on the AH, with the vendor price beside (" .. tostring(L[3]) .. ")")
+    bump()
+    L = X.PriceLines("item:302", 1, true)
+    de, deBest = row(L, "Disenchant:")
+    check(de == "Disenchant: ~15s" and deBest and row(L, "Vendor:") and not row(L, "AH:"), "a pricey soulbound blue is disenchanted, not sold on the AH, with the vendor price beside (" .. tostring(de) .. ")")
     db.prices[10978].p = 10
-    L = plainLines(X.PriceLines("item:302", 1, true))
-    check(#L == 3 and L[3] == "Sell to Vendor: 3s", "and vendored when the mats are worth less (" .. tostring(L[#L]) .. ")")
+    bump()
+    v, vBest = row(X.PriceLines("item:302", 1, true), "Vendor:")
+    check(v == "Vendor: 3s" and vBest, "and vendored when the mats are worth less (" .. tostring(v) .. ")")
     alice.items[302].bind = 1
-    L = plainLines(X.PriceLines("item:302"))
-    check(L[#L] == "Sell to Vendor: 3s", "an item that binds when picked up counts as soulbound on its own (" .. L[#L] .. ")")
+    bump()
+    L = X.PriceLines("item:302")
+    v, vBest = row(L, "Vendor:")
+    check(v == "Vendor: 3s" and vBest and not row(L, "AH:"), "an item that binds when picked up counts as soulbound on its own (" .. tostring(v) .. ")")
     alice.items[302].bind = nil
     db.prices[10978].p = 1500
+    bump()
     local realSlots = env.C_Container.GetContainerNumSlots
     env.C_Container.GetContainerNumSlots = function(bag) return bag == 0 and 1 or 0 end
     local realCI = env.C_Container.GetContainerItemInfo

@@ -58,16 +58,14 @@ do
     Server.fire(cara, "ITEM_SEARCH_RESULTS_UPDATED", { itemID = 9999 })
     check(db.prices[9999] and db.prices[9999].p == 3000, "clicking into an item reads its cheapest buyout")
 
-    -- a later look that only shows dearer listings doesn't raise a fresh low price
+    -- Exchange 0.8.3: a price you just saw replaces the saved one even when
+    -- it's higher (the cheaper listings were bought out)
     db.prices[2772] = { p = 900, t = env.GetServerTime() - 60, by = "Cara Cole" }
     local CH = env.C_AuctionHouse
     local saveBrowse = CH.GetBrowseResults
     rawset(CH, "GetBrowseResults", function() return { { itemKey = { itemID = 2772 }, minPrice = 1400 } } end)
     Server.fire(cara, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED")
-    check(db.prices[2772].p == 900, "a dearer sighting doesn't replace a low price seen in the last 6 hours (" .. db.prices[2772].p .. ")")
-    db.prices[2772].t = env.GetServerTime() - 7 * 3600
-    Server.fire(cara, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED")
-    check(db.prices[2772].p == 1400, "but does once that low price is older")
+    check(db.prices[2772].p == 1400, "a dearer sighting replaces a low price the auction house no longer has (" .. db.prices[2772].p .. ")")
     rawset(CH, "GetBrowseResults", saveBrowse)
     -- a share from another player that's higher doesn't replace a fresh low price either
     db.prices[2771] = { p = 500, t = env.GetServerTime() - 60, by = "Dana Dusk" }

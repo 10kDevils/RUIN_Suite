@@ -181,7 +181,8 @@ do
     local cx = cara.env.RUIN_API:GetModule("Codex")
     check(cx.GearPath == nil and cx.SetBis == nil, "Gear Path and best-in-slot lists are gone")
     cara.env.SlashCmdList.RUINCODEX("path")
-    check(chatHas(cara, "have left Codex"), "/codex path says where they went")
+    -- Codex 0.8.1: Best in Slot came back as its own tab, and /codex path opens it
+    check(not chatHas(cara, "have left Codex"), "/codex path opens the Best in Slot tab")
     cara.env.SlashCmdList.RUINCODEX("journal")
     T.openAllSubTabs(cara, "Codex")
     errorsSoFar("gear path")

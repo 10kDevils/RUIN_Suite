@@ -17,13 +17,14 @@ do
     local want = {
         hot = { "Hall of Thanes", "13-18", 4 }, rol = { "Ruins of Lordaeron", "15-20", 7 },
         exc = { "Excavation Site: Wetlands", "24-31", 4 }, dal = { "City of Dalaran", "28-33", 8 },
-        drowned = { "The Drowned City", "35-40", 3 }, kroldok = { "Krol'dok Stronghold", "40-45", 0 },
-        alcaz = { "Alcaz Prison", "48-53", 0 }, blackmaw = { "Blackmaw Hold", "55-60", 0 }, shaper = { "Shaper's Terrace", "58-60", 0 },
+        -- the newer five got their bosses from the Nov 19 databases (Codex 0.8.2)
+        drowned = { "The Drowned City", "35-40", 6, "2026-11-19" }, kroldok = { "Krol'dok Stronghold", "40-45", 6, "2026-11-19" },
+        alcaz = { "Alcaz Prison", "48-53", 7, "2026-11-19" }, blackmaw = { "Blackmaw Hold", "55-60", 7, "2026-11-19" }, shaper = { "Shaper's Terrace", "58-60", 3, "2026-11-19" },
     }
     local wrong = {}
     for id, w in pairs(want) do
         local d = by[id]
-        if not (d and d.name == w[1] and d.levels == w[2] and #d.bosses == w[3] and d.forever == "2026-11-05" and d.where and d.where ~= "") then
+        if not (d and d.name == w[1] and d.levels == w[2] and #d.bosses == w[3] and d.forever == (w[4] or "2026-11-05") and d.where and d.where ~= "") then
             wrong[#wrong + 1] = id
         end
     end
@@ -42,12 +43,12 @@ do
     -- loot by name, until the game knows the item
     local loot = CN.Loot.For(by.hot)
     check(loot and #loot.bosses == 4 and loot.bosses[1].items[1].name == "Ephemeral Choker" and loot.bosses[1].items[1].info:find("^Neck")
-        and loot.bosses[1].items[1].id == nil, "Hall of Thanes loot is listed by name and slot")
+        and loot.bosses[1].items[1].id == 270227, "Hall of Thanes loot is listed with item IDs, names and slots")
     local n = 0
     for _, id in ipairs({ "hot", "rol", "exc", "dal" }) do
         for _, b in ipairs(CN.Loot.For(by[id]).bosses) do n = n + #b.items end
     end
-    check(n == 70, "every boss drop in the launch data: 70 across the four documented dungeons (" .. n .. ")")
+    check(n == 89, "every boss drop: 89 across the four launch dungeons (" .. n .. ")")
     local bad = 0
     for _, e in ipairs(CN.Loot.errors) do if not e:find("^Rethilgore") and not e:find("Shadowfang") then bad = bad + 1 end end
     check(bad == 0, "the launch loot file loads with no skipped entries")
@@ -64,25 +65,25 @@ do
     check(dal:find("Attunement", 1, true) and dal:find("Set: Violet Sorcerer's Vestments (5 pieces)", 1, true) and dal:find("(4) Chance on damaging spell", 1, true),
         "City of Dalaran: attunement and the set's bonuses")
     local kd = text(cx.JournalLines(by.kroldok, false))
-    check(kd:find("No boss list published yet.", 1, true) and kd:find("Twilight's Hammer", 1, true) and kd:find("story only", 1, true),
-        "Krol'dok Stronghold says no boss list is published yet, with its notes")
+    check(kd:find("Overlord Mugg", 1, true) and kd:find("Emblem of Slamming", 1, true) and kd:find("Twilight's Hammer", 1, true),
+        "Krol'dok Stronghold lists its bosses and loot, with its notes")
 
     -- once a RUIN member loots a listed item, its line shows the real item
     local realInfo = cara.env.GetItemInfo
     cara.env.GetItemInfo = function(id)
-        if id == 990001 then return "Ephemeral Choker", "|cff1eff00|Hitem:990001::|h[Ephemeral Choker]|h|r", 2, nil, 13 end
+        if id == 270227 then return "Ephemeral Choker", "|cff1eff00|Hitem:270227::|h[Ephemeral Choker]|h|r", 2, nil, 13 end
         if id == 990002 then return "Something Else", "|cff1eff00|Hitem:990002::|h[Something Else]|h|r", 2, nil, 13 end
         return realInfo(id)
     end
-    cara.env.RUIN_CodexDB.drops["Hall of Thanes"] = { [990001] = { n = 2 }, [990002] = { n = 1 } }
+    cara.env.RUIN_CodexDB.drops["Hall of Thanes"] = { [270227] = { n = 2 }, [990002] = { n = 1 } }
     local lines = cx.JournalLines(by.hot, false)
     local choker, also
     for i, l in ipairs(lines) do
         if l[1]:find("Ephemeral Choker", 1, true) then choker = l end
         if l[1]:find("Also looted by RUIN members", 1, true) then also = i end
     end
-    check(choker and choker.link and choker.link:find("990001", 1, true) and choker[1]:find("looted 2x by RUIN", 1, true),
-        "a listed name RUIN looted shows the real item, with how often")
+    check(choker and choker.link and choker.link:find("270227", 1, true) and choker[1]:find("looted 2x by RUIN", 1, true),
+        "a listed drop RUIN looted shows the real item, with how often")
     local after = text({ unpack(lines, also) })
     check(after:find("Something Else", 1, true) and not after:find("Ephemeral Choker", 1, true), "and isn't listed again as an extra drop")
     cara.env.GetItemInfo = realInfo
@@ -107,7 +108,7 @@ do
         and noteHas(routeOf("ashenvale_18_28"), "City of Dalaran"), "a City of Dalaran pointer at 28+ in the routes that reach it")
     check(noteHas(routeOf("wetlands_20_30"), "levels 24-31") and noteHas(routeOf("wetlands_20_30"), "39,300 XP"), "Excavation Site's levels and quest XP")
     check(noteHas(routeOf("hall_of_thanes"), "Magmatus") and noteHas(routeOf("westfall_10_15"), "Ruins of Lordaeron"), "Hall of Thanes boss order; Ruins of Lordaeron as a detour")
-    check(P.ZoneQuests and P.ZoneQuests["Elwynn Forest"][1] == 74 and P.ZoneQuests["Zephras Isle"][1] == 92 and el.zone == "Elwynn Forest",
+    check(P.ZoneQuests and P.ZoneQuests["Elwynn Forest"][1] == 85 and P.ZoneQuests["Zephras Isle"][1] == 128 and el.zone == "Elwynn Forest",
         "zone quest counts from ForeverDB, and routes know their zone")
     check(not routeOf("hall_of_thanes").zone, "the dungeon route has no zone count")
     -- the Routes page tooltip
