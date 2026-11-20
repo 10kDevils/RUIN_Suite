@@ -662,9 +662,7 @@ do
     for _, x in ipairs(alice.ns.Chat.history) do if not x.org then guildOnly = true end end
     check(not guildOnly, "and not in guild chat")
     local c = alice.ns.Chat:OrgColor()
-    check(c.r > 0.55 and c.g > 0.85 and c.b == 1, "org chat is sky blue by default")
-    local pr, pg, pb = 0.667, 0.667, 1.0     -- party chat
-    check(0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.2126 * pr + 0.7152 * pg + 0.0722 * pb + 0.1, "well lighter than party chat")
+    check(alice.ns.Chat:OrgHex() == "|cff54b7d9", "org chat is the [RUIN] tag's blue by default")
 
     -- the Chat tab's Org chat view
     alice.env.SlashCmdList.RUINORG("")
@@ -680,6 +678,63 @@ do
     send(eve, "OSAY", { a = "Eve Ember", gu = "Ashen Order", t = "FAKE wrong guild", c = "WARRIOR" }, "ORG")
     Server:Advance(3)
     check(not chatHas(alice, "FAKE wrong guild"), "and one claiming another guild")
+
+    -- full names: the one a line carries, if it starts with the sender's own name
+    send(eve, "OSAY", { a = "Eve", n = "Eve Ember", gu = "Briar Fang", t = "full name line", c = "WARRIOR" }, "ORG")
+    send(eve, "OSAY", { a = "Eve", n = "Cara Cole", gu = "Briar Fang", t = "borrowed name line", c = "WARRIOR" }, "ORG")
+    Server:Advance(3)
+    local fl, bl = chatLine(alice, "full name line"), chatLine(alice, "borrowed name line")
+    check(fl == nil or fl:find("[Eve Ember]", 1, true), "an org line shows the sender's full name")
+    check(bl == nil or (not bl:find("Cara Cole", 1, true)), "never someone else's name")
+    check(alice.ns.Chat.OrgName({ a = "Asterion", n = "Asterion Ruin" }) == "Asterion Ruin"
+        and alice.ns.Chat.OrgName({ a = "Asterion", n = "Saint Timothy" }) == "Asterion"
+        and alice.ns.Chat.OrgName({ a = "Asterion" }) == "Asterion", "a full name must start with the character name")
+
+    -- sticky: after /org <message> the chat box stays on Org until you switch
+    do
+        local env, sent = eve.env, {}
+        local box = { _text = "", _attr = { chatType = "GUILD" }, _scripts = {} }
+        function box:GetText() return self._text end
+        function box:SetText(t, user) self._text = t; if self._scripts.OnTextChanged then self._scripts.OnTextChanged(self, user) end end
+        function box:GetAttribute(k) return self._attr[k] end
+        function box:SetAttribute(k, v) self._attr[k] = v end
+        function box:HookScript(k, f) self._scripts[k] = f end
+        function box:SetTextInsets() end
+        function box:SetTextColor() end
+        function box:AddHistoryLine() end
+        function box:UpdateHeader() self.header:SetText(self._attr.chatType .. ": ") end
+        box.header = { SetText = function(h, t) h.text = t end, SetTextColor = function() end, GetWidth = function() return 30 end }
+        -- the game's own reading of the box: /g or /p switches, /org runs, the rest is sent
+        function box:ParseText(send)
+            local t = self._text
+            local sw = t:match("^/([gp]) ")
+            if sw then self._attr.chatType = sw == "g" and "GUILD" or "PARTY"; self:SetText(t:sub(4)); return end
+            if send == 1 and t:find("^/org ") then env.SlashCmdList.RUINORG(t:sub(6), self); self:SetText("") end
+        end
+        local function enter(t)
+            box:SetText(t, true)
+            box:ParseText(1)
+            if box._text ~= "" then table.insert(sent, box._attr.chatType .. ":" .. box._text) end
+            box:SetText("")
+        end
+        env.ChatFrame1EditBox = box
+        eve.ns.Chat:HookChatBoxes()
+        Server:Advance(6)
+        enter("/org first sticky line")
+        check(eve.ns.Chat:IsOrgSticky(box) and box.header.text == "Org: ", "after /org <message> the chat box reads Org:")
+        Server:Advance(3)
+        enter("second sticky line")
+        Server:Advance(3)
+        check(chatHas(alice, "second sticky line") and #sent == 0, "and the next line goes to org chat, not guild chat")
+        box.header.text = nil
+        box:UpdateHeader()
+        check(box.header.text == "Org: ", "it stays Org when the chat box opens again")
+        enter("/g back to guild")
+        check(not eve.ns.Chat:IsOrgSticky(box) and sent[1] == "GUILD:back to guild", "/g switches back to guild chat")
+        enter("plain guild line")
+        check(sent[2] == "GUILD:plain guild line" and not chatHas(alice, "plain guild line"), "and stays there")
+        env.ChatFrame1EditBox = nil
+    end
 
     -- announcements: officers and the admin only
     olga.env.SlashCmdList.RUINORGWARN("Raid forms at Ironforge in 10")
