@@ -652,6 +652,38 @@ do
     alice.env.RUIN_DB.settings.chatScope = "guild"
     alice.ns.GuildUI.ToggleChatWindow(true)
     check(alice.env.RUIN_GuildChatWindow and alice.env.RUIN_GuildChatWindow:IsShown(), "guild chat pops out into its own window")
+    -- resizable, lockable, with an opacity setting
+    do
+        local GUI, w = alice.ns.GuildUI, alice.env.RUIN_GuildChatWindow
+        local st = alice.env.RUIN_DB.settings
+        check(w.grip and w.grip:IsShown() and w.lockBtn and w.opacity, "the pop-out has a resize corner, Lock and Opacity")
+        local size = { 700, 450 }
+        w.GetWidth, w.GetHeight = function() return size[1] end, function() return size[2] end
+        w.SetSize = function(_, x, y) size[1], size[2] = x, y end
+        w.grip:GetScript("OnMouseDown")(w.grip, "LeftButton")
+        w.grip:GetScript("OnMouseUp")(w.grip, "LeftButton")
+        check(st.chatSize and st.chatSize.w == 700 and st.chatSize.h == 450, "its size is remembered")
+        size[1], size[2] = 100, 50
+        w.grip:GetScript("OnMouseDown")(w.grip, "LeftButton")
+        w.grip:GetScript("OnMouseUp")(w.grip, "LeftButton")
+        check(st.chatSize.w == GUI.CHAT_MIN_W and st.chatSize.h == GUI.CHAT_MIN_H, "never smaller than it can show")
+        GUI.SetChatLocked(true)
+        local moved = false
+        local was = w.StartMove
+        w.StartMove = function() moved = true end
+        w:GetScript("OnMouseDown")(w, "LeftButton")
+        check(not moved and not w.grip:IsShown() and st.chatLocked, "locked: it can't be moved or resized")
+        GUI.SetChatLocked(false)
+        w:GetScript("OnMouseDown")(w, "LeftButton")
+        check(moved and w.grip:IsShown(), "unlocked: it moves again")
+        w.StartMove = was
+        st.chatAlpha = 0.3
+        GUI.ApplyChatOpacity()
+        check(w.skinBg:GetAlpha() == 0.3 and w.view.box.skinBg:GetAlpha() == 0.3, "the opacity setting fades its background")
+        w.GetWidth, w.GetHeight, w.SetSize = nil, nil, nil
+        st.chatAlpha, st.chatLocked, st.chatSize = nil, nil, nil
+        GUI.ApplyChatOpacity()
+    end
     alice.ns.GuildUI.ToggleChatWindow(false)
     alice.env.RUIN_DB.settings.chatScope = "org"
     T.openAllSubTabs(alice, "Guild")
