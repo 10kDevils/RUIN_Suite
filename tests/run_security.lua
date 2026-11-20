@@ -634,5 +634,86 @@ do
 end
 errorsSoFar("0.7.2")
 
+---------------------------------------------------------------------------
+print("0.8.5: org chat (/org) and org announcements (/orgwarn)")
+do
+    for _, c in ipairs({ alice, olga, cara, eve, xan }) do c.ns.Chat.history = {} end
+    local warned = {}
+    local function watchScreen(c)
+        warned[c] = {}
+        c.env.RaidWarningFrame = {}
+        c.env.RaidNotice_AddMessage = function(_, text, color) table.insert(warned[c], { text = text, color = color }) end
+    end
+    for _, c in ipairs({ alice, olga, cara, eve }) do watchScreen(c) end
+    local sounds = 0
+    eve.env.PlaySound = function(kit) if kit == 8959 then sounds = sounds + 1 end end
+
+    -- org chat: every org guild sees it, nobody outside does
+    eve.env.SlashCmdList.RUINORG("hello org from Eve")
+    Server:Advance(3)
+    local l = chatLine(alice, "hello org from Eve")
+    check(l and l:find("[Org·Briar]", 1, true), "Ashen Order sees Briar Fang's org line, tagged Org")
+    check(chatHas(cara, "hello org from Eve"), "Eve's own guild sees it")
+    check(chatHas(eve, "hello org from Eve"), "Eve sees her own line")
+    check(not chatHas(xan, "hello org from Eve"), "a player outside the org never does")
+    local h = alice.ns.Chat.history
+    check(#h == 1 and h[1].org and h[1].a == "Eve Ember", "the line is in the Chat tab's org chat")
+    local guildOnly = false
+    for _, x in ipairs(alice.ns.Chat.history) do if not x.org then guildOnly = true end end
+    check(not guildOnly, "and not in guild chat")
+    local c = alice.ns.Chat:OrgColor()
+    check(c.r > 0.55 and c.g > 0.85 and c.b == 1, "org chat is sky blue by default")
+    local pr, pg, pb = 0.667, 0.667, 1.0     -- party chat
+    check(0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.2126 * pr + 0.7152 * pg + 0.0722 * pb + 0.1, "well lighter than party chat")
+
+    -- the Chat tab's Org chat view
+    alice.env.SlashCmdList.RUINORG("")
+    check(alice.env.RUIN_DB.settings.chatScope == "orgchat", "/org on its own opens org chat in the Chat tab")
+    alice.ns.GuildUI.ToggleChatWindow(true)
+    alice.ns.GuildUI.ToggleChatWindow(false)
+    alice.env.RUIN_DB.settings.chatScope = "org"
+
+    -- nobody can speak in another member's name
+    send(eve, "OSAY", { a = "Cara Cole", gu = "Briar Fang", t = "FAKE org line as Cara", c = "WARRIOR" }, "ORG")
+    Server:Advance(3)
+    check(not chatHas(alice, "FAKE org line as Cara"), "an org line in someone else's name is dropped")
+    send(eve, "OSAY", { a = "Eve Ember", gu = "Ashen Order", t = "FAKE wrong guild", c = "WARRIOR" }, "ORG")
+    Server:Advance(3)
+    check(not chatHas(alice, "FAKE wrong guild"), "and one claiming another guild")
+
+    -- announcements: officers and the admin only
+    olga.env.SlashCmdList.RUINORGWARN("Raid forms at Ironforge in 10")
+    Server:Advance(3)
+    check(#warned[eve] == 1 and warned[eve][1].text:find("Raid forms at Ironforge", 1, true), "an officer's announcement shows on screen in another guild")
+    check(sounds == 1, "with the raid warning sound")
+    check(chatHas(eve, "[Org Announcement·"), "and in chat")
+    check(#warned[olga] == 1, "the officer sees it too")
+    olga.env.SlashCmdList.RUINORGWARN("again too soon")
+    Server:Advance(3)
+    check(#warned[eve] == 1 and chatHas(olga, "every 10 seconds"), "one announcement every ten seconds")
+    eve.env.SlashCmdList.RUINORGWARN("Eve is no officer")
+    Server:Advance(3)
+    check(#warned[alice] == 1 and chatHas(eve, "for officers and the org admin"), "a member can't announce")
+    send(eve, "OANN", { a = "Eve Ember", gu = "Briar Fang", t = "modified client announcement", c = "WARRIOR" }, "ORG")
+    Server:Advance(3)
+    check(#warned[alice] == 1 and chatHas(alice, "modified client announcement"), "a member's announcement from a modified client is only an org line")
+    eve.env.RUIN_DB.settings.orgWarnings = false
+    Server:Advance(11)
+    alice.env.SlashCmdList.RUINORGWARN("Admin says hi")
+    Server:Advance(3)
+    check(#warned[cara] == 2 and #warned[eve] == 1 and chatHas(eve, "Admin says hi"), "the admin can announce; turned off, it's chat only")
+    eve.env.RUIN_DB.settings.orgWarnings = true
+
+    -- outsiders can't talk in it
+    xan.env.SlashCmdList.RUINORG("let me in")
+    Server:Advance(3)
+    check(not chatHas(alice, "let me in") and not chatHas(cara, "let me in"), "a player outside the org can't use org chat")
+    -- your own color
+    alice.ns.Chat:SetOrgColor(1, 0.5, 0)
+    check(alice.ns.Chat:OrgHex() == "|cffff8000", "org chat takes your own color")
+    alice.ns.Chat:SetOrgColor(nil)
+end
+errorsSoFar("0.8.5")
+
 print(("\n%d passed, %d failed, %d addon messages sent"):format(pass, fail, Server.sent))
 os.exit(fail == 0 and 0 or 1)
