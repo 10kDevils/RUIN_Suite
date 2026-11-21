@@ -105,6 +105,51 @@ do
         check(find(Map.cornerPins, "3 RUIN members"), "on Blizzard's own map it's back in the corner")
     end
 
+    -- marks you can clear: right-click one, or /ruin clearmap for all; the
+    -- shadow stays in step with the pin however small it is on the canvas
+    do
+        local cleared = 0
+        R.Map:SetPin("Test", "m1", { map = 1411, x = 0.3, y = 0.3, title = "Mark 1", plain = true, shadow = true, icon = B.MARK,
+            clearable = true, onClear = function() cleared = cleared + 1 end })
+        R.Map:SetPin("Test", "m2", { map = 1411, x = 0.6, y = 0.6, title = "Mark 2", clearable = true })
+        R.Map:SetPin("Test", "keep", { map = 1411, x = 0.7, y = 0.2, title = "Not clearable" })
+        draw(1414)
+        local m1 = find(Map.worldPins, "Mark 1")
+        local shadePts = {}
+        m1.shade.SetPoint = function(_, ...) shadePts[#shadePts + 1] = { ... } end
+        Map.DressPin(m1, m1.pin, 2.4)
+        check(#shadePts == 2 and math.abs(shadePts[1][2] + 0.3) < 1e-6 and math.abs(shadePts[2][3] + 0.4) < 1e-6,
+            "the shadow keeps to the pin's size: a tenth-size pin has a tenth-size shadow")
+        m1.shade.SetPoint = nil
+        local tip = {}
+        local GT = alice.env.GameTooltip
+        local realAdd = GT.AddLine
+        GT.AddLine = function(_, l) tip[#tip + 1] = l end
+        m1._scripts.OnEnter(m1)
+        GT.AddLine = realAdd
+        check(table.concat(tip, "\n"):find("Right-click to clear", 1, true), "a mark you can clear says how")
+        m1._scripts.OnMouseUp(m1, "RightButton")
+        check(R.Map:GetPins("Test").m1 == nil and cleared == 1, "right-clicking it clears it, and its owner hears")
+        alice.env.SlashCmdList.RUIN("clearmap")
+        local pins = R.Map:GetPins("Test")
+        check(pins.m2 == nil and pins.keep ~= nil and alice.chat[#alice.chat]:find("Cleared 1 map mark", 1, true), "/ruin clearmap clears the rest, and leaves marks that aren't yours to clear")
+        R.Map:RemovePin("Test", "keep")
+        -- Pathfinder's quest mark clears itself once the quest is picked up or handed in
+        local PF = R:GetModule("Pathfinder")
+        if PF and PF.DoneWithQuestMark then
+            R.Map:SetPin("Pathfinder", "quest", { map = 1411, x = 0.5, y = 0.5, clearable = true, qid = 123, which = "start" })
+            PF.DoneWithQuestMark(999, false)
+            check(R.Map:GetPins("Pathfinder").quest ~= nil, "another quest leaves Pathfinder's mark alone")
+            PF.DoneWithQuestMark(123, false)
+            check(R.Map:GetPins("Pathfinder").quest == nil, "picking the quest up clears its pick-up mark")
+            R.Map:SetPin("Pathfinder", "quest", { map = 1411, x = 0.5, y = 0.5, clearable = true, qid = 124, which = "objective" })
+            PF.DoneWithQuestMark(124, false)
+            check(R.Map:GetPins("Pathfinder").quest ~= nil, "an objective mark stays while you do the quest")
+            PF.DoneWithQuestMark(124, true)
+            check(R.Map:GetPins("Pathfinder").quest == nil, "and clears when you hand it in")
+        end
+    end
+
     -- an ordinary pin is unchanged
     R.Map:SetPin("Test", "b", { map = 1411, x = 0.4, y = 0.4, title = "Pin B" })
     draw(1411)
