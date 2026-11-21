@@ -74,6 +74,37 @@ do
     check(table.concat(tipLines, "\n"):find("Click to open", 1, true), "its tooltip says it opens the zone")
     wmf.SetMapID, wmf.NavigateToParentMap = nil, nil
 
+    -- OpenMap's stitched map: the mark stays on its zone, and keeps its size through a zoom
+    do
+        local env = alice.env
+        env.OpenMapAPI = { IsStitched = function() return true end, ArtTopLevel = function() return 3000 end,
+            WorldFromMap = function(m, x, y) return x, y end, MapFromWorld = function(m, u, v) return u, v end }
+        draw(1411)
+        local s1 = find(Map.worldPins, "3 RUIN members")
+        check(s1 and not find(Map.cornerPins, "3 RUIN members"), "on OpenMap's stitched map a zone's mark stays on the zone, not in the corner")
+        local canvas = alice.worldCanvas
+        local scale = 1
+        canvas.GetEffectiveScale = function() return scale end
+        env.WorldMapFrame.GetEffectiveScale = function() return 1 end
+        draw(1411)
+        local before = s1 and s1:GetWidth()
+        scale = 4                                   -- zoomed in: the canvas is four times bigger on screen
+        Map.scaleWatch:GetScript("OnUpdate")(Map.scaleWatch, 0.016)
+        local after = s1 and s1:GetWidth()
+        check(before and after and math.abs(after * 4 - before) < 0.01, "zooming in redraws it at the same size on screen (" .. tostring(before) .. " -> " .. tostring(after) .. ")")
+        scale = 4.001
+        local drawn = 0
+        local realSize = s1.SetSize
+        s1.SetSize = function(self, w, h) drawn = drawn + 1; realSize(self, w, h) end
+        Map.scaleWatch:GetScript("OnUpdate")(Map.scaleWatch, 0.016)
+        check(drawn == 0, "and doesn't redraw for a hair's change")
+        s1.SetSize = realSize
+        canvas.GetEffectiveScale, env.WorldMapFrame.GetEffectiveScale = nil, nil
+        env.OpenMapAPI = nil
+        draw(1411)
+        check(find(Map.cornerPins, "3 RUIN members"), "on Blizzard's own map it's back in the corner")
+    end
+
     -- an ordinary pin is unchanged
     R.Map:SetPin("Test", "b", { map = 1411, x = 0.4, y = 0.4, title = "Pin B" })
     draw(1411)

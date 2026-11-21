@@ -47,6 +47,28 @@ do
         for _, q in ipairs(z.quests) do if QB.IsSetUpgradeQuest(q) or q == 8921 or q == 8977 then upgrade = upgrade + 1 end end
     end
     check(upgrade == 0, "no zone route has the dungeon set upgrade chain (" .. upgrade .. ")")
+    -- every route keeps to the levels it's mostly for: nothing needing you
+    -- more than 3 levels above the level 80% of its quests are at or below
+    local function overs(qids)
+        local top, bad = QB.RouteTop(qids), {}
+        for _, q in ipairs(qids) do
+            local i = QB.Quest(q)
+            if top and i and (i.req or 1) > top + 3 then bad[#bad + 1] = q .. " " .. tostring(i.name) end
+        end
+        return bad
+    end
+    local zoneBad = {}
+    for _, z in ipairs(zones) do for _, b in ipairs(overs(z.quests)) do zoneBad[#zoneBad + 1] = z.name .. ": " .. b end end
+    check(#zoneBad == 0, "no zone route has a quest needing more than 3 levels over its range (" .. table.concat(zoneBad, "; ") .. ")")
+    local dunBad = {}
+    for _, r in ipairs(pf.DungeonRoutes() or {}) do
+        local ids, seen = {}, {}
+        for _, st in ipairs(r.steps) do if st.qid and st.act == "accept" and not seen[st.qid] then seen[st.qid] = true; ids[#ids + 1] = st.qid end end
+        for _, b in ipairs(overs(ids)) do dunBad[#dunBad + 1] = r.title .. ": " .. b end
+    end
+    check(#dunBad == 0, "nor any dungeon route: Gnomeregan's 27-34 route drops The Mad King at 40 (" .. table.concat(dunBad, "; ") .. ")")
+    local kept, out = QB.TrimHigh({ 1690, 1707, 3520, 1691, 8925 })
+    check(out[8925] and #kept == 4, "a route's quest needing level 58 among 43-44s is left out")
     -- a route's walked-past reminder only for a quest you could take now
     local lvl = env.UnitLevel
     env.UnitLevel = function() return 50 end
