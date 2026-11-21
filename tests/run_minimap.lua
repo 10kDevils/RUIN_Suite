@@ -90,6 +90,31 @@ do
     deco.north.SetPoint = function(self, a, b, c, x, y) np = { x, y }; return realSP(self, a, b, c, x, y) end
     mm.PlaceNorth()
     check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right side")
+    -- in a dungeon the game keeps your facing from addons; the N follows the
+    -- game's own (faded) compass ring, read the way it was learned outside
+    local ringRot = 0
+    env.MinimapCompassTexture = { SetAlpha = function() end, GetAlpha = function() return 0 end,
+        GetRotation = function() return ringRot end, GetObjectType = function() return "Texture" end }
+    local facing = 0
+    env.GetPlayerFacing = function() return facing end
+    for i = 1, 40 do                          -- turning around outside: the ring turns the other way
+        facing = (i * 0.3) % (2 * math.pi)
+        ringRot = (2 * math.pi - facing + 0.0001) % (2 * math.pi)
+        mm.PlaceNorth()
+    end
+    facing = nil                              -- inside: no facing for addons
+    ringRot = (2 * math.pi - math.pi / 2) % (2 * math.pi)   -- facing west
+    np = nil
+    mm.PlaceNorth()
+    check(np and np[1] > 10 and math.abs(np[2]) < 1, "in a dungeon, facing west, the N is still on the right (it follows the compass ring)")
+    ringRot = (2 * math.pi - math.pi) % (2 * math.pi)       -- facing south
+    mm.PlaceNorth()
+    check(np and math.abs(np[1]) < 1 and np[2] < -10, "and turns with you: facing south it's at the bottom")
+    env.MinimapCompassTexture = nil
+    np = nil
+    mm.PlaceNorth()
+    check(np and math.abs(np[1]) < 1 and np[2] > 10, "with no ring to read, it sits on top")
+    env.GetPlayerFacing = function() return math.pi / 2 end
     cvars.rotateMinimap = "0"
     mm.PlaceNorth()
     check(np and math.abs(np[1]) < 1 and np[2] > 10, "rotation off: north is back on top")
