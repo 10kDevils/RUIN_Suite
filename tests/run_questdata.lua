@@ -41,6 +41,19 @@ do
     -- a zone's quests for this character
     local zones = QB.Zones()
     check(#zones > 20, "zone routes for the world (" .. #zones .. " parts)")
+    -- the dungeon set upgrade chain (Mux in Gadgetzan, Deliana, Mokvar, Anthion, Bodley) is endgame
+    local upgrade = 0
+    for _, z in ipairs(zones) do
+        for _, q in ipairs(z.quests) do if QB.IsSetUpgradeQuest(q) or q == 8921 or q == 8977 then upgrade = upgrade + 1 end end
+    end
+    check(upgrade == 0, "no zone route has the dungeon set upgrade chain (" .. upgrade .. ")")
+    -- a route's walked-past reminder only for a quest you could take now
+    local lvl = env.UnitLevel
+    env.UnitLevel = function() return 50 end
+    check(pf.CanTakeNow(8925) == false, "at level 50, Mux's level-58 quest isn't one to be reminded of")
+    env.UnitLevel = function() return 60 end
+    check(#QB.Prereqs(783) == 0 and pf.CanTakeNow(783) == true and (#QB.Prereqs(7) == 0 or not pf.CanTakeNow(7)), "a quest you can take is; one waiting on an earlier quest isn't")
+    env.UnitLevel = lvl
     -- quests of the real data that share a target end up in one stop
     local groups = 0
     local zq = zones[1] and zones[1].quests or {}
