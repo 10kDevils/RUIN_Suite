@@ -639,6 +639,46 @@ do
     local own = 0
     for _, r in ipairs(rows) do if r.own then own = own + 1 end end
     check(own == 2, "the Roster tab lists online and offline members")
+    -- promoting, demoting and removing are protected in the game: secure
+    -- buttons over RUIN's run its own /gpromote, /gdemote and /gremove
+    do
+        local GUI, ro = alice.ns.GuildUI, alice.ns.GuildUI.roster
+        local g
+        for _, r in ipairs(rows) do if r.own and r.name:find("Grimlock", 1, true) then g = r end end
+        ro.sel = g and GUI.RosterKey(g)
+        GUI.RefreshRoster()
+        local sp, sd, sr = ro.promote.secure, ro.demote.secure, ro.remove.secure
+        check(sp and sd and sr, "Promote, Demote and Remove have secure buttons over them")
+        check(sp and sp.macro == "/gpromote " .. g.name and sd.macro == "/gdemote " .. g.name, "aimed at the member picked: /gpromote and /gdemote")
+        check(sr and sr.macro == nil and ro.remove:GetText() == "Remove", "Remove isn't armed until you've asked")
+        ro.remove._scripts.OnClick(ro.remove, "LeftButton")
+        check(ro.remove:GetText() == "Confirm" and sr.macro == "/gremove " .. g.name, "the first click turns it to Confirm, aimed at them")
+        Server:Advance(6)
+        check(ro.remove:GetText() == "Remove" and sr.macro == nil, "and it lets go after five seconds")
+        ro.sel = nil
+        GUI.RefreshRoster()
+        check(sp.macro == nil, "with nobody picked, nothing is aimed")
+    end
+    -- how many characters a search shows
+    do
+        local GUI, ro = alice.ns.GuildUI, alice.ns.GuildUI.roster
+        ro.query = "grim"
+        GUI.RefreshRoster()
+        check(ro.count:GetText():find("1 shown", 1, true), "a Roster search says how many characters it shows (" .. ro.count:GetText() .. ")")
+        ro.query = ""
+        GUI.RefreshRoster()
+        check(not ro.count:GetText():find("shown", 1, true), "with no search or filter, just who's online")
+        local P = alice.ns.People
+        alice.ns.UI:SelectGuildTab("People")
+        P.ui.mode, P.ui.query = "By class", "warrior"
+        P:Refresh()
+        local t = P.ui.info:GetText() or ""
+        check(t:find('match "warrior"', 1, true) and t:find("%d+ characters? match"), "a People search says how many characters match (" .. t .. ")")
+        P.ui.mode, P.ui.query = "Hierarchy", ""
+        P:Refresh()
+        check((P.ui.info:GetText() or ""):find("%d+ characters? shown"), "and every view says how many it shows")
+        alice.ns.UI:SelectGuildTab("Roster")
+    end
 
     -- chat: your guild's lines and the org's, in the Chat tab and the pop-out
     alice.ns.Chat.history = {}
