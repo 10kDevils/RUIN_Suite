@@ -110,6 +110,9 @@ do
     ringRot = (2 * math.pi - math.pi) % (2 * math.pi)       -- facing south
     mm.PlaceNorth()
     check(np and math.abs(np[1]) < 1 and np[2] < -10, "and turns with you: facing south it's at the bottom")
+    local said = {}
+    local ok = pcall(mm.DebugNorth, function(t) said[#said + 1] = t end)
+    check(ok and #said >= 4 and table.concat(said, "\n"):find("Learned from the compass ring: way", 1, true), "/path minimap north reports what the N has to go on")
     env.MinimapCompassTexture = nil
     np = nil
     mm.PlaceNorth()
