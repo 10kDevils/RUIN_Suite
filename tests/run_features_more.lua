@@ -203,6 +203,28 @@ do
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame:IsShown() and pinFrame.title._text == "Your Place In The World" and pinFrame.dist._text:find("140 yd")
           and pinFrame.obj._text:find("Talk to Gornek"), "it shows the quest, the distance and its objectives")
+    do  -- top to bottom: the card, the distance right under it, then the marker, stem and dot
+        local at = {}
+        local function rec(f, name)
+            local real = f.SetPoint
+            f.SetPoint = function(self, a, rel, b, x, y) at[name] = { a, rel, b }; return real(self, a, rel, b, x, y) end
+            return real
+        end
+        local rt, rc = rec(pinFrame.tag, "tag"), rec(pinFrame.card, "card")
+        local UP = alice.env.UIParent
+        local rw, rh = UP.GetWidth, UP.GetHeight
+        UP.GetWidth, UP.GetHeight = function() return 1920 end, function() return 1080 end
+        local realCenter = navFrame.GetCenter
+        navFrame.GetCenter = function() return 960, 540 end        -- in the middle of a full-size screen
+        pf.pinDirty = true
+        drive._scripts.OnUpdate(drive, 0.3)
+        navFrame.GetCenter = realCenter
+        UP.GetWidth, UP.GetHeight = rw, rh
+        pinFrame.tag.SetPoint, pinFrame.card.SetPoint = rt, rc
+        local t, c = at.tag, at.card
+        check(t and t[1] == "BOTTOM" and t[2] == pinFrame and t[3] == "TOP" and c and c[1] == "BOTTOM" and c[2] == pinFrame.tag and c[3] == "TOP",
+            "the distance sits right under the card, above the marker and its stem")
+    end
     alice.navClamped = true
     drive._scripts.OnUpdate(drive, 0.1)
     check(pinFrame.arrow:IsShown(), "off screen it waits at the edge with an arrow")
