@@ -90,35 +90,46 @@ do
     deco.north.SetPoint = function(self, a, b, c, x, y) np = { x, y }; return realSP(self, a, b, c, x, y) end
     mm.PlaceNorth()
     check(np and np[1] > 10 and math.abs(np[2]) < 1, "facing west, north is on the map's right side")
-    -- in a dungeon the game keeps your facing from addons; the N follows the
-    -- game's own (faded) compass ring, read the way it was learned outside
-    local ringRot = 0
-    env.MinimapCompassTexture = { SetAlpha = function() end, GetAlpha = function() return 0 end,
-        GetRotation = function() return ringRot end, GetObjectType = function() return "Texture" end }
-    local facing = 0
-    env.GetPlayerFacing = function() return facing end
-    for i = 1, 40 do                          -- turning around outside: the ring turns the other way
-        facing = (i * 0.3) % (2 * math.pi)
-        ringRot = (2 * math.pi - facing + 0.0001) % (2 * math.pi)
-        mm.PlaceNorth()
-    end
-    facing = nil                              -- inside: no facing for addons
-    ringRot = (2 * math.pi - math.pi / 2) % (2 * math.pi)   -- facing west
-    np = nil
-    mm.PlaceNorth()
-    check(np and np[1] > 10 and math.abs(np[2]) < 1, "in a dungeon, facing west, the N is still on the right (it follows the compass ring)")
-    ringRot = (2 * math.pi - math.pi) % (2 * math.pi)       -- facing south
-    mm.PlaceNorth()
-    check(np and math.abs(np[1]) < 1 and np[2] < -10, "and turns with you: facing south it's at the bottom")
+    -- the N on the game's own compass ring: the game turns that ring with
+    -- you everywhere (dungeons too, where addons can't read your facing or
+    -- the ring's angle), so on a rotating map Pathfinder puts its badge on it
     local said = {}
     local ok = pcall(mm.DebugNorth, function(t) said[#said + 1] = t end)
-    check(ok and #said >= 4 and table.concat(said, "\n"):find("Learned from the compass ring: way", 1, true), "/path minimap north reports what the N has to go on")
-    env.MinimapCompassTexture = nil
+    check(ok and #said >= 4, "/path minimap north reports what the N has to go on")
+    local rec = { tex = "Interface\\Minimap\\CompassRing", w = 200, h = 200, alpha = 0, points = {} }
+    local origParent = {}
+    rec.parent = origParent
+    local ring = {
+        SetTexture = function(_, t) rec.tex = t end, GetTexture = function() return rec.tex end,
+        GetAtlas = function() return nil end, SetAtlas = function(_, a) rec.tex = a end,
+        SetParent = function(_, p) rec.parent = p end, GetParent = function() return rec.parent end,
+        SetDrawLayer = function(_, l, sub) rec.layer = l end, GetDrawLayer = function() return rec.layer or "ARTWORK", 0 end,
+        ClearAllPoints = function() rec.points = {} end, SetPoint = function(_, ...) rec.points[#rec.points + 1] = { ... } end,
+        GetNumPoints = function() return #rec.points end, GetPoint = function(_, i) return unpack(rec.points[i]) end,
+        SetSize = function(_, w, h) rec.w, rec.h = w, h end, GetWidth = function() return rec.w end, GetHeight = function() return rec.h end,
+        SetVertexColor = function(_, r, g, b) rec.color = { r, g, b } end, SetAlpha = function(_, a) rec.alpha = a end,
+        GetAlpha = function() return rec.alpha end, GetObjectType = function() return "Texture" end,
+        GetRotation = function() error("Function call not permitted due to forbidden aspect 'QueryRotation'") end,
+    }
+    env.MinimapCompassTexture = ring
+    env.GetPlayerFacing = function() return nil end      -- inside: no facing for addons
     np = nil
     mm.PlaceNorth()
-    check(np and math.abs(np[1]) < 1 and np[2] > 10, "with no ring to read, it sits on top")
+    local mw = env.Minimap:GetWidth()
+    check(mm.CompassAdopted() and rec.tex:find("NorthCompass", 1, true) and rec.alpha == 1, "on a rotating map the N badge goes on the game's compass ring, shown")
+    check(rec.points[1] and rec.points[1][1] == "CENTER" and rec.points[1][2] == env.Minimap and math.abs(rec.w - (mw / 2 + 12) * 2) < 0.01,
+        "centred on the map, with the badge just outside its edge")
+    check(rec.parent == deco and not deco.north:IsShown() and not deco.n:IsShown(), "above Pathfinder's ring, in place of its own N")
+    check(np == nil, "which isn't placed by hand: the game turns the ring, in dungeons too")
+    rec.w = 50                                             -- the game moved it
+    mm.PlaceNorth()
+    check(math.abs(rec.w - (mw / 2 + 12) * 2) < 0.01, "and if the game moves it, it goes back round the map")
     env.GetPlayerFacing = function() return math.pi / 2 end
     cvars.rotateMinimap = "0"
+    mm.PlaceNorth()
+    check(not mm.CompassAdopted() and rec.tex == "Interface\\Minimap\\CompassRing" and rec.parent == origParent and rec.w == 200 and deco.north:IsShown(),
+        "rotation off: the game's ring is given back as it was, and Pathfinder's N is back")
+    env.MinimapCompassTexture = nil
     mm.PlaceNorth()
     check(np and math.abs(np[1]) < 1 and np[2] > 10, "rotation off: north is back on top")
     env.GetCVar = realCVar
