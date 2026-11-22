@@ -581,6 +581,21 @@ do
     send(olga, "GCHAT", { a = "Olga Oak", g = G.olga, gu = "Ashen Order", t = "after he left", c = "MAGE" }, "ORG")
     Server:Advance(3)
     check(#malHeard == 0 and chatHas(cara, "after he left"), "and can't read org traffic any more")
+    -- more leavers soon after wait: one new key every six hours at most, the
+    -- count kept across a logout
+    do
+        local Org = alice.ns.Org
+        local before = key(alice).dkr
+        Org:NoteDepartures(2)
+        Server:Advance(600)
+        check(key(alice).dkr == before and alice.ns.db.orgDeparted == 2, "more leavers within six hours wait, counted, for the next new key")
+        Org:NoteDepartures(1)
+        Server:Advance(3600)
+        check(key(alice).dkr == before and alice.ns.db.orgDeparted == 3, "and go together")
+        Server:Advance(6 * 3600)
+        check(key(alice).dkr == before + 1 and alice.ns.db.orgDeparted == 0 and chatHas(alice, "3 players left an org guild"), "six hours on, one new key covers them all")
+        check(alice.ns.db.orgLastRotate and alice.ns.db.orgLastRotate > 0, "and when it changed is kept, so a reload doesn't bring the next one sooner")
+    end
 
     -- RUIN older than the minimum: a prompt, and no connection
     local oldie = Server:NewClient({ name = "Nell Newbie", guid = "Player-1-00000012", guild = "Briar Fang", rank = 4, modules = MODULES, version = "0.7.1" })
