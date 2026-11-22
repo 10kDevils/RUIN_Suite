@@ -116,7 +116,7 @@ do
     np = nil
     mm.PlaceNorth()
     local mw = env.Minimap:GetWidth()
-    check(mm.CompassAdopted() and rec.tex:find("NorthCompass", 1, true) and rec.alpha == 1, "on a rotating map the N badge goes on the game's compass ring, shown")
+    check(mm.CompassAdopted() and rec.tex:find("NorthCompass", 1, true) and rec.alpha == 1, "in a dungeon, on a rotating map, the badge goes on the game's compass ring, shown")
     check(rec.points[1] and rec.points[1][1] == "CENTER" and rec.points[1][2] == env.Minimap and math.abs(rec.w - (mw / 2 + 12) * 2) < 0.01,
         "centred on the map, with the badge just outside its edge")
     check(rec.parent == deco and not deco.north:IsShown() and not deco.n:IsShown(), "above Pathfinder's ring, in place of its own N")
@@ -124,6 +124,14 @@ do
     rec.w = 50                                             -- the game moved it
     mm.PlaceNorth()
     check(math.abs(rec.w - (mw / 2 + 12) * 2) < 0.01, "and if the game moves it, it goes back round the map")
+    -- back outside (facing known): Pathfinder's own N, upright, placed by your facing
+    env.GetPlayerFacing = function() return math.pi / 2 end
+    np = nil
+    mm.PlaceNorth()
+    check(not mm.CompassAdopted() and deco.north:IsShown() and np and np[1] > 10, "outside, where your facing is known, Pathfinder's own upright N is placed by it")
+    env.GetPlayerFacing = function() return nil end
+    mm.PlaceNorth()
+    check(mm.CompassAdopted(), "and back in a dungeon the ring carries it again")
     env.GetPlayerFacing = function() return math.pi / 2 end
     cvars.rotateMinimap = "0"
     mm.PlaceNorth()
