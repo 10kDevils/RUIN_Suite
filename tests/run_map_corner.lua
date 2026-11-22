@@ -105,6 +105,43 @@ do
         check(find(Map.cornerPins, "3 RUIN members"), "on Blizzard's own map it's back in the corner")
     end
 
+    -- on the map's window (above the zooming canvas): a fixed size on screen
+    -- however the canvas is zoomed or swapped, placed at its canvas spot
+    do
+        local env = alice.env
+        local wmf = env.WorldMapFrame
+        local view = env.CreateFrame("Frame", nil, wmf)
+        view.GetEffectiveScale = function() return 1 end
+        view.GetLeft, view.GetRight, view.GetTop, view.GetBottom = function() return 0 end, function() return 1000 end, function() return 700 end, function() return 0 end
+        wmf.ScrollContainer = view
+        wmf.GetEffectiveScale = function() return 1 end
+        local canvas = alice.worldCanvas
+        local scale = 2
+        canvas.GetEffectiveScale = function() return scale end
+        R.Map:SetPin("Test", "quest", { map = 1411, x = 0.5, y = 0.5, title = "Quest mark", plain = true, shadow = true, icon = B.MARK })
+        draw(1411)
+        local q = find(Map.worldPins, "Quest mark")
+        local pt = q and points[q]
+        check(q and q.onView, "a mark sits on the map's window, not the canvas that zooms")
+        check(q and math.abs(q:GetWidth() - 24) < 0.01 and pt and pt[2] == canvas and math.abs(pt[4] - 0.5 * 1000 * 2) < 0.01,
+            "24 across on screen, at its spot on the canvas (in window units: " .. tostring(pt and pt[4]) .. ")")
+        scale = 6                                   -- OpenMap zooms in a long way
+        Map.scaleWatch:GetScript("OnUpdate")(Map.scaleWatch, 0.016)
+        pt = points[q]
+        check(math.abs(q:GetWidth() - 24) < 0.01 and math.abs(pt[4] - 0.5 * 1000 * 6) < 0.01, "zoomed in, the same size on screen, moved with its spot")
+        -- out of the window: hidden (the window doesn't clip its children)
+        q.GetCenter = function() return 3000, 300 end
+        Map.CullWorldPins()
+        check(q:GetAlpha() == 0, "a mark panned out of the window is hidden")
+        q.GetCenter = function() return 500, 300 end
+        Map.CullWorldPins()
+        check(q:GetAlpha() == 1, "and shows again in it")
+        q.GetCenter = nil
+        R.Map:RemovePin("Test", "quest")
+        wmf.ScrollContainer, wmf.GetEffectiveScale, canvas.GetEffectiveScale = nil, nil, nil
+        draw(1411)
+    end
+
     -- marks you can clear: right-click one, or /ruin clearmap for all; the
     -- shadow stays in step with the pin however small it is on the canvas
     do
