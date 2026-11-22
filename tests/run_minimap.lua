@@ -122,6 +122,7 @@ do
     check(rec.parent == deco and not deco.north:IsShown() and not deco.n:IsShown(), "above Pathfinder's ring, in place of its own N")
     check(np == nil, "which isn't placed by hand: the game turns the ring, in dungeons too")
     rec.w = 50                                             -- the game moved it
+    Server:Advance(4)
     mm.PlaceNorth()
     check(math.abs(rec.w - (mw / 2 + 12) * 2) < 0.01, "and if the game moves it, it goes back round the map")
     -- back outside (facing known): Pathfinder's own N, upright, placed by your facing
@@ -137,6 +138,22 @@ do
     mm.PlaceNorth()
     check(not mm.CompassAdopted() and rec.tex == "Interface\\Minimap\\CompassRing" and rec.parent == origParent and rec.w == 200 and deco.north:IsShown(),
         "rotation off: the game's ring is given back as it was, and Pathfinder's N is back")
+    -- in a dungeon the game refuses reading the ring (and might refuse more):
+    -- never an error, and after a refusal the ring is left alone
+    local GetWidthReal = ring.GetWidth
+    ring.GetWidth = function() error("forbidden aspect") end
+    ring.GetParent = function() error("forbidden aspect") end
+    env.GetPlayerFacing = function() return nil end
+    cvars.rotateMinimap = "1"
+    local okRead = pcall(function() for _ = 1, 5 do mm.PlaceNorth() end end)
+    check(okRead and mm.CompassAdopted(), "reading the ring refused (as in dungeons): no errors, and the ring still carries the badge")
+    ring.SetParent = function() error("forbidden") end
+    mm.ReleaseCompass()
+    local okSet = pcall(function() for _ = 1, 30 do mm.PlaceNorth() end end)
+    check(okSet and not mm.CompassAdopted() and deco.north:IsShown(), "anything else refused: no errors, the ring is left alone, and the N sits on top")
+    ring.GetWidth = GetWidthReal
+    cvars.rotateMinimap = "0"
+    env.GetPlayerFacing = function() return math.pi / 2 end
     env.MinimapCompassTexture = nil
     mm.PlaceNorth()
     check(np and math.abs(np[1]) < 1 and np[2] > 10, "rotation off: north is back on top")
