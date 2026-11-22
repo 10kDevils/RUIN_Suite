@@ -211,3 +211,38 @@ do
     xdb.overtime = was
     errorsSoFar("working overtime")
 end
+
+print("Codex 0.8.3: Best in Slot remembers its work")
+do
+    local env = alice.env
+    local G = alice.mns.RUIN_Codex.Gear
+    G.Forget()
+    local calls = 0
+    local realWorn = env.GetInventoryItemLink
+    env.GetInventoryItemLink = function() return nil end      -- nothing worn: what's worn is judged fresh each time
+    local realInfo = env.GetItemInfo
+    env.GetItemInfo = function(...) calls = calls + 1; return realInfo(...) end
+    local function run()
+        local done = false
+        G.state.running = false
+        G.Compute(function() done = true end)
+        for _ = 1, 400 do if done then break end; Server:Advance(0.05) end
+        return done
+    end
+    calls = 0
+    local ok1 = run()
+    local first = calls
+    local loading = G.state.waiting or 0
+    calls = 0
+    local ok2 = run()
+    local second = calls
+    check(ok1 and ok2 and first > 0, "Best in Slot works through the candidates (" .. first .. " looked at)")
+    check(second == loading and loading < first, "a second pass looks again only at items still loading (" .. second .. " of " .. first .. ", " .. loading .. " loading)")
+    G.Forget()
+    calls = 0
+    run()
+    check(calls > second and calls >= first - loading, "a change of gear, level or spec looks at everything again (" .. calls .. ")")
+    env.GetItemInfo = realInfo
+    env.GetInventoryItemLink = realWorn
+    errorsSoFar("best in slot caching")
+end
