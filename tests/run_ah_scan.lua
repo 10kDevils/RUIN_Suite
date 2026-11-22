@@ -2,7 +2,7 @@
 -- (C_AuctionHouse.ReplicateItems, one per 15 minutes, started by itself
 -- when the auction house opens) and from clicking into an item, not only
 -- from the browse list.
-local alice, cara, check, errorsSoFar = T.alice, T.cara, T.check, T.errorsSoFar
+local alice, cara, check, errorsSoFar, chatHas = T.alice, T.cara, T.check, T.errorsSoFar, T.chatHas
 local Server = Server
 
 print("Auction house full scan")
@@ -108,6 +108,44 @@ do
         Server.fire(cara, "AUCTION_HOUSE_CLOSED")
         Server:Advance(30)
         cara.bag = {}
+    end
+
+    -- Exchange 0.8.5: a button on the auction house scans the whole of it and
+    -- shares every price with the org right away
+    do
+        local X = env.RUIN_API:GetModule("Exchange")
+        env.AuctionHouseFrame = env.CreateFrame("Frame", "AuctionHouseFrame", env.UIParent)
+        listings = {}
+        for k = 1, 130 do listings[k] = { 1, 1000 + k, 60000 + k } end
+        db.lastFullScan = nil
+        db.autoScan = false                     -- the button does it here, not the automatic scan
+        Server.fire(cara, "AUCTION_HOUSE_SHOW")
+        Server:Advance(2)
+        local b = X.scanButton
+        check(b and b:GetText() == "Scan & Share", "the auction house has a Scan & Share button")
+        local before = replicated
+        b:GetScript("OnClick")(b, "LeftButton")
+        check(replicated == before + 1 and X.ScanState() == "scanning", "clicking it starts a full scan")
+        Server.fire(cara, "REPLICATE_ITEM_LIST_UPDATE")
+        Server:Advance(1)
+        check(chatHas(cara, "Sharing 130 prices with the org"), "when it's done, every price goes to the org")
+        Server:Advance(20)
+        local a = alice.env.RUIN_ExchangeDB.prices
+        check(a[60001] and a[60001].p == 1001 and a[60130] and a[60130].p == 1130, "and arrives for org members (all 130, in batches)")
+        X.UpdateScanButton()
+        check(X.ScanState() == "wait" and b:GetText():find("Next scan", 1, true), "then it waits for the game's 15 minutes")
+        -- the automatic scan on opening counts: the button shares it
+        db.sharedScan = nil
+        X.UpdateScanButton()
+        check(X.ScanState() == "share" and b:GetText() == "Share Prices", "a scan not yet shared can be shared with the button")
+        local sent = Server.sent
+        b:GetScript("OnClick")(b, "LeftButton")
+        Server:Advance(20)
+        check(Server.sent > sent and X.ScanState() == "wait", "which shares it")
+        Server.fire(cara, "AUCTION_HOUSE_CLOSED")
+        Server:Advance(5)
+        db.autoScan = nil
+        env.AuctionHouseFrame = nil
     end
 
     env.SlashCmdList.RUINEXCHANGE("autoscan")
