@@ -153,22 +153,13 @@ try("0.4.3 samples", function()
     alice.ns.db.bank = { ["Ashen Order"] = { t = now - 3 * 3600, by = "Grimlock", money = 48213377, tabs = {
         { n = "Raid mats", i = { { 2589, 120 }, { 3300, 4 } } }, { n = "Gear", i = { { 100, 1 }, { 5191, 2 } } } } } }
     Server:Advance(5)
-    -- Finder: layers and timers
-    local L = alice.mns.RUIN_Finder.Layers
+    -- Finder: a member asks to join Alice
     alice.env.GetRealZoneText = function() return "Stormwind City" end
-    alice.env.UnitExists = function(u) return u:find("nameplate") ~= nil end
-    alice.env.UnitIsPlayer = function(u) return not u:find("nameplate") end
-    alice.env.UnitPlayerControlled = function() return false end
-    local realGUID = alice.env.UnitGUID
-    alice.env.UnitGUID = function(u) if u == "nameplate1" then return "Creature-0-1-1-38117-68-1" elseif u == "nameplate2" then return "Creature-0-1-1-38117-1976-2" end return realGUID(u) end
-    L.Observe("nameplate1"); L.Observe("nameplate2")
-    alice.env.UnitGUID = realGUID
-    alice.env.UnitExists = function(u) return u == "target" and alice.target ~= nil end
-    alice.env.UnitIsPlayer = function() return true end
-    local F = alice.env.RUIN_API:GetModule("Finder")
-    F:Send("LAYER", { z = "Stormwind City", l = 41205 }, "ORG")
-    cara.env.RUIN_API:GetModule("Finder"):Send("LAYER", { z = "Stormwind City", l = 41205 }, "ORG")
-    eve.env.RUIN_API:GetModule("Finder"):Send("LAYER", { z = "Orgrimmar", l = 7710 }, "ORG")
+    cara.env.GetRealZoneText = function() return "Stormwind City" end
+    for _, c in ipairs({ alice, cara }) do Server.fire(c, "ZONE_CHANGED_NEW_AREA") end
+    Server:Advance(90)
+    cara.env.IsInGroup = function() return false end
+    cara.mns.RUIN_Finder.Join.Ask("Alice Ash")
     Server:Advance(5)
     -- Muster: Most Wanted, War Room, loot
     local MW = alice.mns.RUIN_Muster.Wanted

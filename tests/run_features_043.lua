@@ -209,45 +209,39 @@ do
 end
 
 ---------------------------------------------------------------------------
-print("Finder 0.4.1: layers, hops, where, marks")
+print("Finder: joining a member, hops, where, marks")
 do
-    local AL, CL = alice.mns.RUIN_Finder.Layers, cara.mns.RUIN_Finder.Layers
-    local zone, npc = AL.Parse("Creature-0-4372-1-1234-3100-0000123456")
-    check(zone == 1234 and npc == 3100, "a creature's ID gives its layer")
-    check(AL.Parse("Player-1-00000001") == nil and AL.Parse("Pet-0-1-1-55-3100-1") == nil, "players and pets don't count")
-    local function creatures(c, guids)
-        c.env.UnitExists = function(u) return guids[u] ~= nil or (u == "target" and c.target ~= nil) end
-        c.env.UnitIsPlayer = function(u) return guids[u] == nil end
-        c.env.UnitPlayerControlled = function() return false end
-        local real = c.env.UnitGUID
-        c.env.UnitGUID = function(u) return guids[u] or c.guid end
-        return function() c.env.UnitGUID = real; c.env.UnitExists = function(u) return u == "target" and c.target ~= nil end; c.env.UnitIsPlayer = function() return true end end
-    end
+    -- the game no longer tells addons which layer is which: joining a member's group is how you move
+    local AJ, CJ = alice.mns.RUIN_Finder.Join, cara.mns.RUIN_Finder.Join
+    check(alice.mns.RUIN_Finder.Layers == nil, "no layer reading any more")
     alice.env.GetRealZoneText = function() return "Durotar" end
     cara.env.GetRealZoneText = function() return "Durotar" end
-    local undoA = creatures(alice, { nameplate1 = "Creature-0-1-1-111-3100-1", nameplate2 = "Creature-0-1-1-111-3101-2" })
-    AL.Observe("nameplate1")
-    check(AL.Mine() == nil, "one creature isn't enough")
-    AL.Observe("nameplate2")
-    check(AL.Mine() == 111, "two creatures agree: Alice is on layer 111")
-    local undoC = creatures(cara, { nameplate1 = "Creature-0-1-1-222-3100-1", nameplate2 = "Creature-0-1-1-222-3102-3" })
-    CL.Observe("nameplate1"); CL.Observe("nameplate2")
-    check(CL.Mine() == 222, "Cara is on layer 222")
-    Server:Advance(40)
-    local tbl = CL.Table()
-    check(tbl[1] and tbl[1].zone == "Durotar" and #tbl[1].layers == 2, "members share their layer: Durotar has two")
-    -- a stray creature from another layer doesn't move you
-    undoA()
-    undoA = creatures(alice, { nameplate3 = "Creature-0-1-1-999-3100-1" })
-    AL.Observe("nameplate3")
-    check(AL.Mine() == 111, "one stray creature doesn't change your layer")
-    -- hop: Cara asks, Alice invites, Cara accepts that invite
+    eve.env.GetRealZoneText = function() return "Orgrimmar" end
+    -- the guild roster tells guildmates where you are too
+    local function rosterZone(name, zone)
+        for _, g in pairs(Server.guilds) do
+            for _, m in ipairs(g) do if m.name == name then m.oldZone = m.oldZone or m.zone or false; m.zone = zone end end
+        end
+    end
+    rosterZone("Alice Ash", "Durotar"); rosterZone("Cara Cole", "Durotar"); rosterZone("Eve Ember", "Orgrimmar")
+    for _, c in ipairs({ alice, cara, eve }) do fire(c, "ZONE_CHANGED_NEW_AREA"); fire(c, "GUILD_ROSTER_UPDATE") end
+    Server:Advance(120)
+    local saved = { alice.env.IsInGroup, cara.env.IsInGroup, alice.env.C_PartyInfo, cara.env.AcceptGroup,
+                    alice.env.GetRealZoneText, cara.env.GetRealZoneText, eve.env.GetRealZoneText, cara.env.C_PartyInfo, cara.env.LeaveParty }
+    -- Leave group here must not break up the party later tests use
+    cara.env.C_PartyInfo = { LeaveParty = function() end }
+    cara.env.LeaveParty = function() end
     cara.env.IsInGroup = function() return false end
-    local ok = CL.AskHop()
+    alice.env.IsInGroup = function() return false end
+    check(CJ.CanAsk("Eve Ember") ~= nil, "a member in another zone can't be joined")
+    check(CJ.CanAsk("Alice Ash") == nil, "a member in your zone can")
+    -- join: Cara asks Alice, Alice invites, Cara accepts that invite only
+    local ok, err = CJ.Ask("Alice Ash")
     Server:Advance(5)
-    check(ok and chatHas(alice, "asks for a hop"), "a hop request reaches members on another layer")
+    check(ok and chatHas(alice, "asks to join you"), "the request reaches the member asked (" .. tostring(err) .. ")")
+    check(AJ.Offers()[1] and AJ.Offers()[1].name == "Cara Cole", "Alice sees Cara's request")
     alice.env.C_PartyInfo = { InviteUnit = function(n) alice.invited = n end }
-    AL.Help("Cara Cole")
+    AJ.Help("Cara Cole")
     Server:Advance(5)
     check(alice.invited == "Cara Cole", "Alice invites Cara")
     local accepted = false
@@ -255,8 +249,36 @@ do
     fire(cara, "PARTY_INVITE_REQUEST", "Eve Ember")
     check(not accepted, "an invite from someone else isn't accepted")
     fire(cara, "PARTY_INVITE_REQUEST", "Alice Ash")
-    check(accepted, "the helper's invite is accepted by itself")
-    undoA(); undoC()
+    check(accepted, "the asked member's invite is accepted by itself")
+    CJ.Leave()
+    -- hop: anyone in the zone; members elsewhere don't hear it
+    alice.invited = nil
+    local before = #(eve.chat or {})
+    ok = CJ.AskAny()
+    Server:Advance(5)
+    check(ok and chatHas(alice, "asks to join you"), "a hop request reaches members in the zone")
+    check(#(eve.chat or {}) == before or not chatHas(eve, "Cara Cole asks to join"), "members in other zones don't get it")
+    AJ.Help("Cara Cole")
+    Server:Advance(5)
+    accepted = false
+    fire(cara, "PARTY_INVITE_REQUEST", "Alice Ash")
+    check(accepted, "the member who took the hop is accepted")
+    CJ.Leave()
+    -- automatic invites
+    alice.env.RUIN_FinderCharDB.autoHop = true
+    alice.invited = nil
+    CJ.Ask("Alice Ash")
+    Server:Advance(5)
+    check(alice.invited == "Cara Cole", "with automatic invites on, Alice invites by herself")
+    alice.env.RUIN_FinderCharDB.autoHop = false
+    CJ.Leave()
+    alice.env.IsInGroup, cara.env.IsInGroup, alice.env.C_PartyInfo, cara.env.AcceptGroup = saved[1], saved[2], saved[3], saved[4]
+    alice.env.GetRealZoneText, cara.env.GetRealZoneText, eve.env.GetRealZoneText = saved[5], saved[6], saved[7]
+    cara.env.C_PartyInfo, cara.env.LeaveParty = saved[8], saved[9]
+    for _, g in pairs(Server.guilds) do
+        for _, m in ipairs(g) do if m.oldZone ~= nil then m.zone = m.oldZone or nil; m.oldZone = nil end end
+    end
+    for _, c in ipairs({ alice, cara, eve }) do fire(c, "ZONE_CHANGED_NEW_AREA"); fire(c, "GUILD_ROSTER_UPDATE") end
 
     -- where: members by zone
     local where = alice.env.RUIN_API:GetWhere()

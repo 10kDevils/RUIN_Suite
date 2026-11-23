@@ -146,6 +146,7 @@ do
     -- shadow stays in step with the pin however small it is on the canvas
     do
         local cleared = 0
+        R.Map:ClearMarks()      -- start clean: an active route's step mark is clearable too
         R.Map:SetPin("Test", "m1", { map = 1411, x = 0.3, y = 0.3, title = "Mark 1", plain = true, shadow = true, icon = B.MARK,
             clearable = true, onClear = function() cleared = cleared + 1 end })
         R.Map:SetPin("Test", "m2", { map = 1411, x = 0.6, y = 0.6, title = "Mark 2", clearable = true })
