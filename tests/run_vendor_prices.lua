@@ -99,7 +99,7 @@ do
     bump()
     local L = X.PriceLines("item:301")
     local de, deBest = row(L, "Disenchant:")
-    check(de and de:find("^Disenchant: ~") and deBest and row(L, "into Lesser Astral Essence"), "Disenchant is best when the mats beat the AH and the vendor (" .. tostring(de) .. ")")
+    check(de and de:find("^Disenchant: ~") and deBest and de:find("· Lesser Astral Essence", 1, true), "Disenchant is best when the mats beat the AH and the vendor (" .. tostring(de) .. ")")
     db.prices[10998].p, db.prices[10940].p, db.prices[10978].p = 10, 10, 10
     bump()
     L = X.PriceLines("item:301")
@@ -120,7 +120,7 @@ do
     bump()
     L = X.PriceLines("item:302")
     de, deBest = row(L, "Disenchant:")
-    check(de == "Disenchant: ~15s" and deBest and row(L, "into Small Glimmering Shard"), "and a cheap one is disenchanted (" .. tostring(de) .. ")")
+    check(de == "Disenchant: ~15s  · Small Glimmering Shard" and deBest, "and a cheap one is disenchanted (" .. tostring(de) .. ")")
 
     -- craft: a reagent that makes something worth more than the reagents
     alice.items[6888] = { name = "Herb Baked Egg", link = "|cffffffff|Hitem:6888::|h[Herb Baked Egg]|h|r", q = 1, sell = 6 }
@@ -144,14 +144,14 @@ do
     db.prices[6888].p = 5000
     bump()
     L = plainLines(X.PriceLines("item:6889", 1, true))
-    check(L[2] == "Binds to you: can't go on the auction house" and row(X.PriceLines("item:6889", 1, true), "Craft:"), "a soulbound reagent still says Craft, never the AH (" .. tostring(L[2]) .. ")")
+    check(L[2] == "Soulbound: can't be auctioned" and row(X.PriceLines("item:6889", 1, true), "Craft:"), "a soulbound reagent still says Craft, never the AH (" .. tostring(L[2]) .. ")")
     for _, l in ipairs(L) do check(not l:find("AH:"), "no AH line for a soulbound item (" .. l .. ")") end
     db.crafters[guid] = nil
     db.prices[302].p = 999999
     bump()
     L = X.PriceLines("item:302", 1, true)
     de, deBest = row(L, "Disenchant:")
-    check(de == "Disenchant: ~15s" and deBest and row(L, "Vendor:") and not row(L, "AH:"), "a pricey soulbound blue is disenchanted, not sold on the AH, with the vendor price beside (" .. tostring(de) .. ")")
+    check(de == "Disenchant: ~15s  · Small Glimmering Shard" and deBest and row(L, "Vendor:") and not row(L, "AH:"), "a pricey soulbound blue is disenchanted, not sold on the AH, with the vendor price beside (" .. tostring(de) .. ")")
     db.prices[10978].p = 10
     bump()
     v, vBest = row(X.PriceLines("item:302", 1, true), "Vendor:")

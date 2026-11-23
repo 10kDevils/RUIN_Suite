@@ -110,42 +110,70 @@ do
         cara.bag = {}
     end
 
-    -- Exchange 0.8.5: a button on the auction house scans the whole of it and
-    -- shares every price with the org right away
+    -- Exchange 0.8.5: scanning the whole time the auction house is open,
+    -- item by item: the reagents of your crafts, then gear you can use, then
+    -- everything else; paced, only on the browse list, never over your searches
     do
         local X = env.RUIN_API:GetModule("Exchange")
+        local AH = env.C_AuctionHouse
+        local sent, ready = {}, true
+        rawset(AH, "MakeItemKey", function(id) return { itemID = id } end)
+        rawset(AH, "SendSearchQuery", function(key) sent[#sent + 1] = key.itemID end)
+        rawset(AH, "IsThrottledMessageSystemReady", function() return ready end)
+        rawset(AH, "SendBrowseQuery", function() end)
+        local mode = 1
+        env.AuctionHouseFrameDisplayMode = { Buy = 1, ItemBuy = 2 }
         env.AuctionHouseFrame = env.CreateFrame("Frame", "AuctionHouseFrame", env.UIParent)
-        listings = {}
-        for k = 1, 130 do listings[k] = { 1, 1000 + k, 60000 + k } end
-        db.lastFullScan = nil
-        db.autoScan = false                     -- the button does it here, not the automatic scan
+        env.AuctionHouseFrame.GetDisplayMode = function() return mode end
+        env.AuctionHouseFrame:Show()
+        check(X.scanButton == nil and X.ShareScan == nil, "no Scan & Share button any more")
+        -- what to look for, in order
+        db.recipeBook = { Tailoring = { ["Bolt of Linen Cloth"] = { { 2589, 2 } } } }
+        db.prices[2589] = { p = 2000, t = 0, by = "Somebody" }       -- an old price: looked at again
+        db.prices[8000] = { p = 500, t = 0, by = "Somebody" }
+        db.prices[9001] = { p = 900, t = 0, by = "Somebody" }
+        local realEquip = env.IsEquippableItem
+        env.IsEquippableItem = function(id) return id == 9001 end
+        local list, tiers = X.BuildScanQueue()
+        check(list[1] == 2589 and tiers[1] >= 1, "your crafts' reagents first")
+        local pos9001, pos8000
+        for k, id in ipairs(list) do if id == 9001 then pos9001 = k elseif id == 8000 then pos8000 = k end end
+        check(pos9001 and pos8000 and pos9001 < pos8000 and tiers[2] >= 1, "then gear you can use, then everything else")
+        -- paced, and only while it's allowed
+        db.lastFullScan = env.GetServerTime()                        -- no full scan for now
         Server.fire(cara, "AUCTION_HOUSE_SHOW")
-        Server:Advance(2)
-        local b = X.scanButton
-        check(b and b:GetText() == "Scan & Share", "the auction house has a Scan & Share button")
-        local before = replicated
-        b:GetScript("OnClick")(b, "LeftButton")
-        check(replicated == before + 1 and X.ScanState() == "scanning", "clicking it starts a full scan")
-        Server.fire(cara, "REPLICATE_ITEM_LIST_UPDATE")
-        Server:Advance(1)
-        check(chatHas(cara, "Sharing 130 prices with the org"), "when it's done, every price goes to the org")
-        Server:Advance(20)
-        local a = alice.env.RUIN_ExchangeDB.prices
-        check(a[60001] and a[60001].p == 1001 and a[60130] and a[60130].p == 1130, "and arrives for org members (all 130, in batches)")
-        X.UpdateScanButton()
-        check(X.ScanState() == "wait" and b:GetText():find("Next scan", 1, true), "then it waits for the game's 15 minutes")
-        -- the automatic scan on opening counts: the button shares it
-        db.sharedScan = nil
-        X.UpdateScanButton()
-        check(X.ScanState() == "share" and b:GetText() == "Share Prices", "a scan not yet shared can be shared with the button")
-        local sent = Server.sent
-        b:GetScript("OnClick")(b, "LeftButton")
-        Server:Advance(20)
-        check(Server.sent > sent and X.ScanState() == "wait", "which shares it")
-        Server.fire(cara, "AUCTION_HOUSE_CLOSED")
+        Server:Advance(1.2)
+        sent = {}
+        Server:Advance(10)
+        check(#sent >= 5 and #sent <= 8 and sent[1] == 2589, "it searches item by item, about one every 1.5 seconds, reagents first (" .. #sent .. " in 10 s)")
+        mode = 2
+        local n = #sent
         Server:Advance(5)
-        db.autoScan = nil
+        check(#sent == n, "not while you're looking at an item (only on the browse list)")
+        mode = 1
+        AH.SendBrowseQuery({})
+        n = #sent
+        Server:Advance(4)
+        check(#sent == n, "a search of yours pauses it")
+        Server:Advance(5)
+        check(#sent > n, "and it carries on after")
+        ready = false
+        n = #sent
+        Server:Advance(5)
+        check(#sent == n, "it waits for the game's query throttle")
+        ready = true
+        -- what it reads goes to the org, every minute, no cap
+        local before = Server.sent
+        Server.fire(cara, "COMMODITY_SEARCH_RESULTS_UPDATED", 2589)
+        Server:Advance(65)
+        check(Server.sent > before, "what it reads goes to the org every minute while it scans")
+        Server.fire(cara, "AUCTION_HOUSE_CLOSED")
+        n = #sent
+        Server:Advance(5)
+        check(#sent == n, "and it stops when you close the auction house")
+        env.IsEquippableItem = realEquip
         env.AuctionHouseFrame = nil
+        db.recipeBook = {}
     end
 
     env.SlashCmdList.RUINEXCHANGE("autoscan")
