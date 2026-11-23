@@ -54,8 +54,8 @@ do
     check(db.budgetToldAt == bs.step, "passing the stop step tells you once")
     Plan.CheckBudget()
     check(db.budgetToldAt == bs.step, "and only once")
-    check(Plan.BudgetLabel(0) == "Session: whole route" and Plan.BudgetLabel(90) == "Session: 1.5 h" and Plan.BudgetLabel(30) == "Session: 30 min",
-        "session labels read naturally")
+    check(Plan.BudgetLabel(0) == "Session" and Plan.BudgetLabel(90) == "1.5 h" and Plan.BudgetLabel(30) == "30 min"
+        and Plan.BudgetChoice(0) == "Whole route" and Plan.BudgetChoice(120) == "Play 2 h", "session labels read naturally")
     Plan.SetBudget(0)
     check(Plan.BudgetStop() == nil, "Whole route turns the budget off")
 

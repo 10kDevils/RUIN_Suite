@@ -177,7 +177,8 @@ def occluded(regions, idx, box):
         if a is None or a * r.get("a", 1) < 0.85:
             continue
         vis = clipped((r["x"], r["y"], r["w"], r["h"]), r.get("clip"))
-        if vis and vis[0] <= cx <= vis[0] + vis[2] and vis[1] <= cy <= vis[1] + vis[3] and vis[2] * vis[3] > box[2] * box[3]:
+        # covered when the panel hides most of the text (not just its middle point)
+        if vis and vis[2] * vis[3] > box[2] * box[3] and inter(vis, box) >= 0.5 * max(1, box[2] * box[3]):
             return True
     return False
 

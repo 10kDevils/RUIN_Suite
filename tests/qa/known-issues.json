@@ -2,5 +2,13 @@
  {
   "id": "L-e894654e",
   "reason": "Pop-out guild chat at 90% opacity lets the window behind show through; that is what the Opacity setting does."
+ },
+ {
+  "id": "L-5f15a8c3",
+  "reason": "The Waypoint Editor dialog opens over the route tracker; a dialog on top of the HUD is expected."
+ },
+ {
+  "id": "L-9e003477",
+  "reason": "The Waypoint Editor dialog opens over the route tracker (its - button over the tracker title); a dialog on top of the HUD is expected."
  }
 ]

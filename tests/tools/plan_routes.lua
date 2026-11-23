@@ -424,7 +424,12 @@ while true do
     local made = {}
     if lo == 1 then
         for _, s in ipairs(START) do
-            local cls = clustersFor(s.race)
+            -- a starting route stays at home: the starting area and its race's own zone (no boat at level 4)
+            local HOME = { Human = "Elwynn Forest", Dwarf = "Dun Morogh", NightElf = "Teldrassil", Zephras = "Zephras Isle" }
+            local cls = {}
+            for _, cl in ipairs(clustersFor(s.race)) do
+                if cl.name == s.zone or cl.name == HOME[s.race] then cls[#cls + 1] = cl end
+            end
             local c = plan(newChar(1), hi, cls, nil, s.zone)
             if not c then
                 local names = {}
@@ -485,7 +490,14 @@ for _, r in ipairs(routes) do
     for _, o in ipairs(routes) do
         if o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1 and o.startLevel >= r.endLevel - 3 then nexts[#nexts + 1] = o end
     end
-    table.sort(nexts, function(a, b) if a.startLevel ~= b.startLevel then return a.startLevel > b.startLevel end return a.xph > b.xph end)
+    -- a route that carries on where this one ends comes first (no trip), then the later start, then the faster
+    local endZone = r.zones[#r.zones]
+    table.sort(nexts, function(a, b)
+        local ah, bh = a.zones[1] == endZone, b.zones[1] == endZone
+        if ah ~= bh then return ah end
+        if a.startLevel ~= b.startLevel then return a.startLevel > b.startLevel end
+        return a.xph > b.xph
+    end)
     local ids, names = {}, {}
     for i = 1, math.min(3, #nexts) do ids[i] = nexts[i].id; names[i] = nexts[i].title end
     if #ids > 0 then
