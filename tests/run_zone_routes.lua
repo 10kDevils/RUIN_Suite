@@ -51,44 +51,50 @@ do
     end
     check(hasZone and hasDungeon, "including zone and dungeon routes")
 
-    -- sections: Dungeons, Zones, Completed / out-leveled, each by level (a level 15 character)
-    local heads = {}
-    for _, sec in ipairs(lib) do heads[#heads + 1] = sec.header end
-    check(table.concat(heads, " | ") == "Dungeons | Zones | Completed / out-leveled", "sections in order (" .. table.concat(heads, " | ") .. ")")
+    -- sections: Suggested for you, Levelling (the planned routes), Dungeons, Zones, Completed / out-leveled,
+    -- each by level (a level 15 character)
+    local heads, byHead = {}, {}
+    for _, sec in ipairs(lib) do heads[#heads + 1] = sec.header; byHead[sec.header] = sec end
+    check(table.concat(heads, " | ") == "Suggested for you | Levelling | Dungeons | Zones | Completed / out-leveled",
+        "sections in order (" .. table.concat(heads, " | ") .. ")")
     local function sorted(list)
         for i = 2, #list do if (list[i].lo or 999) < (list[i - 1].lo or 999) then return false end end
         return true
     end
-    check(sorted(lib[1].routes) and sorted(lib[2].routes) and sorted(lib[3].routes), "each section is sorted by level")
-    check(lib[1].routes[1] and lib[1].routes[1].dungeon == "Hall of Thanes", "dungeons first, lowest level on top")
+    check(sorted(byHead.Levelling.routes) and sorted(byHead.Dungeons.routes) and sorted(byHead.Zones.routes)
+        and sorted(byHead["Completed / out-leveled"].routes), "each section is sorted by level")
+    local sug = byHead["Suggested for you"].routes
+    check(#sug >= 1 and #sug <= 3 and sug[1].startLevel <= 15 and sug[1].endLevel > 15 and not sug[1].id:find("_alt"),
+        "Suggested for you: the bracket's best planned route first (" .. tostring(sug[1] and sug[1].id) .. ")")
+    check(byHead.Dungeons.routes[1] and byHead.Dungeons.routes[1].dungeon == "Hall of Thanes", "dungeons: lowest level on top")
     local pastIds = {}
-    for _, x in ipairs(lib[3].routes) do pastIds[x.id] = true end
-    check(pastIds.elwynn_1_10 and pastIds[elwynn.id], "routes 3 or more levels below you move to Completed / out-leveled")
-    local inZones = false
-    for _, x in ipairs(lib[2].routes) do if x.id == "wetlands_20_30" then inZones = true end end
-    check(inZones, "routes at or above your level stay under Zones")
+    for _, x in ipairs(byHead["Completed / out-leveled"].routes) do pastIds[x.id] = true end
+    check(pastIds.a_01_northshire_valley and pastIds[elwynn.id], "routes 3 or more levels below you move to Completed / out-leveled")
+    local inLev = false
+    for _, x in ipairs(byHead.Levelling.routes) do if x.id == "a_24_duskwood" then inLev = true end end
+    check(inLev, "planned routes at or above your level stay under Levelling")
     local dm
-    for _, x in ipairs(lib[2].routes) do if x.id == "duskwood_20_28" then dm = x end end
-    check(dm and dm.lo == 20 and dm.hi == 28, "levels come from the title when a route has none")
+    for _, x in ipairs(byHead.Levelling.routes) do if x.id == "a_24_duskwood" then dm = x end end
+    check(dm and dm.lo == 24 and dm.hi == 30, "levels come from the route's levels")
 
     -- sections fold: click a header and its routes go; click again and they're back
     local ui = PF.UI
     ui.tabs:Select(3)
     local function rowsOf()
-        local heads, routes, zoneHead = 0, 0, nil
+        local nh, routes, zoneHead = 0, 0, nil
         for _, row in ipairs(ui.library.rows) do
             if row:IsShown() and row.e then
-                if row.e.key then heads = heads + 1; if row.e.key == "Zones" then zoneHead = row end end
+                if row.e.key then nh = nh + 1; if row.e.key == "Zones" then zoneHead = row end end
                 if row.e.route then routes = routes + 1 end
             end
         end
-        return heads, routes, zoneHead
+        return nh, routes, zoneHead
     end
     local h1, r1, zh = rowsOf()
-    check(h1 == 3 and zh and zh.band:IsShown(), "three section headers, drawn as bands")
+    check(h1 == #lib and zh and zh.band:IsShown(), "a header per section, drawn as bands (" .. h1 .. ")")
     zh:GetScript("OnMouseUp")(zh, "LeftButton")
     local h2, r2 = rowsOf()
-    check(h2 == 3 and r2 == r1 - #lib[2].routes, "clicking Zones folds its routes away (" .. r1 .. " -> " .. r2 .. ")")
+    check(h2 == #lib and r2 == r1 - #byHead.Zones.routes, "clicking Zones folds its routes away (" .. r1 .. " -> " .. r2 .. ")")
     local _, _, zh2 = rowsOf()
     zh2:GetScript("OnMouseUp")(zh2, "LeftButton")
     local _, r3 = rowsOf()

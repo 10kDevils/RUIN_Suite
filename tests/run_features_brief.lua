@@ -305,7 +305,7 @@ do
     check(#alice.mns.RUIN_Pathfinder.Routes >= 14, "the new Alliance routes are built in (" .. #alice.mns.RUIN_Pathfinder.Routes .. ")")
 
     -- only routes made by officers can be published (not built-in ones, not members')
-    check(pa:PublishRoute("elwynn_1_10") == nil, "a built-in route can't be published")
+    check(pa:PublishRoute("a_01_northshire_valley") == nil, "a built-in route can't be published")
     alice.env.RUIN_PathfinderDB.custom.cmember = { id = "cmember", title = "Member's", author = "Eve Ember", steps = { { act = "note", text = "x" } } }
     check(pa:PublishRoute("cmember") == nil, "nor one a member made")
     alice.env.RUIN_PathfinderDB.custom.cmember = nil
@@ -320,7 +320,7 @@ do
     local got = eve.env.RUIN_PathfinderDB.official[r.id]
     check(got and got.official and got.official.by == "Alice Ash" and #got.steps == #r.steps, "it reaches a member with the officer mark")
     -- a member can't publish, and a member's message is ignored
-    check(pe:PublishRoute("westfall_10_15") == nil, "members can't publish")
+    check(pe:PublishRoute("a_06_elwynn_forest") == nil, "members can't publish")
     eve.env.RUIN_API:GetModule("Pathfinder"):Send("OFFICIAL", { id = "ofake", title = "Fake", steps = { { act = "note", text = "x" } }, ot = os.time() }, "ORG")
     Server:Advance(40)
     check(cara.env.RUIN_PathfinderDB.official.ofake == nil, "a non-officer's route push is ignored")
@@ -355,7 +355,7 @@ do
     -- every quest step of the Alliance routes carries its quest ID
     local missing = 0
     for _, r in ipairs(P.Routes) do
-        if r.faction == "Alliance" and r.id ~= "zephras_1_12" then
+        if r.faction == "Alliance" then
             for _, s in ipairs(r.steps) do
                 if (s.act == "accept" or s.act == "complete" or s.act == "turnin") and not s.qid then missing = missing + 1 end
             end
@@ -363,17 +363,11 @@ do
     end
     check(missing == 0, "Alliance route quest steps all have quest IDs (" .. missing .. " without)")
     local function routeOf(id) for _, r in ipairs(P.Routes) do if r.id == id then return r end end end
-    local rr = routeOf("redridge_15_22")
-    local solomon
-    for _, s in ipairs(rr.steps) do if s.qid == 120 and s.act == "accept" then solomon = s end end
-    check(solomon and solomon.at and solomon.at.x < 27, "Redridge uses Forever's redrawn map (Magistrate Solomon at " .. tostring(solomon and solomon.at.x) .. ")")
-    local wf = routeOf("westfall_10_15")
-    check(wf.steps[2].qid == 36 and wf.steps[4].act == "turnin" and wf.steps[4].qid == 36, "Westfall Stew is delivered to Salma first")
     -- quests you've done tick themselves off
     local done = { [783] = true }
     alice.env.C_QuestLog.IsQuestFlaggedCompleted = function(id) return done[id] or false end
     alice.questLog = { { title = "Kobold Camp Cleanup", id = 7, complete = false } }
-    pa:StartRoute("elwynn_1_10")
+    pa:StartRoute("a_01_northshire_valley")
     local step = alice.env.RUIN_PathfinderCharDB.step
     check(step == 4, "a finished quest and one already in the log are skipped (step " .. step .. ")")
     pa:Advance(-1)

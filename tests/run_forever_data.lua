@@ -98,18 +98,37 @@ do
     local function routeOf(id) for _, r in ipairs(P.Routes) do if r.id == id then return r end end end
     local function hasQid(r, qid, act) for _, s in ipairs(r.steps) do if s.qid == qid and s.act == act then return true end end return false end
     local function noteHas(r, text) for _, s in ipairs(r.steps) do if s.act == "note" and s.text:find(text, 1, true) then return true end end return false end
-    local el, ze = routeOf("elwynn_1_10"), routeOf("zephras_1_12")
-    -- The Forever quest database has no quests 7961, 7962 or 92454: they're out of the routes
-    check(not hasQid(el, 7962, "accept") and not hasQid(el, 7961, "accept"), "Elwynn: no quests the Forever database doesn't have")
-    check(not hasQid(ze, 92454, "accept") and hasQid(ze, 92460, "accept"), "Zephras Isle opens with Coming of Age (92460)")
-    check(hasQid(ze, 92460, "accept") and hasQid(ze, 92460, "turnin"), "Zephras Isle: Coming of Age")
-    check(noteHas(routeOf("teldrassil_1_12"), "The Goddess Provides") and noteHas(el, "A Scribbled Letter"), "class and race starter quests as notes")
-    check(noteHas(routeOf("wetlands_20_30"), "City of Dalaran") and noteHas(routeOf("duskwood_20_28"), "Emissary Jacques")
-        and noteHas(routeOf("ashenvale_18_28"), "City of Dalaran"), "a City of Dalaran pointer at 28+ in the routes that reach it")
-    check(noteHas(routeOf("wetlands_20_30"), "levels 24-31") and noteHas(routeOf("wetlands_20_30"), "39,300 XP"), "Excavation Site's levels and quest XP")
-    check(noteHas(routeOf("hall_of_thanes"), "Magmatus") and noteHas(routeOf("westfall_10_15"), "Ruins of Lordaeron"), "Hall of Thanes boss order; Ruins of Lordaeron as a detour")
-    check(P.ZoneQuests and P.ZoneQuests["Elwynn Forest"][1] == 85 and P.ZoneQuests["Zephras Isle"][1] == 128 and el.zone == "Elwynn Forest",
-        "zone quest counts from ForeverDB, and routes know their zone")
+    local ze = routeOf("a_01_zephras_isle")
+    -- the planned routes: no quests the Forever database doesn't have (7961, 7962, 92454)
+    local bad, planned, noNext, timesOk = 0, 0, 0, true
+    for _, r in ipairs(P.Routes) do
+        if r.plan then
+            planned = planned + 1
+            local lastT = -1
+            for _, s in ipairs(r.steps) do
+                if s.qid == 7961 or s.qid == 7962 or s.qid == 92454 then bad = bad + 1 end
+                if not (s.lv and s.t) or s.t < lastT then timesOk = false end
+                lastT = s.t or lastT
+            end
+            local last = r.steps[#r.steps]
+            if r.endLevel < 60 then
+                if not (last.act == "note" and type(last.next) == "table" and #last.next >= 1 and #last.next <= 3) then noNext = noNext + 1 end
+                for _, id in ipairs(last.next or {}) do if not routeOf(id) then noNext = noNext + 1 end end
+            end
+        end
+    end
+    check(planned >= 15 and bad == 0, ("%d planned routes, none with quests the Forever database lacks"):format(planned))
+    check(noNext == 0, "every planned route below 60 ends naming 1-3 routes to start next, all real")
+    check(timesOk, "every planned step carries its level and minutes, in order")
+    check(routeOf("a_01_northshire_valley") and routeOf("a_01_coldridge_valley") and routeOf("a_01_shadowglen") and ze,
+        "a level-1 route for each Alliance starting area, and Zephras Isle")
+    check(hasQid(ze, 92460, "accept") and hasQid(ze, 92460, "turnin") and ze.steps[1].qid == 92460, "Zephras Isle opens with Coming of Age (92460)")
+    local top = 0
+    for _, r in ipairs(P.Routes) do if r.plan and r.endLevel > top then top = r.endLevel end end
+    check(top == 60, "the planned routes reach level 60")
+    check(noteHas(routeOf("hall_of_thanes"), "Magmatus"), "the Hall of Thanes route keeps its boss order")
+    check(P.ZoneQuests and P.ZoneQuests["Elwynn Forest"][1] == 85 and P.ZoneQuests["Zephras Isle"][1] == 128,
+        "zone quest counts from ForeverDB")
     check(not routeOf("hall_of_thanes").zone, "the dungeon route has no zone count")
     -- the Routes page tooltip
     T.openAllSubTabs(alice, "Pathfinder")

@@ -72,7 +72,7 @@ try("muster", function()
     Server:Advance(3)
 end)
 try("pathfinder", function()
-    alice.env.RUIN_API:GetModule("Pathfinder"):PublishRoute("westfall_10_15")
+    alice.env.RUIN_API:GetModule("Pathfinder"):PublishRoute("a_06_elwynn_forest")
     Server:Advance(20)
     -- quest logs shared across RUIN, and a stand-in quest database for the Quests page
     local function log(c, list) c.questLog = list; for _, q in ipairs(list) do c.questTitles[q.id] = q.title end end
@@ -94,7 +94,7 @@ try("pathfinder", function()
     end
     for _, c in ipairs({ alice, eve, cara }) do c.env.RUIN_API:GetModule("Pathfinder"):ShareQuests(true) end
     Server:Advance(10)
-    for _, c in ipairs({ alice, eve }) do c.env.RUIN_API:GetModule("Pathfinder"):StartRoute("westfall_10_15") end
+    for _, c in ipairs({ alice, eve }) do c.env.RUIN_API:GetModule("Pathfinder"):StartRoute("a_06_elwynn_forest") end
     Server:Advance(5)
 end)
 try("finder", function()
