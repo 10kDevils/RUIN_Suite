@@ -307,6 +307,20 @@ do
     G.state.result, G.state60.result, G.statePrev.result = nil, nil, nil
     alice.env.RUIN_API:OpenTab("Codex")
     if G.UI.slider then
+        -- the knob's centre runs from half a knob in at either end: the
+        -- slider is a knob wider than the track, so the knob lands on the notches
+        local sl = G.UI.slider
+        local marks = {}
+        for _, t in ipairs(G.UI.sliderTicks) do
+            local real = t.mark.SetPoint
+            t.mark.SetPoint = function(self, a, rel, b, x, y) marks[#marks + 1] = x; return real(self, a, rel, b, x, y) end
+        end
+        G.UI.sliderFor = nil
+        G.LayoutSlider()
+        local track = 236
+        local function at(l) return 14 + (l - 42) / (60 - 42) * track end
+        check(#marks >= 4 and math.abs(marks[1] - at(45)) < 0.01 and math.abs(marks[#marks] - at(60)) < 0.01,
+            "notches sit where the knob's centre lands: 45 at " .. tostring(marks[1]) .. ", 60 at the knob's last spot")
         G.SetPreviewLevel(52)
         check(G.PreviewLevel() == 50, "slid to 52, it previews level 50")
         for _ = 1, 400 do if G.statePrev.result and not G.statePrev.running then break end; Server:Advance(0.05) end
