@@ -56,7 +56,8 @@ def media_uri(name):
         import base64, io, os
         from PIL import Image
         here = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(here, "..", "..", "RUIN_Core", "Media", name + ".tga")
+        core = os.environ.get("RUIN_CORE_DIR") or os.path.join(here, "..", "..", "RUIN_Core")
+        path = os.path.join(core, "Media", name + ".tga")
         for f in os.listdir(os.path.dirname(path)):
             if f.lower() == name.lower() + ".tga":
                 path = os.path.join(os.path.dirname(path), f)

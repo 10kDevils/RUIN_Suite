@@ -171,6 +171,14 @@ local function fireShow(o)
     end
     for _, c in ipairs(o._children) do if c._shown then fireShow(c) end end
 end
+-- like the game: hiding a frame fires OnHide on it and on every child that was showing
+local function fireHide(o)
+    if o._scripts.OnHide then
+        local ok, err = pcall(o._scripts.OnHide, o)
+        if not ok then F.errors[#F.errors + 1] = "OnHide: " .. tostring(err) end
+    end
+    for _, c in ipairs(o._children) do if c._shown then fireHide(c) end end
+end
 F.errors = {}
 
 ---------------------------------------------------------------------------
@@ -234,7 +242,7 @@ function methods:Hide()
     local was = visible(self)
     self._shown = false
     pass = pass + 1
-    if was and self._scripts.OnHide then pcall(self._scripts.OnHide, self) end
+    if was then fireHide(self) end
 end
 function methods:SetShown(v) if v then self:Show() else self:Hide() end end
 function methods:IsShown() return self._shown end

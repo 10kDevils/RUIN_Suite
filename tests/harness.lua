@@ -153,9 +153,13 @@ function Server:NewClient(opts)
         return f
     end
     if opts.ui then opts.ui.install(env, c) end
+    -- like the game, a timer never fires sooner than the next frame (~1/60 s); without
+    -- this a tiny float delay (1e-15) re-runs at the same instant forever
+    local FRAME = 1 / 60
     env.C_Timer = {
-        After = function(d, fn) schedule(Server.time + d, fn) end,
+        After = function(d, fn) schedule(Server.time + math.max(tonumber(d) or 0, FRAME), fn) end,
         NewTicker = function(d, fn)
+            d = math.max(tonumber(d) or 0, FRAME)
             local tk = { cancelled = false }
             function tk:Cancel() self.cancelled = true end
             local function run()
@@ -169,6 +173,8 @@ function Server:NewClient(opts)
     }
     env.GetTime = function() return Server.time end
     env.GetServerTime = function() return Server.epoch + math.floor(Server.time) end
+    -- nameplates: the game has C_NamePlate; the simulator shows none
+    env.C_NamePlate = { GetNamePlateForUnit = function() return nil end, GetNamePlates = function() return {} end }
     env.C_ChatInfo = {
         RegisterAddonMessagePrefix = function() return true end,
         SendAddonMessage = function(prefix, text, chatType, target) return route(c, prefix, text, chatType, target) end,

@@ -6,6 +6,7 @@ local OUT = arg[1] or (here .. "/out")
 arg[1] = nil
 package.path = here .. "/?.lua;" .. package.path
 local F = dofile(here .. "/frames.lua")
+RENDER_F = F   -- exposed for tests/qa/explore.lua
 dofile(here .. "/../harness.lua")
 
 local MODULES = { "RUIN_Finder", "RUIN_Pathfinder", "RUIN_Codex", "RUIN_Exchange", "RUIN_Muster" }
@@ -233,6 +234,7 @@ alice = viewer
 -- Record every sub-tab row the pages build, so each sub-page can be opened.
 local W = alice.ns.Widgets
 local subtabs = {}
+RENDER_SUBTABS = subtabs   -- exposed for tests/qa/explore.lua
 local orig = W.SubTabs
 W.SubTabs = function(parent, names, onSelect)
     local obj = orig(parent, names, onSelect)
