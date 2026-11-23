@@ -291,3 +291,42 @@ do
     G.state.result, G.state60.result = nil, nil
     errorsSoFar("best at 60")
 end
+
+print("Codex 0.8.3: preview the best at a higher level")
+do
+    local env = alice.env
+    local G = alice.mns.RUIN_Codex.Gear
+    local cm = alice.mns.RUIN_Codex.Codex or alice.env.RUIN_API:GetModule("Codex")
+    local realLevel = env.UnitLevel
+    local function stops(l) return table.concat(G.PreviewStops(l), ",") end
+    check(stops(42) == "42,45,50,55,60" and stops(40) == "40,45,50,55,60" and stops(1) == "1,5,10,15,20,25,30,35,40,45,50,55,60",
+        "the slider's stops: your level, then every fifth level above it to 60")
+    check(G.NearestStop(52, G.PreviewStops(42)) == 50 and G.NearestStop(43, G.PreviewStops(42)) == 42, "it snaps to the nearest notch")
+    env.UnitLevel = function() return 42 end
+    G.Forget()
+    G.state.result, G.state60.result, G.statePrev.result = nil, nil, nil
+    alice.env.RUIN_API:OpenTab("Codex")
+    if G.UI.slider then
+        G.SetPreviewLevel(52)
+        check(G.PreviewLevel() == 50, "slid to 52, it previews level 50")
+        for _ = 1, 400 do if G.statePrev.result and not G.statePrev.running then break end; Server:Advance(0.05) end
+        local r = G.ShownResult()
+        check(r and r.level == 50 and r == G.statePrev.result, "and shows the best for level 50, worked out for it")
+        check(G.UI.sliderLabel:GetText():find("Previewing level 50", 1, true), "the label says which level")
+        check(cm == nil or cm.AsLevel == nil, "judging as if at 50 doesn't stay switched on")
+        G.SetPreviewLevel(60)
+        check(G.ShownState() == G.state60, "all the way right, the level-60 best")
+        G.SetPreviewLevel(42)
+        check(G.PreviewLevel() == 42 and G.ShownState() == G.state and G.UI.previewLevel == nil, "all the way left, your own level again")
+        env.UnitLevel = function() return 60 end
+        G.UI.sliderFor = nil
+        G.LayoutSlider()
+        check(not G.UI.sliderHolder:IsShown(), "at level 60 there's nothing higher to preview: no slider")
+    else
+        check(false, "the Best in Slot tab has a level slider")
+    end
+    env.UnitLevel = realLevel
+    G.UI.previewLevel, G.UI.sliderFor = nil, nil
+    G.Forget()
+    errorsSoFar("level preview")
+end
