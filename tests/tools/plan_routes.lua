@@ -363,6 +363,7 @@ local function run(c, cl, list)
 end
 
 -- grind to a level where there aren't enough quests
+local BRIDGE_KILLS = 20      -- kills a stay-at-home route may make to reach its zone's next quests
 local function grind(c, toL, cls)
     local best, bestD
     for _, cl in ipairs(cls) do
@@ -379,7 +380,7 @@ local function grind(c, toL, cls)
 end
 
 -- plan one route from character c until level hi; firstCluster forces where it starts
-local function plan(c, hi, cls, firstCluster, startZone)
+local function plan(c, hi, cls, firstCluster, startZone, noGrind)
     local guard = 0
     while c.L < hi and guard < 60 do
         guard = guard + 1
@@ -409,6 +410,9 @@ local function plan(c, hi, cls, firstCluster, startZone)
         end
         if not best then
             if firstCluster or startZone then return nil end
+            -- quests here are done: the route ends and the next moves on (a few kills to reach the
+            -- next quests here don't count)
+            if noGrind and math.ceil((xpToLevel(c.L) - c.xp) / mobXP(c.L)) > BRIDGE_KILLS then break end
             grind(c, c.L + 1, cls)
         else
             run(c, best, bestList)
@@ -450,7 +454,8 @@ local mainRoute = {}                 -- bracket -> the id of that route
 local REPEAT_MAX = 5                 -- quests a route planned from elsewhere may repeat before one is planned from here
 local prevMade = {}                  -- the previous bracket's routes (not the continuations below)
 -- The low levels stay at home: a starting area's routes keep to it and its race's own zone, and
--- the next bracket carries each one on there. Players who want to move on early will.
+-- the next bracket carries each one on there until the quests there run out (no grinding). The
+-- bracket after that moves each one on from where it ended, so the levelling never stalls.
 local HOME = { Human = "Elwynn Forest", Dwarf = "Dun Morogh", NightElf = "Teldrassil", Zephras = "Zephras Isle" }
 local HOME_BRACKETS = 2
 local startChar, startRoute = {}, {}  -- race -> the character after its starting route, and that route
@@ -507,8 +512,8 @@ while true do
                 end
                 local c0 = copyChar(from)
                 c0.L = math.max(c0.L, lo)
-                local c = plan(c0, hi, cls)
-                if c then
+                local c = plan(c0, hi, cls, nil, nil, true)
+                if c and #c.steps > 0 then
                     local r = finish(c, lo, "")
                     r.home = startRoute[s.race].id          -- the starting route it carries on from
                     made[#made + 1] = r
@@ -517,6 +522,25 @@ while true do
                 end
             end
         end
+    elseif bi == HOME_BRACKETS + 1 then
+        -- move on: each home route's own next route, from the level it ended at
+        for _, s in ipairs(START) do
+            local from = startChar[s.race]
+            if from then
+                local cls = clustersFor(s.race)
+                local c0 = copyChar(from)
+                local myLo = math.floor(c0.L)
+                local c = plan(c0, hi, cls)
+                if c and #c.steps > 0 then
+                    local r = finish(c, myLo, "_from_" .. slug(HOME[s.race]))
+                    r.home = startRoute[s.race].id
+                    r.only = true                            -- suggested after its home route only
+                    made[#made + 1] = r
+                    if not mainline[bi] or s.race == "Human" then mainline[bi] = c; mainRoute[bi] = r.id end
+                end
+            end
+        end
+        brCls = nil
     else
         local cls = clustersFor("Human")
         brCls = cls
@@ -642,7 +666,8 @@ for _, r in ipairs(routes) do
     if #ids > 0 then
         r.next = ids
         r.steps[#r.steps + 1] = { act = "note", next = ids, lv = lastLv(r), t = r.minutes,
-                                  text = "Route done. Start next: " .. table.concat(names, "; ") }
+                                  text = (nexts[1].zones[1] ~= endZone and ("Quests here are done: move on to " .. nexts[1].zones[1] .. ". ") or "Route done. ")
+                                      .. "Start next: " .. table.concat(names, "; ") }
     else
         r.steps[#r.steps + 1] = { act = "note", lv = lastLv(r), t = r.minutes, text = "Route done: you've reached the top level." }
     end

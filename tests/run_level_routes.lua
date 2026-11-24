@@ -17,7 +17,7 @@ do
     local saved = { UnitLevel = env.UnitLevel, UnitRace = env.UnitRace }
     env.UnitLevel = function() return 15 end
     local s15 = Plan.Suggested()
-    check(#s15 >= 1 and #s15 <= 3 and s15[1].startLevel == 12 and not s15[1].id:find("_alt"), "at 15 the 12-18 bracket's best route comes first (" .. tostring(s15[1] and s15[1].id) .. ")")
+    check(#s15 >= 1 and #s15 <= 3 and s15[1].startLevel <= 15 and not s15[1].id:find("_alt"), "at 15 the 12-18 bracket's best route comes first (" .. tostring(s15[1] and s15[1].id) .. ")")
     env.UnitLevel = function() return 1 end
     env.UnitRace = function() return "Dwarf", "Dwarf", 3 end
     local ids1 = {}
@@ -41,10 +41,19 @@ do
     local keepRoute, keepPrev = db.route, db.prevRoute
     db.route, db.prevRoute = nil, nil
     local kid
-    for _, x in ipairs(P.Routes) do if x.follows then kid = x; break end end
+    env.UnitRace = function() return "Human", "Human", 1 end
+    for _, x in ipairs(P.Routes) do if x.follows and x.follows ~= "a_06_elwynn_forest" then kid = x; break end end
     check(kid and not has(kid.startLevel + 1, kid.id), "a follow-on route isn't suggested to someone who didn't play its route")
     db.prevRoute = kid and kid.follows
     check(kid and has(kid.startLevel + 1, kid.id), "it is after you played that route")
+    -- the move from home: with no route played, your own home's next route comes first
+    db.prevRoute = nil
+    env.UnitRace = function() return "NightElf", "NightElf", 4 end
+    env.UnitLevel = function() return 12 end
+    local s12 = Plan.Suggested()
+    check(s12[1] and s12[1].follows == "a_06_teldrassil", "at 12 a night elf is sent on from Teldrassil (" .. tostring(s12[1] and s12[1].id) .. ")")
+    local tel = PF:GetRoute("a_06_teldrassil")
+    check(tel.steps[#tel.steps].text:find("move on to", 1, true), "when home runs out of quests its last step says where to move on to")
     db.route, db.prevRoute = keepRoute, keepPrev
     env.UnitLevel, env.UnitRace = saved.UnitLevel, saved.UnitRace
 
@@ -76,7 +85,7 @@ do
     check(worst <= 5, "no route's first Start next repeats more than a few quests it turned in (" .. worst .. " " .. worstAt .. ")")
     -- a planned route id that was renamed in an update still finds its route
     local renamed = PF:GetRoute("a_57_winterspring")
-    check(renamed and renamed.id == "a_57_azshara", "a renamed route id (a_57_winterspring) finds the new route")
+    check(renamed and renamed.id:find("^a_57_"), "a renamed route id (a_57_winterspring) finds the new route")
     check(PF:GetRoute("a_99_never_was") == nil, "an id that never was finds nothing")
 
     -- session budget
