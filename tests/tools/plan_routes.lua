@@ -449,6 +449,11 @@ local mainline = {}                  -- bracket -> the character after its best 
 local mainRoute = {}                 -- bracket -> the id of that route
 local REPEAT_MAX = 5                 -- quests a route planned from elsewhere may repeat before one is planned from here
 local prevMade = {}                  -- the previous bracket's routes (not the continuations below)
+-- The low levels stay at home: a starting area's routes keep to it and its race's own zone, and
+-- the next bracket carries each one on there. Players who want to move on early will.
+local HOME = { Human = "Elwynn Forest", Dwarf = "Dun Morogh", NightElf = "Teldrassil", Zephras = "Zephras Isle" }
+local HOME_BRACKETS = 2
+local startChar, startRoute = {}, {}  -- race -> the character after its starting route, and that route
 local Lua51Clusters = {}
 local function clustersFor(race)
     if not Lua51Clusters[race or "-"] then Lua51Clusters[race or "-"] = clusters(race) end
@@ -474,7 +479,6 @@ while true do
     if lo == 1 then
         for _, s in ipairs(START) do
             -- a starting route stays at home: the starting area and its race's own zone (no boat at level 4)
-            local HOME = { Human = "Elwynn Forest", Dwarf = "Dun Morogh", NightElf = "Teldrassil", Zephras = "Zephras Isle" }
             local cls = {}
             for _, cl in ipairs(clustersFor(s.race)) do
                 if cl.name == s.zone or cl.name == HOME[s.race] then cls[#cls + 1] = cl end
@@ -488,7 +492,29 @@ while true do
             if c then
                 local r = finish(c, 1, "")
                 made[#made + 1] = r
+                startChar[s.race], startRoute[s.race] = c, r
                 if not mainline[bi] or s.zone == "Northshire Valley" then mainline[bi] = c; mainRoute[bi] = r.id end
+            end
+        end
+    elseif bi <= HOME_BRACKETS then
+        -- each starting route carries on at home
+        for _, s in ipairs(START) do
+            local from = startChar[s.race]
+            if from then
+                local cls = {}
+                for _, cl in ipairs(clustersFor(s.race)) do
+                    if cl.name == s.zone or cl.name == HOME[s.race] then cls[#cls + 1] = cl end
+                end
+                local c0 = copyChar(from)
+                c0.L = math.max(c0.L, lo)
+                local c = plan(c0, hi, cls)
+                if c then
+                    local r = finish(c, lo, "")
+                    r.home = startRoute[s.race].id          -- the starting route it carries on from
+                    made[#made + 1] = r
+                    startChar[s.race], startRoute[s.race] = c, r
+                    if not mainline[bi] or s.race == "Human" then mainline[bi] = c; mainRoute[bi] = r.id end
+                end
             end
         end
     else
@@ -532,7 +558,7 @@ while true do
         end
     end
     -- every route of this bracket carries on from the previous bracket's best route
-    for _, r in ipairs(made) do r.parent = mainRoute[bi - 1]; routes[#routes + 1] = r end
+    for _, r in ipairs(made) do r.parent = r.home or mainRoute[bi - 1]; routes[#routes + 1] = r end
     -- A route of the previous bracket that every one of these would send back for more than a few
     -- quests it already did (a starting area other than the one these were planned from) gets a
     -- route of its own, planned from where its character is.
@@ -563,6 +589,7 @@ while true do
         end
     end
     prevMade = made
+    for _, k in ipairs(kids) do prevMade[#prevMade + 1] = k end      -- a route planned from elsewhere gets its own follow-on too
     io.stderr:write(("%d-%d: %d routes%s\n"):format(lo, hi, #made, made[1] and (" (best " .. made[1].title .. ", " .. made[1].minutes .. " min, " .. #made[1].steps .. " steps)") or ""))
 end
 
@@ -575,7 +602,13 @@ end
 for _, r in ipairs(routes) do
     local nexts = {}
     for _, o in ipairs(routes) do
-        if o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1 and o.startLevel >= r.endLevel - 3
+        -- a low-level route at home goes on to the next one at home only
+        if o.home and o.parent ~= r.id then
+        elseif r.home or r.startLevel == 1 then
+            if o.home and o.parent == r.id then nexts[#nexts + 1] = o
+            elseif not o.home and o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1
+                and o.startLevel >= r.endLevel - 3 and (not o.only or o.parent == r.id) and r.home then nexts[#nexts + 1] = o end
+        elseif o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1 and o.startLevel >= r.endLevel - 3
            and (not o.only or o.parent == r.id) then nexts[#nexts + 1] = o end
     end
     -- A route planned from this one comes first (it knows what you've done). The others were
@@ -690,9 +723,16 @@ local function sameLevels(lv)
     end
     return best and best.id
 end
-for id, lv in src:gmatch('\n        id = "([%w_]+)", [^\n]*plan = true,\n%s*startLevel = (%d+)') do
+for id, lv in src:gmatch('\n        id = "([%w_]+)", [^\n]*plan = true,[^\n]*\n%s*startLevel = (%d+)') do
     if not nowIds[id] then
-        local to = sameLevels(tonumber(lv))
+        local base = id:gsub("_from_.*$", ""):gsub("_alt%d+$", "")
+        local to = nowIds[base] and base
+        if not to then      -- a route of the same zone and levels under another suffix
+            for _, r in ipairs(routes) do
+                if r.startLevel == tonumber(lv) and r.id:gsub("_from_.*$", ""):gsub("_alt%d+$", "") == base then to = r.id; break end
+            end
+        end
+        to = to or sameLevels(tonumber(lv))
         if to then aliases[id] = to; io.stderr:write(("route id gone: %s -> %s\n"):format(id, to)) end
     end
 end

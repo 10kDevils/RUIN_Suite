@@ -75,7 +75,7 @@ do
     check(inLev, "planned routes at or above your level stay under Levelling")
     local dm
     for _, x in ipairs(byHead.Levelling.routes) do if x.id == "a_24_duskwood" then dm = x end end
-    check(dm and dm.lo == 24 and dm.hi == 30, "levels come from the route's levels")
+    check(dm and dm.lo == 24 and dm.hi == PF:GetRoute("a_24_duskwood").endLevel, "levels come from the route's levels")
 
     -- sections fold: click a header and its routes go; click again and they're back
     local ui = PF.UI
