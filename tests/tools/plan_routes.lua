@@ -170,12 +170,15 @@ end
 -- The character as it levels
 ---------------------------------------------------------------------------
 local function newChar(L)
-    return { L = L, xp = 0, done = {}, t = 0, zone = nil, area = nil, steps = {}, zones = {}, zoneList = {} }
+    -- done: quests turned in (or handled) so far on this character's way, across every route it took;
+    -- skip: quests a visit couldn't finish and hand in (never offered again, but not done either)
+    return { L = L, xp = 0, done = {}, skip = {}, t = 0, zone = nil, area = nil, steps = {}, zones = {}, zoneList = {} }
 end
 local function copyChar(c)
     local n = newChar(c.L)
     n.xp, n.t, n.zone, n.area, n.land = c.xp, 0, c.zone, c.area, c.land
     for k, v in pairs(c.done) do n.done[k] = v end
+    for k, v in pairs(c.skip) do n.skip[k] = v end
     return n
 end
 local function gain(c, xp)
@@ -201,7 +204,7 @@ local function doable(cl, c)
     local list, inSet = {}, {}
     for _, q in ipairs(cl.quests) do
         local ql = level(q)
-        if not c.done[q] and req(q) <= c.L + 1 and ql <= c.L + 3 and c.L - ql <= 6 then inSet[q] = true end
+        if not c.done[q] and not c.skip[q] and req(q) <= c.L + 1 and ql <= c.L + 3 and c.L - ql <= 6 then inSet[q] = true end
     end
     -- keep a quest only when what it waits on is done or in the set (in a few passes)
     for _ = 1, 4 do
@@ -238,7 +241,7 @@ local function tripTo(cl, c)
 end
 local function value(cl, c)
     local done = 0
-    for _, q in ipairs(cl.quests) do if c.done[q] then done = done + 1 end end
+    for _, q in ipairs(cl.quests) do if c.done[q] or c.skip[q] then done = done + 1 end end
     local key = cl.name .. ":" .. cl.area .. ":" .. cl.part .. ":" .. c.L .. ":" .. done
     c.vcache = c.vcache or {}
     local hit = c.vcache[key]
@@ -282,6 +285,47 @@ local function run(c, cl, list)
     c.area = cl.area .. ":" .. cl.part
     if not c.zones[cl.name] then c.zones[cl.name] = true; c.zoneList[#c.zoneList + 1] = cl.name end
     local steps = QB.ZoneRoute(list) or {}
+    -- Only what this visit can finish: a quest done earlier on the way (even in an
+    -- earlier route, or brought back as a prerequisite from another zone) isn't
+    -- offered again, and a quest the visit doesn't hand in isn't taken on (it
+    -- would sit in the log at the route's end).
+    do
+        local handIn = {}
+        for _, s in ipairs(steps) do if s.act == "turnin" and s.qid and not c.done[s.qid] then handIn[s.qid] = true end end
+        -- and a quest that waits on one of those dropped can't be taken either
+        local changed = true
+        while changed do
+            changed = false
+            for q in pairs(handIn) do
+                for _, p in ipairs(QB.Prereqs(q)) do
+                    if not c.done[p] and not handIn[p] then handIn[q] = nil; changed = true; break end
+                end
+            end
+        end
+        local keepQ = function(q) return q and not c.done[q] and handIn[q] end
+        local kept = {}
+        for _, s in ipairs(steps) do
+            if s.act == "complete" and s.qids and #s.qids > 1 then
+                local ids, names = {}, {}
+                for _, q in ipairs(s.qids) do
+                    if keepQ(q) then ids[#ids + 1] = q; local i = QB.Quest(q); names[#names + 1] = i and i.name or ("Quest " .. q) end
+                end
+                if #ids > 0 then
+                    if #ids < #s.qids then
+                        s.qid, s.qids = ids[1], ids
+                        s.quest = (#names <= 2 and table.concat(names, " + ") or ("%s + %d more"):format(names[1], #names - 1)):sub(1, 60)
+                    end
+                    kept[#kept + 1] = s
+                end
+            elseif s.act == "accept" or s.act == "complete" or s.act == "turnin" then
+                if keepQ(s.qid) then kept[#kept + 1] = s end
+            else
+                kept[#kept + 1] = s
+            end
+        end
+        for _, q in ipairs(list) do if not handIn[q] and not c.done[q] then c.skip[q] = true end end
+        steps = kept
+    end
     local xpOf, timeOf = {}, {}
     for _, q in ipairs(list) do
         local s, kx = objectiveCost(q, c.L)
@@ -316,7 +360,6 @@ local function run(c, cl, list)
     -- quests in a prerequisite chain from elsewhere count as done once they're in the steps,
     -- and every quest this visit took on is handled (one with no hand-in step won't be offered again)
     for _, s in ipairs(steps) do if s.act == "turnin" and s.qid then c.done[s.qid] = true end end
-    for _, q in ipairs(list) do c.done[q] = true end
 end
 
 -- grind to a level where there aren't enough quests
@@ -393,7 +436,9 @@ local function finish(c, lo, label)
     if #title > 40 then title = ("%d-%d %s and more"):format(lo, c.L, first):sub(1, 40) end
     local r = { id = ("a_%02d_%s%s"):format(lo, slug(first), label or ""), title = title, faction = "Alliance",
                 author = "RUIN planner", zone = first, levels = lo .. "-" .. c.L, startLevel = lo, endLevel = c.L,
-                minutes = math.floor(c.t / 60 + 0.5), zones = c.zoneList, steps = c.steps, plan = true }
+                minutes = math.floor(c.t / 60 + 0.5), zones = c.zoneList, steps = c.steps, plan = true,
+                done = c.done,       -- every quest turned in on the way here (for choosing what to start next)
+                char = c }
     local xp = 0
     for L = lo, c.L - 1 do xp = xp + xpToLevel(L) end
     r.xph = math.floor(xp / math.max(1, c.t) * 3600 / 100) * 100
@@ -401,6 +446,9 @@ local function finish(c, lo, label)
 end
 
 local mainline = {}                  -- bracket -> the character after its best route (what later brackets start from)
+local mainRoute = {}                 -- bracket -> the id of that route
+local REPEAT_MAX = 5                 -- quests a route planned from elsewhere may repeat before one is planned from here
+local prevMade = {}                  -- the previous bracket's routes (not the continuations below)
 local Lua51Clusters = {}
 local function clustersFor(race)
     if not Lua51Clusters[race or "-"] then Lua51Clusters[race or "-"] = clusters(race) end
@@ -422,6 +470,7 @@ while true do
     if prevEnd and prevEnd < lo then lo = prevEnd end
     if lo >= 60 then break end
     local made = {}
+    local brCls                          -- this bracket's quest groups (for the routes planned from elsewhere, below)
     if lo == 1 then
         for _, s in ipairs(START) do
             -- a starting route stays at home: the starting area and its race's own zone (no boat at level 4)
@@ -439,11 +488,12 @@ while true do
             if c then
                 local r = finish(c, 1, "")
                 made[#made + 1] = r
-                if not mainline[bi] or s.zone == "Northshire Valley" then mainline[bi] = c end
+                if not mainline[bi] or s.zone == "Northshire Valley" then mainline[bi] = c; mainRoute[bi] = r.id end
             end
         end
     else
         local cls = clustersFor("Human")
+        brCls = cls
         local from = mainline[bi - 1] or newChar(lo)
         local c0 = copyChar(from)
         c0.L = math.max(c0.L, lo)
@@ -452,6 +502,7 @@ while true do
             local r = finish(c, lo, "")
             made[#made + 1] = r
             mainline[bi] = c
+            mainRoute[bi] = r.id
             -- up to two others that start somewhere else
             local tried = { [c.zoneList[1] or ""] = true }
             local opts = {}
@@ -480,19 +531,74 @@ while true do
             end
         end
     end
-    for _, r in ipairs(made) do routes[#routes + 1] = r end
+    -- every route of this bracket carries on from the previous bracket's best route
+    for _, r in ipairs(made) do r.parent = mainRoute[bi - 1]; routes[#routes + 1] = r end
+    -- A route of the previous bracket that every one of these would send back for more than a few
+    -- quests it already did (a starting area other than the one these were planned from) gets a
+    -- route of its own, planned from where its character is.
+    local kids = {}
+    if made[1] and brCls then
+        local cls = brCls
+        for _, pr in ipairs(prevMade) do
+            if pr.id ~= mainRoute[bi - 1] then
+                local least = math.huge
+                for _, o in ipairs(made) do
+                    local n = 0
+                    for _, st in ipairs(o.steps) do if st.act == "turnin" and st.qid and pr.done[st.qid] then n = n + 1 end end
+                    least = math.min(least, n)
+                end
+                if least > REPEAT_MAX then
+                    local c0 = copyChar(pr.char)
+                    c0.L = math.max(c0.L, lo)
+                    local k = plan(c0, hi, cls)
+                    if k then
+                        local rk = finish(k, lo, "_from_" .. slug(pr.zone))
+                        rk.parent, rk.only = pr.id, true      -- offered after that route only
+                        kids[#kids + 1] = rk
+                        routes[#routes + 1] = rk
+                        io.stderr:write(("  %s: every %d-%d route repeats %d+ of its quests; planned %s\n"):format(pr.id, lo, hi, least, rk.id))
+                    end
+                end
+            end
+        end
+    end
+    prevMade = made
     io.stderr:write(("%d-%d: %d routes%s\n"):format(lo, hi, #made, made[1] and (" (best " .. made[1].title .. ", " .. made[1].minutes .. " min, " .. #made[1].steps .. " steps)") or ""))
 end
 
+-- the level at the route's end: the last step's (with the part level), never below the step before
+local function lastLv(r)
+    local last = r.steps[#r.steps]
+    return math.max(r.endLevel, last and last.lv or 0)
+end
 -- last step: 1-3 routes to start next, best first (the ones starting at or just below where you finish)
 for _, r in ipairs(routes) do
     local nexts = {}
     for _, o in ipairs(routes) do
-        if o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1 and o.startLevel >= r.endLevel - 3 then nexts[#nexts + 1] = o end
+        if o ~= r and o.startLevel > r.startLevel and o.startLevel <= r.endLevel + 1 and o.startLevel >= r.endLevel - 3
+           and (not o.only or o.parent == r.id) then nexts[#nexts + 1] = o end
     end
-    -- a route that carries on where this one ends comes first (no trip), then the later start, then the faster
+    -- A route planned from this one comes first (it knows what you've done). The others were
+    -- planned from another route, so they may send you back for quests this one already did:
+    -- the fewer of those the better. Then a route that carries on where this one ends (no
+    -- trip), then the later start, then the faster.
+    local repeats = {}
+    for _, o in ipairs(nexts) do
+        local n = 0
+        if o.parent ~= r.id then
+            for _, s in ipairs(o.steps) do if s.act == "turnin" and s.qid and r.done[s.qid] then n = n + 1 end end
+        end
+        repeats[o] = n
+    end
+    -- leave out those that would repeat more than a few (unless nothing else is left)
+    local few = {}
+    for _, o in ipairs(nexts) do if repeats[o] <= REPEAT_MAX then few[#few + 1] = o end end
+    if #few > 0 then nexts = few end
     local endZone = r.zones[#r.zones]
     table.sort(nexts, function(a, b)
+        local am, bm = a.parent == r.id, b.parent == r.id
+        if am ~= bm then return am end
+        if repeats[a] ~= repeats[b] then return repeats[a] < repeats[b] end
         local ah, bh = a.zones[1] == endZone, b.zones[1] == endZone
         if ah ~= bh then return ah end
         if a.startLevel ~= b.startLevel then return a.startLevel > b.startLevel end
@@ -502,10 +608,10 @@ for _, r in ipairs(routes) do
     for i = 1, math.min(3, #nexts) do ids[i] = nexts[i].id; names[i] = nexts[i].title end
     if #ids > 0 then
         r.next = ids
-        r.steps[#r.steps + 1] = { act = "note", next = ids, lv = r.endLevel, t = r.minutes,
+        r.steps[#r.steps + 1] = { act = "note", next = ids, lv = lastLv(r), t = r.minutes,
                                   text = "Route done. Start next: " .. table.concat(names, "; ") }
     else
-        r.steps[#r.steps + 1] = { act = "note", lv = r.endLevel, t = r.minutes, text = "Route done: you've reached the top level." }
+        r.steps[#r.steps + 1] = { act = "note", lv = lastLv(r), t = r.minutes, text = "Route done: you've reached the top level." }
     end
 end
 
@@ -558,6 +664,48 @@ for _, id in ipairs(keep) do
     end
 end
 
+-- Planned ids that are gone (a route renamed because it now starts in another zone): point each
+-- at the new route for the same levels, so a character whose saved route was one of them carries
+-- on. The list in Routes.lua is kept and added to; it sits right after the routes table.
+local ALIAS_HEAD = "\n\n-- Planned route ids that are gone"
+local aliases = {}
+do
+    local s0 = tail:find(ALIAS_HEAD, 1, true)
+    if s0 then
+        local open = tail:find("ns.RouteAliases = {", s0, true)
+        local close = open and tail:find("\n}", open, true)
+        if close then
+            for k, v in tail:sub(open, close):gmatch('\n%s*([%w_]+) = "([%w_]+)"') do aliases[k] = v end
+            tail = tail:sub(1, s0 - 1) .. tail:sub(close + 2)
+        end
+    end
+end
+local nowIds = {}
+for _, r in ipairs(routes) do nowIds[r.id] = r end
+local function sameLevels(lv)
+    for _, r in ipairs(routes) do if r.startLevel == lv then return r.id end end      -- the bracket's best comes first
+    local best
+    for _, r in ipairs(routes) do
+        if r.startLevel <= lv and lv <= r.endLevel and (not best or r.startLevel > best.startLevel) then best = r end
+    end
+    return best and best.id
+end
+for id, lv in src:gmatch('\n        id = "([%w_]+)", [^\n]*plan = true,\n%s*startLevel = (%d+)') do
+    if not nowIds[id] then
+        local to = sameLevels(tonumber(lv))
+        if to then aliases[id] = to; io.stderr:write(("route id gone: %s -> %s\n"):format(id, to)) end
+    end
+end
+for k in pairs(aliases) do if nowIds[k] then aliases[k] = nil end end              -- the id is back
+for k, v in pairs(aliases) do
+    local hops = 0
+    while not nowIds[v] and aliases[v] and hops < 10 do v = aliases[v]; hops = hops + 1 end
+    aliases[k] = nowIds[v] and v or nil                                            -- nowhere to send it
+end
+local aliasKeys = {}
+for k in pairs(aliases) do aliasKeys[#aliasKeys + 1] = k end
+table.sort(aliasKeys)
+
 local lines = {}
 local function w(s) lines[#lines + 1] = s end
 head = head:gsub("%-%- Alliance 1%-30 routes checked.-\nlocal ADDON, ns = %.%.%.", [[
@@ -581,6 +729,7 @@ for _, r in ipairs(routes) do
         q(r.id), q(r.title), q(r.zone), q(r.levels)))
     w(("        startLevel = %d, endLevel = %d, minutes = %d, xph = %d, zones = { %s }, next = { %s },"):format(
         r.startLevel, r.endLevel, r.minutes, r.xph, table.concat(zs, ", "), table.concat(nx, ", ")))
+    if r.only and r.parent then w(("        follows = %s,"):format(q(r.parent))) end
     w("        steps = {")
     for _, s in ipairs(r.steps) do
         local parts = { "act = " .. q(s.act) }
@@ -608,7 +757,16 @@ end
 w("")
 w("    -- routes that aren't Alliance levelling")
 for _, t in ipairs(keptText) do w(t) end
-w("}" .. tail:gsub("\n+$", ""))
+if #aliasKeys > 0 then
+    w("}" .. ALIAS_HEAD .. ": old id = the route that took its place.")
+    w("-- A character whose saved route was renamed carries on with the new one.")
+    w("-- The planner adds to this list when an id disappears.")
+    w("ns.RouteAliases = {")
+    for _, k in ipairs(aliasKeys) do w(("    %s = %s,"):format(k, q(aliases[k]))) end
+    w("}" .. tail:gsub("\n+$", ""))
+else
+    w("}" .. tail:gsub("\n+$", ""))
+end
 local fh = assert(io.open(OUT, "w"))
 fh:write(table.concat(lines, "\n"), "\n")
 fh:close()

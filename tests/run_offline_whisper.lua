@@ -15,6 +15,43 @@ do
     check(not Comms:OnSystemMessage("No player named 'Someone Else' is currently playing."), "a line about anyone RUIN didn't whisper stays")
     Comms:PeerSeen("Epic Pollon-Realm")
     check(not Comms:PeerOffline("Epic Pollon"), "hearing from them again lifts the hold")
+    -- a send the player chose (the key offer, the admin hand-over) always goes out, and the game's line shows once
+    local whispers = {}
+    local realTap = Server.tap
+    Server.tap = function(c, prefix, text, chatType, target)
+        if c == alice and chatType == "WHISPER" then whispers[target] = (whispers[target] or 0) + 1 end
+        if realTap then realTap(c, prefix, text, chatType, target) end
+    end
+    Comms:Send("VREQ", {}, "PEER", "Gone Gary", Comms.PRIORITY.NORMAL)
+    Server:Advance(2)
+    check(Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing.") and Comms:PeerOffline("Gone Gary"), "background whisper: line hidden, player held")
+    whispers = {}
+    Comms:Send("VREQ", {}, "PEER", "Gone Gary", Comms.PRIORITY.BULK)
+    Server:Advance(2)
+    check(not whispers["Gone Gary"], "a background whisper to a held player is dropped")
+    check(ns.Org:SendFullKey("Gone Gary"), "the admin offers the key to a held player")
+    Server:Advance(5)
+    check((whispers["Gone Gary"] or 0) > 0, "the key offer still goes out")
+    check(not Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing."), "the game's line about the player's own send is shown")
+    check(Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing."), "once: the repeat for the next part is hidden")
+    check(Comms:PeerOffline("Gone Gary"), "background whispers to them are held again")
+    whispers = {}
+    Comms:Send("VREQ", {}, "PEER", "Gone Gary", Comms.PRIORITY.BULK)
+    Server:Advance(2)
+    check(not whispers["Gone Gary"], "and a background whisper is still dropped")
+    Server:Advance(20)
+    check(ns.Org:SendFullKey("Gone Gary"), "asked again within the hold")
+    Server:Advance(5)
+    check((whispers["Gone Gary"] or 0) > 0, "the retry goes out too")
+    check(not Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing."), "the retry's line is shown")
+    -- a retry right after (well within 15 s) still shows its own line, once
+    Server:Advance(3)
+    check(ns.Org:SendFullKey("Gone Gary"), "asked again a few seconds later")
+    Server:Advance(2)
+    check(not Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing."), "a quick retry's line is shown too")
+    check(Comms:OnSystemMessage("No player named 'Gone Gary' is currently playing."), "and only once for that send")
+    Server.tap = realTap
+    Comms:PeerSeen("Gone Gary")
     -- the key: offline officers in your roster aren't whispered
     local realKnown = ns.Presence.KnownOfficers
     ns.Presence.KnownOfficers = function() return {

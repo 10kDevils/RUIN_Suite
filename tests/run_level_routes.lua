@@ -27,6 +27,19 @@ do
     check(Plan.Suggested()[1].id == "a_01_northshire_valley", "and a human to Northshire Valley")
     env.UnitLevel = function() return 60 end
     check(#Plan.Suggested() >= 1, "at 60 the last routes still show")
+    -- routes planned to follow one route are suggested only after that route
+    local function has(lvl, id)
+        env.UnitLevel = function() return lvl end
+        for _, x in ipairs(Plan.Suggested()) do if x.id == id then return true end end
+        return false
+    end
+    local keepRoute, keepPrev = db.route, db.prevRoute
+    db.route, db.prevRoute = nil, nil
+    check(not has(7, "a_06_zephras_isle_from_zephras_isle") and not has(19, "a_18_darkshore_from_teldrassil"),
+        "a follow-on route isn't suggested to someone who didn't play its route")
+    db.prevRoute = "a_01_zephras_isle"
+    check(has(7, "a_06_zephras_isle_from_zephras_isle"), "it is after you played that route")
+    db.route, db.prevRoute = keepRoute, keepPrev
     env.UnitLevel, env.UnitRace = saved.UnitLevel, saved.UnitRace
 
     -- Start next
@@ -34,6 +47,23 @@ do
     local nexts = Plan.Next(r)
     check(#nexts >= 1 and #nexts <= 3 and nexts[1].startLevel >= 17, "a route names the routes to start after it (" .. tostring(nexts[1] and nexts[1].id) .. ")")
     check(r.steps[#r.steps].next and r.steps[#r.steps].text:find("Start next", 1, true), "its last step says so")
+    -- the first route named carries on from where this route's character is: it repeats none of its quests
+    local function repeatsAfter(a, b)
+        local did, n = {}, 0
+        for _, s in ipairs(a.steps) do if s.act == "turnin" and s.qid then did[s.qid] = true end end
+        for _, s in ipairs(b.steps) do if s.act == "turnin" and s.qid and did[s.qid] then n = n + 1 end end
+        return n
+    end
+    local worst, worstAt = 0, ""
+    for _, x in ipairs(P.Routes) do
+        local first = x.plan and Plan.Next(x)[1]
+        if first and repeatsAfter(x, first) > worst then worst, worstAt = repeatsAfter(x, first), x.id .. " > " .. first.id end
+    end
+    check(worst == 0, "no route's first Start next repeats a quest it turned in (" .. worst .. " " .. worstAt .. ")")
+    -- a planned route id that was renamed in an update still finds its route
+    local renamed = PF:GetRoute("a_57_winterspring")
+    check(renamed and renamed.id == "a_57_azshara", "a renamed route id (a_57_winterspring) finds the new route")
+    check(PF:GetRoute("a_99_never_was") == nil, "an id that never was finds nothing")
 
     -- session budget
     local dusk = PF:GetRoute("a_24_duskwood")
