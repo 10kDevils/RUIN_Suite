@@ -35,10 +35,27 @@ do
         end }
     for i = 1, 2 do
         env["RuinCrateTipTextLeft" .. i] = { GetText = function() return lines[i] end, SetText = function(_, x) lines[i] = x end,
-            GetFont = function() return "Fonts\\FRIZQT__.TTF", 12, "" end }
+            GetFont = function() return "Fonts\\FRIZQT__.TTF", 12, "" end, SetWordWrap = function(self, v) self.wrap = v end }
     end
     ex.PriceCrate(fake)
+    check(env.RuinCrateTipTextLeft2.wrap == false, "the game no longer wraps the crate's line")
+    -- the hook running again on lines already priced keeps them unwrapped and the tooltip wide
+    ex.CrateReset(fake)
+    minW = nil
+    local once = lines[2]
+    ex.PriceCrate(fake)
+    check(lines[2] == once and env.RuinCrateTipTextLeft2.wrap == false and minW and minW > 0,
+        "a crate priced already is laid out again, not priced twice")
     check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
+    -- a herb the game hasn't shown you yet still gets its price (by the crates' list of trade goods)
+    local savedHerb = db.prices[13463]
+    db.prices[13463] = { p = 2500, t = env.GetServerTime() }
+    local herbs = ex.CrateText("- 20 Dreamfoil\n- 20 Mountain Silversage") or ""
+    check(herbs:find("- 20 Dreamfoil  ", 1, true), "a reagent RUIN never saw by name is still priced")
+    db.prices[13463] = savedHerb
+    -- the bundles sit one a line, unwrapped, and the sentence above is broken by hand
+    check(lines[2]:find("^Use: Fill the crate with any bundle\nfrom the following list:\n"), "the sentence above the bundles is broken by hand")
+    check(ex.BreakLine("- 20 Dream Dust", 38) == "- 20 Dream Dust", "a short line is left whole")
     env.RUIN_API.Items.IdByName = realIdByName
     for id, v in pairs(saved) do db.prices[id] = v end
 end
