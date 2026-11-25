@@ -141,6 +141,18 @@ do
     check(st and st.where:find("Stormwind", 1, true) and stText:find("Bazil Thredd", 1, true) and stText:find("Hamhock", 1, true),
         "The Stockade has a Journal page: entrance and bosses")
 
+    -- a quest a dropped item starts: its pick-up is where the item drops
+    local QB = PF.QB
+    QB.ForgetSpots(9003)
+    local sp = QB.Spots(9003, "start")[1]
+    check(sp and sp.drop == "Torn Map" and sp.name == "Dark Iron Lookout", "a quest started by a dropped item is picked up where the item drops (" .. tostring(sp and sp.name) .. ")")
+    local pinned
+    local realPin = R.Map.SetPin
+    R.Map.SetPin = function(_, owner, key, p) if key == "quest" then pinned = p end end
+    PF:ShowQuestOnMap(9003, "start")
+    R.Map.SetPin = realPin
+    check(pinned and pinned.text == "Loot Torn Map from Dark Iron Lookout", "Mark on Map marks the drop: " .. tostring(pinned and pinned.text))
+
     -- without the database: the launch data's names, and why there's no more
     undo()
     alice.env.RUIN_QuestData = nil
