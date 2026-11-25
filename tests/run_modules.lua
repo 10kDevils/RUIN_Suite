@@ -133,6 +133,34 @@ eve.env.SlashCmdList.RUINMUSTERINTEL("enemy 8 Horde heading north")
 Server:Advance(2)
 check(chatHas(alice, "Enemy group") and chatHas(alice, "8 Horde heading north") and chatHas(alice, "The Crossroads"), "enemy sighting reached Alice with location")
 alice.env.RUIN_API:OpenTab("Muster")
+do
+    -- Eve reported from the spot Alice stands on: the tooltip says so plainly
+    local lines, found = {}, false
+    local oldPos = alice.pos
+    alice.pos = { map = eve.pos.map, x = eve.pos.x, y = eve.pos.y }
+    local fakeTip = { AddLine = function(_, l) table.insert(lines, tostring(l)) end }
+    for _, st in ipairs(alice.subtabs) do for j = 1, #st.buttons do st:Select(j) end end
+    for _, f in ipairs(alice.frames) do
+        if type(f.tip) == "function" then
+            lines = {}
+            pcall(f.tip, fakeTip)
+            local all = table.concat(lines, "\n")
+            if all:find("8 Horde heading north", 1, true) then
+                found = true
+                check(all:find("You are here", 1, true) and not all:find("here from you", 1, true),
+                    "sighting at your own spot reads 'You are here' (" .. all:gsub("\n", " | ") .. ")")
+                alice.pos = { map = eve.pos.map, x = eve.pos.x + 0.02, y = eve.pos.y }
+                lines = {}
+                pcall(f.tip, fakeTip)
+                all = table.concat(lines, "\n")
+                check(all:find("%d+ yd %a+ from you"), "farther sighting still reads 'N yd DIR from you'")
+                alice.pos = { map = eve.pos.map, x = eve.pos.x, y = eve.pos.y }
+            end
+        end
+    end
+    check(found, "sighting row has a tooltip")
+    alice.pos = oldPos
+end
 errorsSoFar("sightings")
 
 print("Practice mode (connected non-officer)")

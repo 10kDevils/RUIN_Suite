@@ -328,6 +328,18 @@ local result = {
     errors = Server.errors,
 }
 do local s = 0; for _, e in pairs(ouStats) do s = s + e.cpu end; result.cpu_ms.onupdate_10s = ms(s) end
+-- The burst and hour totals above are wall time and include the simulator's own work (firing an
+-- event walks every frame of the client; each timer run re-sorts the whole timer list), which
+-- swamps the addons' share. These two add up only the timed addon calls (message delivery counts:
+-- it is the addons' CHAT_MSG_ADDON handling).
+do
+    local s = 0
+    for _, e in pairs(evStats) do s = s + e.cpu end
+    result.cpu_ms.event_burst_addon = ms(s)
+    s = 0
+    for k, e in pairs(tmStats) do if not k:find("harness%.lua") then s = s + e.cpu end end
+    result.cpu_ms.timers_hour_addon = ms(s)
+end
 
 -- minimal JSON writer
 local function json(v, ind)
@@ -364,6 +376,8 @@ p(("Memory (KB): loaded %d, after the page tour %d, after an hour %d (hour growt
     result.memory_kb.loaded, result.memory_kb.toured, result.memory_kb.after_hour, result.memory_kb.growth_hour))
 p(("CPU (simulator ms): event burst %.1f, OnUpdate 10 s %.1f, timers 1 h %.1f."):format(
     result.cpu_ms.event_burst, result.cpu_ms.onupdate_10s, result.cpu_ms.timers_hour))
+p(("Addon calls only (without the simulator's own work): event burst %.1f, timers 1 h %.1f."):format(
+    result.cpu_ms.event_burst_addon, result.cpu_ms.timers_hour_addon))
 p(("Objects: %d frames, %d textures (%d plain colour), %d font strings. Timers pending: %d before the hour, %d after.\n"):format(
     counts.Frame, counts.Texture, colorTex, counts.FontString, pendingBefore, #Server.timers))
 local function tbl(title, list, cols)
@@ -410,7 +424,7 @@ if PREV then
             local old = num(k)
             if old then p(("- memory %s: %d -> %d KB (%+d)"):format(k, old, result.memory_kb[k], result.memory_kb[k] - old)) end
         end
-        for _, k in ipairs({ "event_burst", "onupdate_10s", "timers_hour" }) do
+        for _, k in ipairs({ "event_burst", "onupdate_10s", "timers_hour", "event_burst_addon", "timers_hour_addon" }) do
             local old = num(k)
             if old then p(("- CPU %s: %.1f -> %.1f ms"):format(k, old, result.cpu_ms[k])) end
         end
