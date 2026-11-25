@@ -1,14 +1,18 @@
 [
- {
-  "id": "L-e894654e",
-  "reason": "Pop-out guild chat at 90% opacity lets the window behind show through; that is what the Opacity setting does."
- },
- {
-  "id": "L-5f15a8c3",
-  "reason": "The Waypoint Editor dialog opens over the route tracker; a dialog on top of the HUD is expected."
- },
- {
-  "id": "L-9e003477",
-  "reason": "The Waypoint Editor dialog opens over the route tracker (its - button over the tracker title); a dialog on top of the HUD is expected."
- }
+  {
+    "id": "L-e894654e",
+    "reason": "Pop-out guild chat at 90% opacity lets the window behind show through; that is what the Opacity setting does."
+  },
+  {
+    "id": "L-5f15a8c3",
+    "reason": "The Waypoint Editor dialog opens over the route tracker; a dialog on top of the HUD is expected."
+  },
+  {
+    "id": "L-9e003477",
+    "reason": "The Waypoint Editor dialog opens over the route tracker (its - button over the tracker title); a dialog on top of the HUD is expected."
+  },
+  {
+    "id": "L-60baef21",
+    "reason": "The Waypoint Editor window is drawn over the tracker in the scene; in game the editor sits above it (same as L-5f15a8c3, renamed by the route's new title)."
+  }
 ]
