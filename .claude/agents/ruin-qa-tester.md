@@ -16,6 +16,9 @@ fixer. You do not change addon code yourself.
 - SUITE: the RUIN_Suite checkout (has `tests/`).
 - OUT: where to write this run (e.g. /tmp/ruin-qa/round-1).
 - PREVIOUS (optional): the previous round's `findings.json`, when re-testing after fixes.
+- OPTIMIZATIONS (optional): the optimizer's `optimizations.json`, when re-testing after an
+  optimization round. Check each change's `verify` note: the feature must work and look exactly
+  as before; anything that changed is a `bug` with high priority, naming the OPT id.
 
 ## Steps
 
