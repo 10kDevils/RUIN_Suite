@@ -23,6 +23,22 @@ do
     check(out:find("- 4 Greater Nether Essence  ", 1, true), "every priced bundle gets its cost")
     check(out:find("- 6 Unpriced Shard$"), "a bundle nobody has priced is left as it was")
     check(ex.CrateText(out) == nil, "a crate already priced isn't priced twice")
+    -- on a tooltip: the line is priced and the tooltip made wide enough for it
+    local lines = { "Waylaid Crate: Artisan Curiosities", text }
+    local minW
+    local fake = { GetName = function() return "RuinCrateTip" end, NumLines = function() return #lines end,
+        SetMinimumWidth = function(_, w) minW = w end, HookScript = function() end,
+        CreateFontString = function()
+            local t = ""
+            return { Hide = function() end, SetWordWrap = function() end, SetFont = function() end,
+                SetText = function(_, x) t = x end, GetStringWidth = function() return #t * 3 end }
+        end }
+    for i = 1, 2 do
+        env["RuinCrateTipTextLeft" .. i] = { GetText = function() return lines[i] end, SetText = function(_, x) lines[i] = x end,
+            GetFont = function() return "Fonts\\FRIZQT__.TTF", 12, "" end }
+    end
+    ex.PriceCrate(fake)
+    check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
     env.RUIN_API.Items.IdByName = realIdByName
     for id, v in pairs(saved) do db.prices[id] = v end
 end
