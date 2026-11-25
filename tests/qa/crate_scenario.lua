@@ -103,6 +103,9 @@ function tip:Show()
     if not self._shown then self._shown = true; fire("OnShow") end
 end
 function tip:Hide() self._shown = false; self:ClearLines() end
+function tip:IsShown() return self._shown end
+function tip:GetHeight() return 100 end
+function tip:SetHeight() end
 
 -- show an item: clear, add the game's lines, run post-calls, show
 local function showItem(id, name, lines)
@@ -125,7 +128,10 @@ local function rows(fs)
     for l in (fs._text .. "\n"):gmatch("(.-)\n") do
         local w = lineW(plainT(l), fs._size)
         local cap = fs._w or tip._inner
-        if fs._wrap and w > cap + 0.5 then out[#out + 1] = { text = l, wrapped = true, w = w }
+        -- only bundle rows count: the sentence above them is meant to wrap
+        local row = plainT(l):find("^%s*%-%s*%d+%s") ~= nil
+        if not row then out[#out + 1] = { text = l, w = w }
+        elseif fs._wrap and w > cap + 0.5 then out[#out + 1] = { text = l, wrapped = true, w = w }
         else out[#out + 1] = { text = l, w = w, over = (w > tip._inner + 0.5) } end
     end
     return out
@@ -201,7 +207,7 @@ for _, ps in ipairs(priceSets) do
         local rs2 = rows(fs)
         local wrapped2 = false
         for _, r in ipairs(rs2) do if r.wrapped or r.over then wrapped2 = true end end
-        check(not wrapped2 and fs._wrap == false, label .. ": after a second post-call the prices still stay on their lines (wrap="
+        check(not wrapped2, label .. ": after a second post-call the prices still stay on their lines (wrap="
             .. tostring(fs._wrap) .. ", min width=" .. tip._minW .. ")")
         -- fresh show of the same crate (normal path)
         tip:Hide()
@@ -280,3 +286,80 @@ for _, c in ipairs(CRATES) do
     for _, r in ipairs(rows(env[NAME .. "TextLeft4"])) do if r.wrapped then n = n + 1; print("    WRAPS " .. env.RUIN_API.Widgets.PlainMoney(r.text) .. (" %.0f > %.0f"):format(r.w, tip._inner)) end end
     print(("  %s: %dpx -> %dpx, %d priced rows wrap"):format(c[2], w1, tip._w, n))
 end
+
+---------------------------------------------------------------------------
+-- QA round 3 additions: heights, refresh without OnShow, what is measured
+print("\nround 3 checks")
+local p3, f3 = 0, 0
+local function check3(c, label) if c then p3 = p3 + 1; print("  ok   " .. label) else f3 = f3 + 1; print("  FAIL " .. label) end end
+local ROW = 14
+-- give the font strings heights: auto (rows at the current width) unless set
+local function nrows(fs, width)
+    local n = 0
+    for l in (fs._text .. "\n"):gmatch("(.-)\n") do
+        local w = lineW(plainT(l), fs._size)
+        n = n + ((fs._wrap and width and width > 0) and math.max(1, math.ceil(w / width - 1e-6)) or 1)
+    end
+    return n
+end
+for i = 1, 12 do
+    local fs = env[NAME .. "TextLeft" .. i]
+    if not fs then fs = newFS("L" .. i); env[NAME .. "TextLeft" .. i] = fs end
+    function fs:GetStringHeight() return nrows(self, self._w) * ROW end
+    function fs:GetHeight() return self._h or self:GetStringHeight() end
+    function fs:SetHeight(h) self._h = (h and h > 0) and h or nil end
+end
+local function truncated(fs) return fs._h and fs:GetStringHeight() > fs._h + 0.5 end
+for i, it in ipairs(ITEMS) do db.prices[it[1]] = { p = priceSets[3].f(i, 20), t = env.GetServerTime() } end
+
+-- A) the game laid the crate line out narrower than PriceCrate asked (min width
+-- not applied, e.g. layout ran first): CrateFit fixes the width and the height
+local realMin = tip.SetMinimumWidth
+tip:Hide()
+tip.SetMinimumWidth = nil
+showItem(900002, CRATES[2][2], crateLines(CRATES[2]))
+tip.SetMinimumWidth = realMin
+local L4 = env[NAME .. "TextLeft4"]
+print(("  crate fitted: line 4 width %s, fixed height %s (rows %d)"):format(tostring(L4._w), tostring(L4._h), nrows(L4, L4._w)))
+-- next tooltip: a long wrapped line lands on line 4
+tip:Hide()
+local long4 = "Equip: Increases the damage done by your Fire spells by up to 20 and lets you breathe under water for longer than usual, and more besides so it runs to several rows."
+showItem(5191, "Cruel Barb", { { "Binds when equipped", false }, { "Unique", false }, { long4, true } })
+print(("  next item: line 4 fixed height %s, needs %d (rows %d at %s)"):format(tostring(L4._h), L4:GetStringHeight(), nrows(L4, L4._w), tostring(L4._w)))
+check3(not truncated(L4), "the line CrateFit shortened isn't left with a fixed height that cuts the next tooltip's text")
+
+-- B) refreshed in place (bag / auction house rebuild without hiding): the fit
+-- applied on first show is undone and not redone
+for i = 1, 12 do local f = env[NAME .. "TextLeft" .. i]; if f then f._h = nil end end
+for i, it in ipairs(ITEMS) do db.prices[it[1]] = { p = priceSets[4].f(i, 20), t = env.GetServerTime() } end
+local SHORTUSE = { { "Binds when picked up", false }, { "Unique", false }, { "Use: Fill it:\n- 4 Greater Nether Essence\n- 6 Small Brilliant Shard", true } }
+CRATES[2] = { 900002, CRATES[2][2], CRATES[2][3] }
+local realLines = crateLines
+crateLines = function() return SHORTUSE end
+tip:Hide()
+tip.SetMinimumWidth = nil
+showItem(900002, CRATES[2][2], crateLines(CRATES[2]))
+local wFirst = L4._userW
+-- in place: clear + lines + post-call + Show, but no Hide (OnShow doesn't fire)
+tip:ClearLines()
+tip._item = { CRATES[2][2], "|cffffffff|Hitem:900002::|h[x]|h|r" }
+tip:AddLine(CRATES[2][2]); for _, l in ipairs(crateLines(CRATES[2])) do tip:AddLine(l[1], 1, 1, 1, l[2]) end
+hook(tip, nil); tip:Show()
+Server:Advance(0.1)        -- the next frame, when Exchange fits a tooltip rebuilt in place
+tip.SetMinimumWidth = realMin
+crateLines = realLines
+local wraps = 0
+for _, r in ipairs(rows(L4)) do if r.wrapped and r.text:find("^%- ") then wraps = wraps + 1 end end
+print(("  first show line width %s, after in-place refresh %s, priced rows wrapping %d"):format(tostring(wFirst), tostring(L4._userW), wraps))
+check3(wraps == 0, "an in-place refresh (no OnShow) keeps the prices on their bundles when the minimum width isn't honoured")
+
+-- C) only the bundle rows set the width: the Use: sentence keeps wrapping as usual
+tip:Hide()
+local longUse = "Use: Fill the crate with any one bundle from the following list and bring it to a Supply Officer of your faction for a reward:"
+showItem(900002, CRATES[2][2], { { "Binds when picked up", false }, { longUse .. "\n- 10 Truesilver Ore\n- 20 Thorium Ore", true } })
+local bundleW = 0
+for l in (env[NAME .. "TextLeft3"]._text .. "\n"):gmatch("(.-)\n") do if l:find("^%- ") then bundleW = math.max(bundleW, lineW(plainT(l), 12)) end end
+print(("  widest bundle row %.0fpx, Use: sentence %.0fpx, minimum width %s, tooltip %s"):format(bundleW, lineW(longUse, 12), tostring(tip._minW), tostring(tip._w)))
+check3(tip._minW <= math.max(bundleW + 24 + 1, WRAP_DEFAULT + PAD), "the minimum width follows the bundle rows, not the unwrapped Use: sentence")
+
+print(("\nround 3: %d passed, %d failed"):format(p3, f3))

@@ -38,13 +38,13 @@ do
             GetFont = function() return "Fonts\\FRIZQT__.TTF", 12, "" end, SetWordWrap = function(self, v) self.wrap = v end }
     end
     ex.PriceCrate(fake)
-    check(env.RuinCrateTipTextLeft2.wrap == false, "the game no longer wraps the crate's line")
+    check(env.RuinCrateTipTextLeft2.wrap == nil, "the crate's line is left to wrap as the game does (never cut to one line)")
     -- the hook running again on lines already priced keeps them unwrapped and the tooltip wide
     ex.CrateReset(fake)
     minW = nil
     local once = lines[2]
     ex.PriceCrate(fake)
-    check(lines[2] == once and env.RuinCrateTipTextLeft2.wrap == false and minW and minW > 0,
+    check(lines[2] == once and minW and minW > 0,
         "a crate priced already is laid out again, not priced twice")
     check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
     -- a herb the game hasn't shown you yet still gets its price (by the crates' list of trade goods)
@@ -54,8 +54,17 @@ do
     check(herbs:find("- 20 Dreamfoil  ", 1, true), "a reagent RUIN never saw by name is still priced")
     db.prices[13463] = savedHerb
     -- the bundles sit one a line, unwrapped, and the sentence above is broken by hand
-    check(lines[2]:find("^Use: Fill the crate with any bundle\nfrom the following list:\n"), "the sentence above the bundles is broken by hand")
-    check(ex.BreakLine("- 20 Dream Dust", 38) == "- 20 Dream Dust", "a short line is left whole")
+    -- a measuring font string that refuses text (no font yet, as in game) still leaves the prices and a width
+    ex.CrateReset(fake)
+    lines[2] = text
+    fake.ruinMeasure = nil
+    fake.CreateFontString = function()
+        return { Hide = function() end, SetWordWrap = function() end, SetFont = function() end,
+            SetText = function() error("Font not set") end, GetStringWidth = function() return 0 end }
+    end
+    minW = nil
+    ex.PriceCrate(fake)
+    check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 100, "if measuring fails the prices stay and the width is estimated")
     env.RUIN_API.Items.IdByName = realIdByName
     for id, v in pairs(saved) do db.prices[id] = v end
 end
