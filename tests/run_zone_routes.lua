@@ -18,7 +18,7 @@ do
     local zones = PF.ZoneRoutes()
     local elwynn
     for _, r in ipairs(zones) do if r.zoneName == "Elwynn Forest" then elwynn = r end end
-    check(elwynn and elwynn.title == "Elwynn Forest 5-12" and elwynn.quests == 4, "a zone with quests gets a route, titled by its levels (" .. tostring(elwynn and elwynn.title) .. ")")
+    check(elwynn and elwynn.title == "5-12 Elwynn Forest" and elwynn.quests == 4, "a zone with quests gets a route, titled by its levels (" .. tostring(elwynn and elwynn.title) .. ")")
     for _, r in ipairs(zones) do check(r.zoneName ~= "Zone 16919", "dungeon zones are left to the dungeon routes") end
     local city, bg = false, false
     for _, r in ipairs(zones) do

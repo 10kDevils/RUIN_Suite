@@ -47,7 +47,7 @@ do
     local delivery = false
     for _, s in ipairs(r and r.steps or {}) do if s.act == "complete" and s.quest == "A Torn Map" then delivery = true end end
     check(not delivery, "a delivery quest has no separate Do step")
-    check(r and r.id == "dq:hallofthanes" and r.title == "Hall of Thanes quests" and r.quests == 4, "the route has its own id and title")
+    check(r and r.id == "dq:hallofthanes" and r.title:match("^%d+%-?%d* Hall of Thanes quests$") and r.quests == 4, "the route has its own id and title")
 
     -- done quests: the unlock quest done makes the next one available
     done[9003] = true

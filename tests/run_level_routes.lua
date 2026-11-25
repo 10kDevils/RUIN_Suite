@@ -61,7 +61,7 @@ do
     for _, sec in ipairs(PF.RouteLibrary()) do
         local last
         for _, x in ipairs(sec.routes) do
-            if not x.dungeon and x.lo and not PF.Title(x):match("^%d+%-%d+ ") then named = false end
+            if x.lo and not PF.Title(x):match("^%d+%-?%d* ") then named = false end
             if last and (x.lo or 999) < (last.lo or 999) then ordered = false end
             last = x
         end
