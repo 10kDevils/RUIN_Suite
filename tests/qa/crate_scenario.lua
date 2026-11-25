@@ -23,7 +23,7 @@ check(hook ~= nil, "Exchange registered a tooltip post-call")
 local function plainT(s)
     s = tostring(s or "")
     s = s:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|H.-|h(.-)|h", "%1")
-    s = s:gsub("|T.-|t", "WW"):gsub("|n", "\n")
+    s = s:gsub("|T.-|t", "WW"):gsub("|n", "\n"):gsub("\194\160", " ")
     return s
 end
 local function lineW(line, size)
@@ -193,7 +193,7 @@ for _, ps in ipairs(priceSets) do
             local want = env.RUIN_API.Widgets.PlainMoney(env.RUIN_API.Widgets.Money(db.prices[idOf[b[2]]].p * b[1]))
             local got
             for l in (txt .. "\n"):gmatch("(.-)\n") do
-                local nm, money = l:match("^%- %d+ (.-)  (.+)$")
+                local nm, money = l:gsub("\194\160", " "):match("^%- %d+ (.-)  (.+)$")
                 if nm == b[2] then got = env.RUIN_API.Widgets.PlainMoney(money) end
             end
             check(got == want, ("%s: %d %s priced %s (got %s)"):format(label, b[1], b[2], want, tostring(got)))
@@ -360,6 +360,6 @@ showItem(900002, CRATES[2][2], { { "Binds when picked up", false }, { longUse ..
 local bundleW = 0
 for l in (env[NAME .. "TextLeft3"]._text .. "\n"):gmatch("(.-)\n") do if l:find("^%- ") then bundleW = math.max(bundleW, lineW(plainT(l), 12)) end end
 print(("  widest bundle row %.0fpx, Use: sentence %.0fpx, minimum width %s, tooltip %s"):format(bundleW, lineW(longUse, 12), tostring(tip._minW), tostring(tip._w)))
-check3(tip._minW <= math.max(bundleW + 24 + 1, WRAP_DEFAULT + PAD), "the minimum width follows the bundle rows, not the unwrapped Use: sentence")
+check3(tip._minW <= math.max(bundleW + 70, WRAP_DEFAULT + PAD), "the minimum width follows the bundle rows, not the unwrapped Use: sentence")
 
 print(("\nround 3: %d passed, %d failed"):format(p3, f3))

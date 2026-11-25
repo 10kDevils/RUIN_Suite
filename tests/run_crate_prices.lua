@@ -18,11 +18,13 @@ do
     env.RUIN_API.Items.IdByName = function(n) return ({ ["Dream Dust"] = 11176, ["Greater Nether Essence"] = 11175 })[n] or realIdByName(n) end
     local text = "Use: Fill the crate with any bundle from the following list:\n- 20 Dream Dust\n- 4 Greater Nether Essence\n- 6 Unpriced Shard"
     local out = ex.CrateText(text) or ""
-    local dust = out:match("%- 20 Dream Dust  ([^\n]+)")
+    local dust = out:match("%- 20 Dream Dust\194\160\194\160([^\n]+)")
     check(dust and env.RUIN_API.Widgets.PlainMoney(dust) == "36g", "20 Dream Dust shows what 20 cost, in coins (" .. tostring(dust) .. ")")
-    check(out:find("- 4 Greater Nether Essence  ", 1, true), "every priced bundle gets its cost")
+    check(out:find("- 4 Greater Nether Essence\194\160\194\160", 1, true), "every priced bundle gets its cost")
     check(out:find("- 6 Unpriced Shard$"), "a bundle nobody has priced is left as it was")
     check(ex.CrateText(out) == nil, "a crate already priced isn't priced twice")
+    local nether = out:match("Greater Nether Essence([^\n]*)") or ""
+    check(nether ~= "" and not nether:find(" ", 1, true), "the price is tied to the name with no-break spaces, so it can't wrap to the next row")
     -- on a tooltip: the line is priced and the tooltip made wide enough for it
     local lines = { "Waylaid Crate: Artisan Curiosities", text }
     local minW
@@ -46,12 +48,12 @@ do
     ex.PriceCrate(fake)
     check(lines[2] == once and minW and minW > 0,
         "a crate priced already is laid out again, not priced twice")
-    check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
+    check(lines[2]:find("- 20 Dream Dust\194\160\194\160", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
     -- a herb the game hasn't shown you yet still gets its price (by the crates' list of trade goods)
     local savedHerb = db.prices[13463]
     db.prices[13463] = { p = 2500, t = env.GetServerTime() }
     local herbs = ex.CrateText("- 20 Dreamfoil\n- 20 Mountain Silversage") or ""
-    check(herbs:find("- 20 Dreamfoil  ", 1, true), "a reagent RUIN never saw by name is still priced")
+    check(herbs:find("- 20 Dreamfoil\194\160\194\160", 1, true), "a reagent RUIN never saw by name is still priced")
     db.prices[13463] = savedHerb
     -- the bundles sit one a line, unwrapped, and the sentence above is broken by hand
     -- a measuring font string that refuses text (no font yet, as in game) still leaves the prices and a width
@@ -64,7 +66,7 @@ do
     end
     minW = nil
     ex.PriceCrate(fake)
-    check(lines[2]:find("- 20 Dream Dust  ", 1, true) and minW and minW > 100, "if measuring fails the prices stay and the width is estimated")
+    check(lines[2]:find("- 20 Dream Dust\194\160\194\160", 1, true) and minW and minW > 100, "if measuring fails the prices stay and the width is estimated")
     env.RUIN_API.Items.IdByName = realIdByName
     for id, v in pairs(saved) do db.prices[id] = v end
 end
