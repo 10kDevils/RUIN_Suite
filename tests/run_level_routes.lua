@@ -54,6 +54,20 @@ do
     check(s12[1] and s12[1].follows == "a_06_teldrassil", "at 12 a night elf is sent on from Teldrassil (" .. tostring(s12[1] and s12[1].id) .. ")")
     local tel = PF:GetRoute("a_06_teldrassil")
     check(tel.steps[#tel.steps].text:find("move on to", 1, true), "when home runs out of quests its last step says where to move on to")
+    -- every levelling route's name starts with its levels, and each section is in level order
+    check(PF.Title({ title = "Hall of Thanes 13-18", levels = "13-18", steps = {} }) == "13-18 Hall of Thanes",
+        "a route's name starts with its level range")
+    local named, ordered = true, true
+    for _, sec in ipairs(PF.RouteLibrary()) do
+        local last
+        for _, x in ipairs(sec.routes) do
+            if not x.dungeon and x.lo and not PF.Title(x):match("^%d+%-%d+ ") then named = false end
+            if last and (x.lo or 999) < (last.lo or 999) then ordered = false end
+            last = x
+        end
+    end
+    check(named, "every levelling route in the list starts with its level range")
+    check(ordered, "every section of the list is sorted by level")
     db.route, db.prevRoute = keepRoute, keepPrev
     env.UnitLevel, env.UnitRace = saved.UnitLevel, saved.UnitRace
 
