@@ -1,72 +1,30 @@
--- Exchange prices each bundle a Waylaid Crate asks for, on the crate's own
--- tooltip lines. Runs inside run_features.lua.
+-- Exchange lists the bundles a Waylaid Crate asks for in its RUIN: Exchange
+-- box, each with what it costs on the auction house. Runs inside run_features.lua.
 local alice, check = T.alice, T.check
 
-print("Exchange: Waylaid Crate bundle prices")
+print("Exchange: Waylaid Crate bundles in the Exchange box")
 do
     local env = alice.env
     local ex = env.RUIN_API:GetModule("Exchange")
     local db = env.RUIN_ExchangeDB
     local saved = {}
-    for _, e in ipairs({ { 11176, "Dream Dust", 18000 }, { 11175, "Greater Nether Essence", 90000 } }) do
-        local id, name, p = e[1], e[2], e[3]
-        saved[id] = db.prices[id]
-        db.prices[id] = { p = p, t = env.GetServerTime() }
-        env.RUIN_ItemCache = env.RUIN_ItemCache or {}
-    end
-    local realIdByName = env.RUIN_API.Items.IdByName
-    env.RUIN_API.Items.IdByName = function(n) return ({ ["Dream Dust"] = 11176, ["Greater Nether Essence"] = 11175 })[n] or realIdByName(n) end
-    local text = "Use: Fill the crate with any bundle from the following list:\n- 20 Dream Dust\n- 4 Greater Nether Essence\n- 6 Unpriced Shard"
-    local out = ex.CrateText(text) or ""
-    local dust = out:match("%- 20 Dream Dust\194\160\194\160([^\n]+)")
-    check(dust and env.RUIN_API.Widgets.PlainMoney(dust) == "36g", "20 Dream Dust shows what 20 cost, in coins (" .. tostring(dust) .. ")")
-    check(out:find("- 4 Greater Nether Essence\194\160\194\160", 1, true), "every priced bundle gets its cost")
-    check(out:find("- 6 Unpriced Shard$"), "a bundle nobody has priced is left as it was")
-    check(ex.CrateText(out) == nil, "a crate already priced isn't priced twice")
-    local nether = out:match("Greater Nether Essence([^\n]*)") or ""
-    check(nether ~= "" and not nether:find(" ", 1, true), "the price is tied to the name with no-break spaces, so it can't wrap to the next row")
-    -- on a tooltip: the line is priced and the tooltip made wide enough for it
-    local lines = { "Waylaid Crate: Artisan Curiosities", text }
-    local minW
-    local fake = { GetName = function() return "RuinCrateTip" end, NumLines = function() return #lines end,
-        SetMinimumWidth = function(_, w) minW = w end, HookScript = function() end,
-        CreateFontString = function()
-            local t = ""
-            return { Hide = function() end, SetWordWrap = function() end, SetFont = function() end,
-                SetText = function(_, x) t = x end, GetStringWidth = function() return #t * 3 end }
-        end }
-    for i = 1, 2 do
-        env["RuinCrateTipTextLeft" .. i] = { GetText = function() return lines[i] end, SetText = function(_, x) lines[i] = x end,
-            GetFont = function() return "Fonts\\FRIZQT__.TTF", 12, "" end, SetWordWrap = function(self, v) self.wrap = v end }
-    end
-    ex.PriceCrate(fake)
-    check(env.RuinCrateTipTextLeft2.wrap == nil, "the crate's line is left to wrap as the game does (never cut to one line)")
-    -- the hook running again on lines already priced keeps them unwrapped and the tooltip wide
-    ex.CrateReset(fake)
-    minW = nil
-    local once = lines[2]
-    ex.PriceCrate(fake)
-    check(lines[2] == once and minW and minW > 0,
-        "a crate priced already is laid out again, not priced twice")
-    check(lines[2]:find("- 20 Dream Dust\194\160\194\160", 1, true) and minW and minW > 0, "the crate's tooltip is priced and widened so no bundle wraps from its price")
-    -- a herb the game hasn't shown you yet still gets its price (by the crates' list of trade goods)
-    local savedHerb = db.prices[13463]
-    db.prices[13463] = { p = 2500, t = env.GetServerTime() }
-    local herbs = ex.CrateText("- 20 Dreamfoil\n- 20 Mountain Silversage") or ""
-    check(herbs:find("- 20 Dreamfoil\194\160\194\160", 1, true), "a reagent RUIN never saw by name is still priced")
-    db.prices[13463] = savedHerb
-    -- the bundles sit one a line, unwrapped, and the sentence above is broken by hand
-    -- a measuring font string that refuses text (no font yet, as in game) still leaves the prices and a width
-    ex.CrateReset(fake)
-    lines[2] = text
-    fake.ruinMeasure = nil
-    fake.CreateFontString = function()
-        return { Hide = function() end, SetWordWrap = function() end, SetFont = function() end,
-            SetText = function() error("Font not set") end, GetStringWidth = function() return 0 end }
-    end
-    minW = nil
-    ex.PriceCrate(fake)
-    check(lines[2]:find("- 20 Dream Dust\194\160\194\160", 1, true) and minW and minW > 100, "if measuring fails the prices stay and the width is estimated")
-    env.RUIN_API.Items.IdByName = realIdByName
+    for id, p in pairs({ [13463] = 1300, [13465] = 1050 }) do saved[id] = db.prices[id]; db.prices[id] = { p = p, t = env.GetServerTime() } end
+    saved[13467] = db.prices[13467]; db.prices[13467] = nil
+    -- a tooltip whose lines the game wrote
+    local lines = { "Waylaid Crate: Flowering Artisan Herbs",
+        "Use: Fill the crate with any bundle from the following list:\n- 20 Dreamfoil\n- 20 Mountain Silversage\n- 20 Icecap", "Requires Level 35" }
+    local tip = { GetName = function() return "RuinCrateTip" end, NumLines = function() return #lines end }
+    for i = 1, 3 do env["RuinCrateTipTextLeft" .. i] = { GetText = function() return lines[i] end } end
+    local b = ex.CrateBundles(tip)
+    check(b and #b == 3 and b[1].n == 20 and b[1].name == "Dreamfoil" and b[1].id == 13463, "the crate's bundles are read from its tooltip, even items never seen by name")
+    local out = ex.CrateLines(b)
+    local W = env.RUIN_API.Widgets
+    check(out[1]:find("Fill it with", 1, true), "the box says what fills it")
+    check(W.PlainMoney(out[2]):find("20 Dreamfoil:|r 2g 60s", 1, true), "each bundle shows its total AH price (" .. W.PlainMoney(out[2]) .. ")")
+    check(W.PlainMoney(out[2]):find("(13s each)", 1, true), "and the price of one")
+    check(out[4]:find("20 Icecap", 1, true) and out[4]:find("none yet", 1, true), "a reagent with no AH price says none yet")
+    check(lines[2]:find("- 20 Dreamfoil\n", 1, true), "the game's own lines are left as they are")
+    lines[1] = "Linen Cloth"
+    check(ex.CrateBundles(tip) == nil, "other items get no bundle list")
     for id, v in pairs(saved) do db.prices[id] = v end
 end
