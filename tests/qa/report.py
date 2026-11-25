@@ -26,8 +26,11 @@ def load_jsonl(path):
 def group_layout(items):
     groups = {}
     for f in items:
-        # digits out of the key: clock times, dates and counts change every run
+        # digits, weekday names and AM/PM out of the key: clock times, dates and
+        # counts change every run (Muster rows show "Tue 11/24 11:37 PM")
         key = re.sub(r"\d+", "#", f["rule"] + "|" + f["message"] + "|" + str(f.get("text") or ""))
+        key = re.sub(r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b", "Day", key)
+        key = re.sub(r"(#) ?[AP]M\b", r"\1 XM", key)
         g = groups.get(key)
         if not g:
             g = {
